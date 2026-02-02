@@ -1,1 +1,147 @@
-# gitignore sera preenchido depois 
+############################################################
+# SimulDIESEL - .gitignore oficial (Monorepo)
+# Cloud + Local API + Hardware + Firmware
+# Gerbers NÃO versionados (somente quando fabricar)
+############################################################
+
+
+############################################################
+# Windows / Sistema
+############################################################
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+
+############################################################
+# Logs e temporários gerais
+############################################################
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+
+
+############################################################
+# Visual Studio / .NET / C#
+############################################################
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.pdb
+*.dll
+*.exe
+
+
+############################################################
+# VS Code
+############################################################
+.vscode/
+.history/
+
+
+############################################################
+# PlatformIO / Arduino / Embedded
+############################################################
+.pio/
+.pioenvs/
+.piolibdeps/
+*.elf
+*.hex
+*.bin
+*.map
+
+
+############################################################
+# Python (futuro)
+############################################################
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+env/
+
+
+############################################################
+# Node / Angular (futuro frontend)
+############################################################
+node_modules/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+
+############################################################
+# KiCad (versionar apenas fonte do projeto)
+############################################################
+
+# Cache e temporários do KiCad
+fp-info-cache
+*.kicad_prl
+*.kicad_pro-bak
+*.kicad_sch-bak
+*.kicad_pcb-bak
+
+# Backups automáticos
+*-backups/
+*.bak
+*.bck
+*.old
+*.backup
+
+# Arquivos de lock e temporários
+~*
+*.lck
+
+
+############################################################
+# FreeCAD / Mecânica
+############################################################
+*.FCStd1
+*.FCBak
+
+
+############################################################
+# GERBERS e arquivos de fabricação (NÃO versionar)
+############################################################
+
+# Qualquer pasta de gerber exportado
+hardware/**/gerber/
+hardware/**/gerbers/
+
+# Pastas de fabricação completas
+hardware/**/fabrication/gerbers/
+hardware/**/fabrication/drill/
+hardware/**/fabrication/bom/
+hardware/**/fabrication/pickplace/
+
+# Arquivos de saída típicos
+*.gbr
+*.drl
+*.pos
+*.zip
+
+
+############################################################
+# Arquivos grandes e compactados (evitar no Git)
+############################################################
+*.rar
+*.7z
+
+
+############################################################
+# Arquivos de release locais (opcional)
+############################################################
+releases/
+build/
+
+
+############################################################
+# FIM
+############################################################
+

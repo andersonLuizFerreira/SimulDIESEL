@@ -1,0 +1,7033 @@
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "71331089-eede-42c9-9b9d-c92cd16f8958")
+	(paper "A4")
+	(title_block
+		(title "Quad Gerador 0-5V LOW PWR")
+		(date "2025-11-13")
+		(rev "1.0")
+		(company "Centro Oeste Módulos")
+	)
+	(lib_symbols
+		(symbol "Amplifier_Operational:LM2902"
+			(pin_names
+				(offset 0.127)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "U"
+				(at 0 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "LM2902"
+				(at 0 -5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at -1.27 2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "http://www.ti.com/lit/ds/symlink/lm2902-n.pdf"
+				(at 1.27 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Low-Power, Quad-Operational Amplifiers, DIP-14/SOIC-14/SSOP-14"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_locked" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "quad opamp"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "SOIC*3.9x8.7mm*P1.27mm* DIP*W7.62mm* TSSOP*4.4x5mm*P0.65mm* SSOP*5.3x6.2mm*P0.65mm* MSOP*3x3mm*P0.5mm*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "LM2902_1_1"
+				(polyline
+					(pts
+						(xy -5.08 5.08) (xy 5.08 0) (xy -5.08 -5.08) (xy -5.08 5.08)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(pin input line
+					(at -7.62 2.54 0)
+					(length 2.54)
+					(name "+"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -7.62 -2.54 0)
+					(length 2.54)
+					(name "-"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 7.62 0 180)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(symbol "LM2902_2_1"
+				(polyline
+					(pts
+						(xy -5.08 5.08) (xy 5.08 0) (xy -5.08 -5.08) (xy -5.08 5.08)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(pin input line
+					(at -7.62 2.54 0)
+					(length 2.54)
+					(name "+"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -7.62 -2.54 0)
+					(length 2.54)
+					(name "-"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 7.62 0 180)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(symbol "LM2902_3_1"
+				(polyline
+					(pts
+						(xy -5.08 5.08) (xy 5.08 0) (xy -5.08 -5.08) (xy -5.08 5.08)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(pin input line
+					(at -7.62 2.54 0)
+					(length 2.54)
+					(name "+"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "10"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -7.62 -2.54 0)
+					(length 2.54)
+					(name "-"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "9"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 7.62 0 180)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(symbol "LM2902_4_1"
+				(polyline
+					(pts
+						(xy -5.08 5.08) (xy 5.08 0) (xy -5.08 -5.08) (xy -5.08 5.08)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(pin input line
+					(at -7.62 2.54 0)
+					(length 2.54)
+					(name "+"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "12"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -7.62 -2.54 0)
+					(length 2.54)
+					(name "-"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "13"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 7.62 0 180)
+					(length 2.54)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "14"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(symbol "LM2902_5_1"
+				(pin power_in line
+					(at -2.54 7.62 270)
+					(length 3.81)
+					(name "V+"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at -2.54 -7.62 90)
+					(length 3.81)
+					(name "V-"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "11"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Analog_DAC:MCP4725xxx-xCH"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "U"
+				(at -6.35 6.35 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "MCP4725xxx-xCH"
+				(at 8.89 6.35 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" "Package_TO_SOT_SMD:SOT-23-6"
+				(at 0 -6.35 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "http://ww1.microchip.com/downloads/en/DeviceDoc/22039d.pdf"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "12-bit Digital-to-Analog Converter, integrated EEPROM, I2C interface, SOT-23-6"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "dac twi"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "SOT?23*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "MCP4725xxx-xCH_0_1"
+				(rectangle
+					(start -7.62 5.08)
+					(end 7.62 -5.08)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+			)
+			(symbol "MCP4725xxx-xCH_1_1"
+				(pin input line
+					(at -10.16 2.54 0)
+					(length 2.54)
+					(name "SCL"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin bidirectional line
+					(at -10.16 0 0)
+					(length 2.54)
+					(name "SDA"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 -2.54 0)
+					(length 2.54)
+					(name "A0"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 0 7.62 270)
+					(length 2.54)
+					(name "VDD"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 0 -7.62 90)
+					(length 2.54)
+					(name "VSS"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 10.16 0 180)
+					(length 2.54)
+					(name "VOUT"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Device:C"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0.254)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "C"
+				(at 0.635 2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "C"
+				(at 0.635 -2.54 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0.9652 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Unpolarized capacitor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "cap capacitor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "C_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "C_0_1"
+				(polyline
+					(pts
+						(xy -2.032 0.762) (xy 2.032 0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -2.032 -0.762) (xy 2.032 -0.762)
+					)
+					(stroke
+						(width 0.508)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "C_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 2.794)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 2.794)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Device:R"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "R"
+				(at 2.032 0 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "R"
+				(at 0 0 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at -1.778 0 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Resistor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "R res resistor"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "R_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "R_0_1"
+				(rectangle
+					(start -1.016 -2.54)
+					(end 1.016 2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "R_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "power:+15V"
+			(power)
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "#PWR"
+				(at 0 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Value" "+15V"
+				(at 0 3.556 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Power symbol creates a global label with name \"+15V\""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "global power"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "+15V_0_1"
+				(polyline
+					(pts
+						(xy -0.762 1.27) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 2.54) (xy 0.762 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "+15V_1_1"
+				(pin power_in line
+					(at 0 0 90)
+					(length 0)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "power:GND"
+			(power)
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "#PWR"
+				(at 0 -6.35 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Value" "GND"
+				(at 0 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "global power"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "GND_0_1"
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 -1.27) (xy 1.27 -1.27) (xy 0 -2.54) (xy -1.27 -1.27) (xy 0 -1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "GND_1_1"
+				(pin power_in line
+					(at 0 0 270)
+					(length 0)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "power:VCC"
+			(power)
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "#PWR"
+				(at 0 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Value" "VCC"
+				(at 0 3.556 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Power symbol creates a global label with name \"VCC\""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "global power"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "VCC_0_1"
+				(polyline
+					(pts
+						(xy -0.762 1.27) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 2.54) (xy 0.762 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "VCC_1_1"
+				(pin power_in line
+					(at 0 0 90)
+					(length 0)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+	)
+	(junction
+		(at 210.82 52.07)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "03486113-cb03-4171-b760-75bc9891be5f")
+	)
+	(junction
+		(at 104.14 43.18)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "152ba1b5-0366-4dd2-abe4-6eb217919692")
+	)
+	(junction
+		(at 138.43 82.55)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "24c95fba-f081-4e4c-854a-ea007738d091")
+	)
+	(junction
+		(at 54.61 118.11)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "2c16e466-8579-425e-9f92-7f723536b72c")
+	)
+	(junction
+		(at 57.15 115.57)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "358702f7-138c-4743-b802-58ac7e30e2d0")
+	)
+	(junction
+		(at 54.61 43.18)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "36631c62-9b94-46d4-8907-0ea6380cd4ac")
+	)
+	(junction
+		(at 77.47 144.78)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "43027076-f363-4727-a809-0116d7676420")
+	)
+	(junction
+		(at 77.47 107.95)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "551e8db3-71a5-4f60-a206-3845ccdfbaa8")
+	)
+	(junction
+		(at 57.15 40.64)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "5e3df872-cfc0-4b34-9381-041dbb1bc9bb")
+	)
+	(junction
+		(at 138.43 157.48)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "7cacb2b0-8f25-4127-962d-c2ee8680ad9c")
+	)
+	(junction
+		(at 129.54 157.48)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "7f8bc24d-afc0-4c71-ae63-9e49d72f23a0")
+	)
+	(junction
+		(at 129.54 120.65)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "90d7ad51-d9fd-4111-aba5-f2a314bc5e62")
+	)
+	(junction
+		(at 138.43 45.72)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "91f72fcb-401e-4739-9dc8-e39f9b260f55")
+	)
+	(junction
+		(at 104.14 80.01)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "9550fbba-ceb7-4b16-8313-1f4a51d466db")
+	)
+	(junction
+		(at 210.82 67.31)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "b1b87e61-b757-46bb-90a9-65452e61302a")
+	)
+	(junction
+		(at 104.14 154.94)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "c5a8f883-9c1f-4c97-b6ff-28f6692f27cf")
+	)
+	(junction
+		(at 138.43 120.65)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "d047293e-b00b-44b7-aa8c-0a988ee2bb28")
+	)
+	(junction
+		(at 129.54 82.55)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "d9a6487e-1486-4183-b6fa-4b2adb4d278e")
+	)
+	(junction
+		(at 104.14 118.11)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "eae1d327-d582-4bfa-9fc6-f00693063a4e")
+	)
+	(junction
+		(at 129.54 45.72)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "f87bfb72-2b1f-4fd0-9f88-3399e1908712")
+	)
+	(junction
+		(at 77.47 33.02)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "fd770531-8ec7-4817-8495-87397de6e74d")
+	)
+	(junction
+		(at 77.47 69.85)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "ff0aadcf-8d70-4bb2-a67f-9b1164bb2cb5")
+	)
+	(wire
+		(pts
+			(xy 86.36 69.85) (xy 85.09 69.85)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "02ce31b1-d878-4f1c-ae28-3973080d405a")
+	)
+	(wire
+		(pts
+			(xy 111.76 123.19) (xy 111.76 129.54)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "03d5a991-17a0-4ce9-8629-d84351a06593")
+	)
+	(wire
+		(pts
+			(xy 129.54 45.72) (xy 128.27 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "04c3b451-cca1-42ab-a912-490d4e6673db")
+	)
+	(wire
+		(pts
+			(xy 64.77 82.55) (xy 67.31 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0694aa92-0629-472e-8d29-7fd5c9071ecb")
+	)
+	(wire
+		(pts
+			(xy 138.43 120.65) (xy 153.67 120.65)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "06d38660-5d0f-4e6f-81bb-e60a69d1ed1c")
+	)
+	(wire
+		(pts
+			(xy 64.77 45.72) (xy 67.31 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "06dd262f-4e1a-4ac2-8614-8ff8c04b1592")
+	)
+	(wire
+		(pts
+			(xy 67.31 77.47) (xy 57.15 77.47)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "07bee203-6a04-4540-b168-7fa7b560dc9e")
+	)
+	(wire
+		(pts
+			(xy 129.54 166.37) (xy 129.54 157.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "09092c81-79a0-49d6-aab1-91e163c851e5")
+	)
+	(wire
+		(pts
+			(xy 87.63 154.94) (xy 90.17 154.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0d827d5c-5f19-4563-8ff5-14a81c47c474")
+	)
+	(wire
+		(pts
+			(xy 57.15 152.4) (xy 57.15 115.57)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0fccc24d-f8a4-4b43-89d9-250db9a8c931")
+	)
+	(wire
+		(pts
+			(xy 104.14 118.11) (xy 104.14 119.38)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "10d72698-ac80-46b0-b6e8-5db9229f0451")
+	)
+	(wire
+		(pts
+			(xy 129.54 91.44) (xy 129.54 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "12fd2753-34d9-4abe-8124-fc38ecb04e6b")
+	)
+	(wire
+		(pts
+			(xy 113.03 48.26) (xy 111.76 48.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "15feb026-7046-4323-8d35-c9a87c834f22")
+	)
+	(wire
+		(pts
+			(xy 86.36 33.02) (xy 85.09 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "17cb3541-89b1-48bf-b01e-65010d405ad7")
+	)
+	(wire
+		(pts
+			(xy 77.47 69.85) (xy 77.47 72.39)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1a1bf90a-49be-491d-b4d8-49612eecd2bb")
+	)
+	(wire
+		(pts
+			(xy 129.54 157.48) (xy 128.27 157.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1a9f9e58-8970-48c0-9db9-fb5bfc57b881")
+	)
+	(wire
+		(pts
+			(xy 57.15 115.57) (xy 67.31 115.57)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1acd7273-7f60-4138-9a9b-d4ac5e9edf2d")
+	)
+	(wire
+		(pts
+			(xy 104.14 80.01) (xy 104.14 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1f40c4d3-c99f-4532-adfe-c99a5b7be4ba")
+	)
+	(wire
+		(pts
+			(xy 77.47 88.9) (xy 77.47 87.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "20ff76b2-ba0c-451f-a43f-98f126053e9a")
+	)
+	(wire
+		(pts
+			(xy 86.36 107.95) (xy 86.36 109.22)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "230a2b0b-0de0-464d-beb3-09ce51a524fb")
+	)
+	(wire
+		(pts
+			(xy 129.54 120.65) (xy 138.43 120.65)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "23dfc717-a12a-46ec-9751-393246da060a")
+	)
+	(wire
+		(pts
+			(xy 104.14 43.18) (xy 104.14 44.45)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "276c00ee-5cfb-4cf6-94da-ec26b4d40567")
+	)
+	(wire
+		(pts
+			(xy 129.54 82.55) (xy 138.43 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "283b226e-5bf3-48f3-ac63-89d7af11fec8")
+	)
+	(wire
+		(pts
+			(xy 54.61 118.11) (xy 67.31 118.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "28d50840-52b6-4728-9e70-c6018d4c09b1")
+	)
+	(wire
+		(pts
+			(xy 77.47 127) (xy 77.47 125.73)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2b08d349-588f-497d-8bc2-fbdcf92e90bd")
+	)
+	(wire
+		(pts
+			(xy 86.36 33.02) (xy 86.36 34.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3405653b-bdfe-4a84-b374-777aa625f732")
+	)
+	(wire
+		(pts
+			(xy 203.2 52.07) (xy 210.82 52.07)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3cf76fcd-1a10-48b1-86a2-261c7ef946d5")
+	)
+	(wire
+		(pts
+			(xy 111.76 91.44) (xy 129.54 91.44)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3d8e6a82-e505-472d-b34c-7b782c462213")
+	)
+	(wire
+		(pts
+			(xy 113.03 123.19) (xy 111.76 123.19)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3e4dc9cb-6dbf-452c-b673-f9fa77eb11ff")
+	)
+	(wire
+		(pts
+			(xy 138.43 82.55) (xy 153.67 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3f7d7141-4dd9-406c-8ad5-57b2e64a62b6")
+	)
+	(wire
+		(pts
+			(xy 104.14 80.01) (xy 113.03 80.01)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "41c40587-5817-4cf7-879e-c60c6e3e8c30")
+	)
+	(wire
+		(pts
+			(xy 97.79 43.18) (xy 104.14 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "44296305-485e-4af9-9915-4f1f7d469fd5")
+	)
+	(wire
+		(pts
+			(xy 104.14 154.94) (xy 113.03 154.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "464875b3-4b88-4272-a55d-7db0c20cb7b1")
+	)
+	(wire
+		(pts
+			(xy 129.54 45.72) (xy 138.43 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "492cdc20-f481-420e-be4d-277ea17c7b1c")
+	)
+	(wire
+		(pts
+			(xy 77.47 144.78) (xy 77.47 147.32)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4df66d1b-6fae-403f-9581-0285d905137a")
+	)
+	(wire
+		(pts
+			(xy 129.54 82.55) (xy 128.27 82.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4f83ebf3-b1c2-423b-bda2-798c803c9a9d")
+	)
+	(wire
+		(pts
+			(xy 129.54 157.48) (xy 138.43 157.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "501f60d5-df90-4cfd-adf1-07f44146b7ce")
+	)
+	(wire
+		(pts
+			(xy 49.53 115.57) (xy 57.15 115.57)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "51335eb9-e110-439f-b9d0-053c650fd353")
+	)
+	(wire
+		(pts
+			(xy 86.36 69.85) (xy 86.36 71.12)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5f17ce4f-420f-4eb2-aef5-ca92c5d5bfdc")
+	)
+	(wire
+		(pts
+			(xy 138.43 45.72) (xy 153.67 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "62832165-3f5e-498f-b735-dbf1e5b24557")
+	)
+	(wire
+		(pts
+			(xy 97.79 118.11) (xy 104.14 118.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "68426cfc-dc15-491b-9225-192b47395b6c")
+	)
+	(wire
+		(pts
+			(xy 77.47 53.34) (xy 77.47 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6de72733-d67d-4ec0-80d6-cdb62433a3e4")
+	)
+	(wire
+		(pts
+			(xy 97.79 154.94) (xy 104.14 154.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "73267ae7-908a-49a5-b5e9-cb0acc67c310")
+	)
+	(wire
+		(pts
+			(xy 113.03 85.09) (xy 111.76 85.09)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "74c9e1b5-f4e7-47ab-abc3-19f10adaef11")
+	)
+	(wire
+		(pts
+			(xy 87.63 43.18) (xy 90.17 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7a50dbdc-91e8-4f50-a420-58149f5a268a")
+	)
+	(wire
+		(pts
+			(xy 129.54 120.65) (xy 128.27 120.65)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7ee97061-cb2f-4fa3-8f95-ff9101ddb6e7")
+	)
+	(wire
+		(pts
+			(xy 138.43 157.48) (xy 153.67 157.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7fde06c8-b2f3-4dd7-b0b6-1164e78d3368")
+	)
+	(wire
+		(pts
+			(xy 64.77 120.65) (xy 67.31 120.65)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "82f49c1d-bba4-4d75-8c48-4ebce6bdff98")
+	)
+	(wire
+		(pts
+			(xy 77.47 64.77) (xy 77.47 69.85)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "84921dd7-01fe-45fb-8bb2-c6bdc7427fc5")
+	)
+	(wire
+		(pts
+			(xy 77.47 163.83) (xy 77.47 162.56)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "876a3f9c-c65c-42e0-9cf9-f79fbd65e7c9")
+	)
+	(wire
+		(pts
+			(xy 77.47 33.02) (xy 77.47 35.56)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "96b858f5-d581-47a3-8b1d-ebda4990726a")
+	)
+	(wire
+		(pts
+			(xy 203.2 67.31) (xy 210.82 67.31)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "98428c0a-4225-48fb-9796-8c200b509bd1")
+	)
+	(wire
+		(pts
+			(xy 67.31 152.4) (xy 57.15 152.4)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "99e345c5-0f98-4d24-90f6-47cb01ff9ba4")
+	)
+	(wire
+		(pts
+			(xy 49.53 43.18) (xy 54.61 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a08bb4f7-6661-4d41-9749-68f1db017437")
+	)
+	(wire
+		(pts
+			(xy 86.36 144.78) (xy 85.09 144.78)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a1a933e5-28d8-43cd-acb2-28e32fbec41f")
+	)
+	(wire
+		(pts
+			(xy 129.54 54.61) (xy 129.54 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a5aa74ee-7525-4a41-be2a-d6d0484a3b56")
+	)
+	(wire
+		(pts
+			(xy 49.53 40.64) (xy 57.15 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a5ea4cd2-4774-42ca-aab0-e8fe672823b8")
+	)
+	(wire
+		(pts
+			(xy 111.76 166.37) (xy 129.54 166.37)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a7cb194d-1c76-4f79-835a-6698d171af1a")
+	)
+	(wire
+		(pts
+			(xy 86.36 107.95) (xy 85.09 107.95)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a90af100-1fb7-4ad3-b934-58508a2d5d89")
+	)
+	(wire
+		(pts
+			(xy 77.47 102.87) (xy 77.47 107.95)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "aa46ca32-8b88-498f-a665-eef679618d18")
+	)
+	(wire
+		(pts
+			(xy 57.15 77.47) (xy 57.15 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "aab1bdf8-fdc4-4aaf-a182-24e2b9bf29ec")
+	)
+	(wire
+		(pts
+			(xy 54.61 154.94) (xy 54.61 118.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ad7ff431-ecce-452e-a4fe-88ee4594e869")
+	)
+	(wire
+		(pts
+			(xy 57.15 40.64) (xy 67.31 40.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b2d0870f-378d-48ee-a85a-a3331a3f6582")
+	)
+	(wire
+		(pts
+			(xy 111.76 48.26) (xy 111.76 54.61)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b4b8a692-f4bc-4f18-b223-934dd449e683")
+	)
+	(wire
+		(pts
+			(xy 104.14 154.94) (xy 104.14 156.21)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b5ea3782-1692-4018-a3a8-98df26575247")
+	)
+	(wire
+		(pts
+			(xy 129.54 129.54) (xy 129.54 120.65)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bd232cf0-fdd3-47c8-b989-a2eb714a71f4")
+	)
+	(wire
+		(pts
+			(xy 210.82 46.99) (xy 210.82 52.07)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bf38e2bd-f939-4b5c-a815-aada967397e6")
+	)
+	(wire
+		(pts
+			(xy 210.82 52.07) (xy 210.82 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bfa17663-a731-4331-a1ba-8f38206932eb")
+	)
+	(wire
+		(pts
+			(xy 54.61 80.01) (xy 54.61 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c154a7cd-3768-49ff-ac78-f229d393214b")
+	)
+	(wire
+		(pts
+			(xy 77.47 107.95) (xy 77.47 110.49)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c20d2f19-f8f9-48e0-a675-5940a67aebea")
+	)
+	(wire
+		(pts
+			(xy 64.77 157.48) (xy 67.31 157.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c25ba204-388b-4df6-91b9-e699b72a686d")
+	)
+	(wire
+		(pts
+			(xy 67.31 80.01) (xy 54.61 80.01)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c3470ee6-e0d5-4296-92a3-4282309c4a88")
+	)
+	(wire
+		(pts
+			(xy 104.14 43.18) (xy 113.03 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c3d259c7-dd09-438c-8ff3-1a4c94a769ed")
+	)
+	(wire
+		(pts
+			(xy 54.61 43.18) (xy 67.31 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d24e4d35-0c71-48ad-917a-917d103f8dae")
+	)
+	(wire
+		(pts
+			(xy 77.47 139.7) (xy 77.47 144.78)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d548151b-f66f-405b-9e94-99367e6f4aac")
+	)
+	(wire
+		(pts
+			(xy 111.76 54.61) (xy 129.54 54.61)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d58d96b6-f7ae-44f9-9684-95c610c10450")
+	)
+	(wire
+		(pts
+			(xy 86.36 144.78) (xy 86.36 146.05)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d64dc2a8-02e5-4d79-bbcf-9a15681b6d86")
+	)
+	(wire
+		(pts
+			(xy 87.63 80.01) (xy 90.17 80.01)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d6a623ae-7603-4d0c-a289-1e8b8335d0ef")
+	)
+	(wire
+		(pts
+			(xy 111.76 129.54) (xy 129.54 129.54)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "dde8e6f3-e132-4c92-9796-0b4a5a3962e9")
+	)
+	(wire
+		(pts
+			(xy 111.76 85.09) (xy 111.76 91.44)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e0108632-6b49-419e-ab34-94572f64e676")
+	)
+	(wire
+		(pts
+			(xy 104.14 118.11) (xy 113.03 118.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e12ce5e3-4744-4949-9cd2-645c787cf2f8")
+	)
+	(wire
+		(pts
+			(xy 210.82 63.5) (xy 210.82 67.31)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e5444cdf-8dd2-4ba2-b544-c813a941ed1c")
+	)
+	(wire
+		(pts
+			(xy 87.63 118.11) (xy 90.17 118.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ea237be0-57ce-4530-952e-29e5ad40bb8c")
+	)
+	(wire
+		(pts
+			(xy 97.79 80.01) (xy 104.14 80.01)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ead8af3e-b28b-43ec-abc8-10acf0469b31")
+	)
+	(wire
+		(pts
+			(xy 67.31 154.94) (xy 54.61 154.94)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "eaf0654d-d11f-4e81-8a89-27e12c3cede3")
+	)
+	(wire
+		(pts
+			(xy 113.03 160.02) (xy 111.76 160.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ed567fa0-29e4-4cf4-8503-4c3353e37a19")
+	)
+	(wire
+		(pts
+			(xy 49.53 118.11) (xy 54.61 118.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f5d7eb7f-27c1-442a-a6e7-414439f590f9")
+	)
+	(wire
+		(pts
+			(xy 77.47 27.94) (xy 77.47 33.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f6426eef-1484-49af-a797-97e1b73f6281")
+	)
+	(wire
+		(pts
+			(xy 111.76 160.02) (xy 111.76 166.37)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fd516855-51d3-470a-8e51-201a55ec08d5")
+	)
+	(hierarchical_label "V_OUT_D"
+		(shape output)
+		(at 153.67 157.48 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "2fa61140-ff71-48d3-94fd-e738bce74683")
+	)
+	(hierarchical_label "V_OUT_C"
+		(shape output)
+		(at 153.67 120.65 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "2fa61140-ff71-48d3-94fd-e738bce74684")
+	)
+	(hierarchical_label "V_OUT_B"
+		(shape output)
+		(at 153.67 82.55 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "2fa61140-ff71-48d3-94fd-e738bce74685")
+	)
+	(hierarchical_label "V_OUT_A"
+		(shape output)
+		(at 153.67 45.72 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "2fa61140-ff71-48d3-94fd-e738bce74686")
+	)
+	(hierarchical_label "SCL_A"
+		(shape bidirectional)
+		(at 49.53 40.64 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "8e8039ac-64fe-42f9-bbfa-63b2225540f8")
+	)
+	(hierarchical_label "SDA_A"
+		(shape bidirectional)
+		(at 49.53 43.18 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "8e8039ac-64fe-42f9-bbfa-63b2225540f9")
+	)
+	(hierarchical_label "SCL_B"
+		(shape bidirectional)
+		(at 49.53 115.57 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "8e8039ac-64fe-42f9-bbfa-63b2225540fa")
+	)
+	(hierarchical_label "SDA_B"
+		(shape bidirectional)
+		(at 49.53 118.11 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "8e8039ac-64fe-42f9-bbfa-63b2225540fb")
+	)
+	(hierarchical_label "+VCC"
+		(shape bidirectional)
+		(at 77.47 33.02 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "b37a23f3-d978-4a18-9cf7-ec81325b13f1")
+	)
+	(hierarchical_label "GND"
+		(shape bidirectional)
+		(at 77.47 52.07 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "b37a23f3-d978-4a18-9cf7-ec81325b13f2")
+	)
+	(hierarchical_label "+15V"
+		(shape bidirectional)
+		(at 210.82 48.26 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "b37a23f3-d978-4a18-9cf7-ec81325b13f3")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 104.14 127 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "025fc53e-0d5c-4efc-96c1-7c89e07cd0f9")
+		(property "Reference" "#PWR034"
+			(at 104.14 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 107.95 128.778 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 104.14 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 104.14 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 104.14 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "aa32c72d-c9ac-49ba-84cb-96e7e3503f03")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR060")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR034")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR085")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR060")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 86.36 146.05 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "033cd2b6-3fb8-4be2-bdbd-b0ec3b35e231")
+		(property "Reference" "#PWR031"
+			(at 86.36 152.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 90.17 147.828 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 86.36 146.05 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 86.36 146.05 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 86.36 146.05 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "8a05cc42-6420-4894-8c81-8aeb373fd985")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR057")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR031")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR082")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR057")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Amplifier_Operational:LM2902")
+		(at 120.65 120.65 0)
+		(unit 3)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "03d3efd7-6a40-4de6-9b87-85f7cd3dd22a")
+		(property "Reference" "U6"
+			(at 120.65 110.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "LM2902"
+			(at 120.65 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm"
+			(at 119.38 118.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/lm2902-n.pdf"
+			(at 121.92 115.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Low-Power, Quad-Operational Amplifiers, DIP-14/SOIC-14/SSOP-14"
+			(at 120.65 120.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "7"
+			(uuid "97dd82d4-7c70-4075-a3ed-644e13292ab6")
+		)
+		(pin "12"
+			(uuid "cabc7916-9c65-47aa-ad54-4ef64e0a07d3")
+		)
+		(pin "4"
+			(uuid "4e09fa70-3e7b-44b0-9204-494f754b6303")
+		)
+		(pin "10"
+			(uuid "50fa3610-d78c-431e-86e5-00f8ca957e38")
+		)
+		(pin "5"
+			(uuid "85ce9a7d-c49b-4287-9db1-dcc5db6683ac")
+		)
+		(pin "14"
+			(uuid "65ecc838-514f-4806-b9d5-721d6c8b225d")
+		)
+		(pin "11"
+			(uuid "7af539c8-3a16-4996-a47e-106894ffc2ca")
+		)
+		(pin "9"
+			(uuid "c617d824-61ab-452e-9c78-ccd9f4ce5baa")
+		)
+		(pin "2"
+			(uuid "864c738d-2e5a-44f6-bb61-9126337fa11a")
+		)
+		(pin "6"
+			(uuid "a2e5e005-04cf-4960-8d38-9141d0f38977")
+		)
+		(pin "1"
+			(uuid "cb9f1cb5-b1a5-48cd-9549-3b630fa7f8c6")
+		)
+		(pin "3"
+			(uuid "66dfd0a5-f034-4a2a-a613-a26e00c651b1")
+		)
+		(pin "8"
+			(uuid "dedd385b-798c-4587-bc5d-0de5edf9cf4e")
+		)
+		(pin "13"
+			(uuid "4c721b13-daa4-44ad-9ab9-dab5e8e6764f")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "U11")
+					(unit 3)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "U6")
+					(unit 3)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "U?")
+					(unit 3)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 93.98 118.11 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "143ab0ee-aaa8-4e79-a898-2a5213029d8d")
+		(property "Reference" "R5"
+			(at 93.218 115.57 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1K"
+			(at 93.98 118.11 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 93.98 119.888 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 93.98 118.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 93.98 118.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "691f5200-0926-42c6-8f01-87a2f34d0b2b")
+		)
+		(pin "1"
+			(uuid "df6a98b8-bfec-4668-99d5-84e4bba549bf")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "R13")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "R5")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "R?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "R54")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "R48")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 104.14 52.07 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "17172bae-b8b6-4bea-ba67-bdf503e29b1d")
+		(property "Reference" "#PWR032"
+			(at 104.14 58.42 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 107.95 53.848 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 104.14 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 104.14 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 104.14 52.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "0b95c1af-a14f-4dc5-9426-e89a8090628c")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR058")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR032")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR083")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR044")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Analog_DAC:MCP4725xxx-xCH")
+		(at 77.47 118.11 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "234d69ed-18bd-4965-9269-35185618a2e9")
+		(property "Reference" "U4"
+			(at 63.5 108.204 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "MCP4725AOT"
+			(at 68.326 111.252 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-6"
+			(at 77.47 124.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://ww1.microchip.com/downloads/en/DeviceDoc/22039d.pdf"
+			(at 77.47 118.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "12-bit Digital-to-Analog Converter, integrated EEPROM, I2C interface, SOT-23-6"
+			(at 77.47 118.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "3"
+			(uuid "f9b7756f-6e3c-4da6-9def-6663af22e2a8")
+		)
+		(pin "2"
+			(uuid "7c6a2650-12da-4742-b224-e28f1ee4663c")
+		)
+		(pin "1"
+			(uuid "5906031b-de5a-4941-b3d4-e1150346b190")
+		)
+		(pin "5"
+			(uuid "ff6581c0-042d-4127-aee5-7190f069bc4d")
+		)
+		(pin "4"
+			(uuid "cad20fe2-99ee-4247-84c2-ebdb154d8c7f")
+		)
+		(pin "6"
+			(uuid "9d0f3406-50ae-4b80-b015-fea922730c36")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "U9")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "U4")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "U?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "U11")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "U9")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:VCC")
+		(at 77.47 102.87 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "26a5be58-62e9-447c-b69f-33f1349d3f4e")
+		(property "Reference" "#PWR024"
+			(at 77.47 106.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VCC"
+			(at 74.676 101.346 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 77.47 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 77.47 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"VCC\""
+			(at 77.47 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "971065aa-b899-4b93-affb-b9556685a839")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR050")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR024")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR075")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR052")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 138.43 165.1 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "27810b82-2ac2-4a5a-9ec8-be4525ae1922")
+		(property "Reference" "#PWR039"
+			(at 138.43 171.45 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 142.24 166.878 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 138.43 165.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 138.43 165.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 138.43 165.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "7cbed826-1793-4cd5-b4fe-dbd8df19cbf3")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR065")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR039")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR093")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR063")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 64.77 157.48 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "2ab54adb-2689-445a-a025-2932a8980980")
+		(property "Reference" "#PWR019"
+			(at 64.77 163.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 60.96 158.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 64.77 157.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 64.77 157.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 64.77 157.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "99906de6-f35e-4b5d-910d-e9d9c06c6616")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR045")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR019")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR070")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR051")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 104.14 123.19 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "2e017c86-7610-446d-8ab2-f6bb8a7d4556")
+		(property "Reference" "R9"
+			(at 98.806 121.412 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "100K"
+			(at 104.14 125.73 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 105.918 123.19 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 104.14 123.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 104.14 123.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "352601fc-09fe-4550-9ce0-c28ea9351f3a")
+		)
+		(pin "1"
+			(uuid "49c70ad8-1f58-4ba4-8805-728f159c7df3")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "R17")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "R9")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "R?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "R58")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "R50")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Amplifier_Operational:LM2902")
+		(at 120.65 157.48 0)
+		(unit 4)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "2ecd15e6-af6d-482c-891c-74799520d27c")
+		(property "Reference" "U6"
+			(at 120.65 147.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "LM2902"
+			(at 120.65 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm"
+			(at 119.38 154.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/lm2902-n.pdf"
+			(at 121.92 152.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Low-Power, Quad-Operational Amplifiers, DIP-14/SOIC-14/SSOP-14"
+			(at 120.65 157.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "7"
+			(uuid "97dd82d4-7c70-4075-a3ed-644e13292ab7")
+		)
+		(pin "12"
+			(uuid "cabc7916-9c65-47aa-ad54-4ef64e0a07d4")
+		)
+		(pin "4"
+			(uuid "4e09fa70-3e7b-44b0-9204-494f754b6304")
+		)
+		(pin "10"
+			(uuid "50fa3610-d78c-431e-86e5-00f8ca957e39")
+		)
+		(pin "5"
+			(uuid "85ce9a7d-c49b-4287-9db1-dcc5db6683ad")
+		)
+		(pin "14"
+			(uuid "65ecc838-514f-4806-b9d5-721d6c8b225e")
+		)
+		(pin "11"
+			(uuid "7af539c8-3a16-4996-a47e-106894ffc2cb")
+		)
+		(pin "9"
+			(uuid "c617d824-61ab-452e-9c78-ccd9f4ce5bab")
+		)
+		(pin "2"
+			(uuid "44f1eee2-dbc2-4eeb-b44e-f0a913b3c038")
+		)
+		(pin "6"
+			(uuid "a2e5e005-04cf-4960-8d38-9141d0f38978")
+		)
+		(pin "1"
+			(uuid "b716d6bf-902b-4cdd-878e-d6469b963f29")
+		)
+		(pin "3"
+			(uuid "5e3abb99-6e83-42f3-a639-8b027114ddd0")
+		)
+		(pin "8"
+			(uuid "dedd385b-798c-4587-bc5d-0de5edf9cf4f")
+		)
+		(pin "13"
+			(uuid "4c721b13-daa4-44ad-9ab9-dab5e8e67650")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "U11")
+					(unit 4)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "U6")
+					(unit 4)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "U?")
+					(unit 4)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:VCC")
+		(at 64.77 120.65 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "301eb3f4-915f-4ce2-bdbd-4e2b7ca87a81")
+		(property "Reference" "#PWR018"
+			(at 68.58 120.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VCC"
+			(at 59.69 120.65 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 64.77 120.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 64.77 120.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"VCC\""
+			(at 64.77 120.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "d7fefa96-c0a7-497b-99e4-b443c5feaf78")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR044")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR018")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR069")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR050")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:VCC")
+		(at 77.47 139.7 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "38578006-ba78-4d51-8268-0423feb3b6ed")
+		(property "Reference" "#PWR026"
+			(at 77.47 143.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VCC"
+			(at 74.676 138.176 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 77.47 139.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 77.47 139.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"VCC\""
+			(at 77.47 139.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "08a38bc4-9efe-405f-9e2f-b1cf52854982")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR052")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR026")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR077")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR054")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 81.28 33.02 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "3f82cee1-1d64-4db5-93ba-9c7890493aa7")
+		(property "Reference" "C2"
+			(at 84.328 29.464 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 86.106 31.75 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 85.09 32.0548 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 81.28 33.02 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 81.28 33.02 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "e817f861-6cc4-4f37-8a1b-65eb713c4ce3")
+		)
+		(pin "2"
+			(uuid "b6f0d52d-551a-4d11-b956-f9da33cccd20")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "C11")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "C2")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "C16")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "C9")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 104.14 85.09 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "42cd4377-8e8d-4ba5-af36-ad0914d49dbd")
+		(property "Reference" "R8"
+			(at 98.806 83.312 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "100K"
+			(at 104.14 87.63 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 105.918 85.09 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 104.14 85.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 104.14 85.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "309357be-95c4-419a-bd79-421c810f8d02")
+		)
+		(pin "1"
+			(uuid "f582720a-3c0c-48d9-b33d-b0e686ac3b73")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "R16")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "R8")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "R?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "R57")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "R47")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 138.43 53.34 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "447fca13-b4ef-4f33-9e19-0d4460a2e8d2")
+		(property "Reference" "#PWR036"
+			(at 138.43 59.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 142.24 55.118 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 138.43 53.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 138.43 53.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 138.43 53.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "1231d572-2fa4-4a7f-a8cd-dc9bbd707e75")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR062")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR036")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR087")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR045")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 86.36 34.29 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "4e53e1ee-52de-475f-b7ce-96daa17b0f90")
+		(property "Reference" "#PWR028"
+			(at 86.36 40.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 90.17 36.068 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 86.36 34.29 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 86.36 34.29 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 86.36 34.29 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "d0dd525a-ea85-49b7-9180-9bcc05503d9b")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR054")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR028")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR079")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR048")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 77.47 53.34 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "4f27b472-08a6-4023-9aca-74b94b835419")
+		(property "Reference" "#PWR021"
+			(at 77.47 59.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 81.28 55.118 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 77.47 53.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 77.47 53.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 77.47 53.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "b42c5bfb-7a93-4ec3-a99e-bda8fb732866")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR047")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR021")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR072")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR0155")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 81.28 69.85 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "539b0c87-980a-482c-8c87-9fb39ffff162")
+		(property "Reference" "C3"
+			(at 84.328 66.294 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 86.106 68.58 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 85.09 68.8848 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 81.28 69.85 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 81.28 69.85 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "4c6c96c2-ef84-4003-a554-d7226e92bc00")
+		)
+		(pin "2"
+			(uuid "3cfed3a1-e52e-4cd1-8e1f-fe4c4ea66c08")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "C12")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "C3")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "C17")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "C8")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 138.43 128.27 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "53b418f0-4b76-43d2-94e2-c1312d0cdcf8")
+		(property "Reference" "#PWR038"
+			(at 138.43 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 142.24 130.048 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 138.43 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 138.43 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 138.43 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "72af0e4b-a305-480b-b425-51442113900c")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR064")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR038")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR089")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR062")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 138.43 161.29 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "5c668359-9f3a-428e-80f6-06a33c9b8723")
+		(property "Reference" "C9"
+			(at 142.24 160.0199 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100nF"
+			(at 142.24 162.5599 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 139.3952 165.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 138.43 161.29 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 138.43 161.29 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "564451fa-1ebb-4025-a577-1033fc1bae91")
+		)
+		(pin "2"
+			(uuid "a04c1fcc-7d88-4db3-91cb-3a5e772fc677")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "C18")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "C9")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "C23")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "C15")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 104.14 163.83 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5cf1ec7f-f846-4fc0-a8c6-6b60415d44b9")
+		(property "Reference" "#PWR035"
+			(at 104.14 170.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 107.95 165.608 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 104.14 163.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 104.14 163.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 104.14 163.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "14420b20-fefc-493c-9a2d-e6b01e408d62")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR061")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR035")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR086")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR061")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 64.77 82.55 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "655ff32d-41ff-42ef-b292-e4d4e2253a23")
+		(property "Reference" "#PWR017"
+			(at 64.77 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 60.96 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 64.77 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 64.77 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 64.77 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "ad7fc2e3-1d18-40c5-8c25-f34a4934cf90")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR043")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR017")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR068")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR039")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Analog_DAC:MCP4725xxx-xCH")
+		(at 77.47 80.01 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "6a1924b1-cad3-4033-9699-0f18bc7be70b")
+		(property "Reference" "U3"
+			(at 63.5 70.104 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "MCP4725AOT"
+			(at 68.326 73.152 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-6"
+			(at 77.47 86.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://ww1.microchip.com/downloads/en/DeviceDoc/22039d.pdf"
+			(at 77.47 80.01 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "12-bit Digital-to-Analog Converter, integrated EEPROM, I2C interface, SOT-23-6"
+			(at 77.47 80.01 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "3"
+			(uuid "b3ea0a62-ee12-45d2-833a-7d0f50f5524e")
+		)
+		(pin "2"
+			(uuid "d18e74aa-686b-4cc0-8c3e-ff2114712dea")
+		)
+		(pin "1"
+			(uuid "6edc488f-f147-4c9f-bbd3-9e9a506ba091")
+		)
+		(pin "5"
+			(uuid "1ea1ebbc-561e-41ee-9f28-a47f48e94ac6")
+		)
+		(pin "4"
+			(uuid "22ecdd69-12d9-4e09-81e0-999fd0b218f9")
+		)
+		(pin "6"
+			(uuid "7c4efe51-c112-4480-9048-dacf8b954095")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "U8")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "U3")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "U?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "U8")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "U6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Amplifier_Operational:LM2902")
+		(at 205.74 59.69 0)
+		(unit 5)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "74d2c257-bf22-4ab1-a181-4df03732e6f0")
+		(property "Reference" "U6"
+			(at 196.088 56.896 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "LM2902"
+			(at 193.548 59.182 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm"
+			(at 204.47 57.15 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/lm2902-n.pdf"
+			(at 207.01 54.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Low-Power, Quad-Operational Amplifiers, DIP-14/SOIC-14/SSOP-14"
+			(at 205.74 59.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "7"
+			(uuid "97dd82d4-7c70-4075-a3ed-644e13292ab8")
+		)
+		(pin "12"
+			(uuid "cabc7916-9c65-47aa-ad54-4ef64e0a07d5")
+		)
+		(pin "4"
+			(uuid "4e09fa70-3e7b-44b0-9204-494f754b6305")
+		)
+		(pin "10"
+			(uuid "50fa3610-d78c-431e-86e5-00f8ca957e3a")
+		)
+		(pin "5"
+			(uuid "85ce9a7d-c49b-4287-9db1-dcc5db6683ae")
+		)
+		(pin "14"
+			(uuid "65ecc838-514f-4806-b9d5-721d6c8b225f")
+		)
+		(pin "11"
+			(uuid "7af539c8-3a16-4996-a47e-106894ffc2cc")
+		)
+		(pin "9"
+			(uuid "c617d824-61ab-452e-9c78-ccd9f4ce5bac")
+		)
+		(pin "2"
+			(uuid "2a85e7c4-e47f-4c54-bce2-ecfaa5a3d5e0")
+		)
+		(pin "6"
+			(uuid "a2e5e005-04cf-4960-8d38-9141d0f38979")
+		)
+		(pin "1"
+			(uuid "c46bc6b8-f777-4bff-9bba-7625a313454f")
+		)
+		(pin "3"
+			(uuid "f2a51e21-509a-4fec-bbef-a9cf5f6f28c6")
+		)
+		(pin "8"
+			(uuid "dedd385b-798c-4587-bc5d-0de5edf9cf50")
+		)
+		(pin "13"
+			(uuid "4c721b13-daa4-44ad-9ab9-dab5e8e67651")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "U11")
+					(unit 5)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "U6")
+					(unit 5)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "U?")
+					(unit 5)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:VCC")
+		(at 77.47 27.94 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "78bd2cda-4661-439f-9244-5902d2ac6a3e")
+		(property "Reference" "#PWR020"
+			(at 77.47 31.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VCC"
+			(at 74.676 26.416 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 77.47 27.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 77.47 27.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"VCC\""
+			(at 77.47 27.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "00ffb645-1730-42b2-a627-5762ccd96d9a")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR046")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR020")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR071")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR0156")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 138.43 90.17 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "8377423d-959c-4c6d-9bfc-f06c3e24a6a6")
+		(property "Reference" "#PWR037"
+			(at 138.43 96.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 142.24 91.948 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 138.43 90.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 138.43 90.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 138.43 90.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "871d6645-2c0f-4c5c-ba4e-119ba1c3d4d5")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR063")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR037")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR088")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR049")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Amplifier_Operational:LM2902")
+		(at 120.65 45.72 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "9223cc83-30a0-4887-be61-35222cd9b282")
+		(property "Reference" "U6"
+			(at 120.65 35.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "LM2902"
+			(at 120.65 38.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm"
+			(at 119.38 43.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/lm2902-n.pdf"
+			(at 121.92 40.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Low-Power, Quad-Operational Amplifiers, DIP-14/SOIC-14/SSOP-14"
+			(at 120.65 45.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "7"
+			(uuid "97dd82d4-7c70-4075-a3ed-644e13292ab9")
+		)
+		(pin "12"
+			(uuid "cabc7916-9c65-47aa-ad54-4ef64e0a07d6")
+		)
+		(pin "4"
+			(uuid "4e09fa70-3e7b-44b0-9204-494f754b6306")
+		)
+		(pin "10"
+			(uuid "50fa3610-d78c-431e-86e5-00f8ca957e3b")
+		)
+		(pin "5"
+			(uuid "85ce9a7d-c49b-4287-9db1-dcc5db6683af")
+		)
+		(pin "14"
+			(uuid "65ecc838-514f-4806-b9d5-721d6c8b2260")
+		)
+		(pin "11"
+			(uuid "7af539c8-3a16-4996-a47e-106894ffc2cd")
+		)
+		(pin "9"
+			(uuid "c617d824-61ab-452e-9c78-ccd9f4ce5bad")
+		)
+		(pin "2"
+			(uuid "0d4a46e5-c441-46f1-baa9-a467a5fcacf3")
+		)
+		(pin "6"
+			(uuid "a2e5e005-04cf-4960-8d38-9141d0f3897a")
+		)
+		(pin "1"
+			(uuid "c693c79a-c967-4af6-b77c-519e593bcd40")
+		)
+		(pin "3"
+			(uuid "4dc88743-267a-4b91-b287-2fa3c4cf73bf")
+		)
+		(pin "8"
+			(uuid "dedd385b-798c-4587-bc5d-0de5edf9cf51")
+		)
+		(pin "13"
+			(uuid "4c721b13-daa4-44ad-9ab9-dab5e8e67652")
+		)
+		(instances
+			(project ""
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "U11")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "U6")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "U?")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 93.98 80.01 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "9523469c-abc3-467b-a10f-b6c1519b71ab")
+		(property "Reference" "R4"
+			(at 93.218 77.47 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1K"
+			(at 93.98 80.01 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 93.98 81.788 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 93.98 80.01 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 93.98 80.01 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "35b74d10-dadf-4560-a0cc-fa6e7c78d185")
+		)
+		(pin "1"
+			(uuid "4e7b6f96-1cf1-4ccb-bb46-8f19fc07b112")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "R12")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "R4")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "R?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "R53")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "R46")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 138.43 124.46 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "9c16d0fa-22d8-4ab7-a363-0b7879fe5e94")
+		(property "Reference" "C8"
+			(at 142.24 123.1899 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100nF"
+			(at 142.24 125.7299 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 139.3952 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 138.43 124.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 138.43 124.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "08e7b5e9-f3d6-4aa9-8bc6-0ece333cde11")
+		)
+		(pin "2"
+			(uuid "779a8232-aff5-4e8e-a9f5-ee9d7df82e9f")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "C17")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "C8")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "C22")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "C14")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:VCC")
+		(at 64.77 45.72 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "ab733e09-d4a4-4b7a-b527-25298c1a7f5b")
+		(property "Reference" "#PWR016"
+			(at 68.58 45.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VCC"
+			(at 59.69 45.72 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 64.77 45.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 64.77 45.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"VCC\""
+			(at 64.77 45.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "512bb6a4-3f77-4fe6-8314-e05ed0ea1c7e")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR042")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR016")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR067")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR040")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 93.98 154.94 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "aba3caa7-843f-4205-9ef0-20db0604f0b2")
+		(property "Reference" "R6"
+			(at 93.218 152.4 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1K"
+			(at 93.98 154.94 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 93.98 156.718 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 93.98 154.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 93.98 154.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "9ef6341b-0ef3-4f91-9a2f-1f85ba77dba8")
+		)
+		(pin "1"
+			(uuid "6ddc50b7-76a2-4b72-acd8-1730ad9ebbbc")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "R14")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "R6")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "R?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "R55")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "R49")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 86.36 71.12 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "aed444d5-efe4-4801-8051-ba6d8a9d55ae")
+		(property "Reference" "#PWR029"
+			(at 86.36 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 90.17 72.898 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 86.36 71.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 86.36 71.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 86.36 71.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "e7302031-d5b6-46ed-afae-045307762a2d")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR055")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR029")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR080")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR046")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 93.98 43.18 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b118b719-2cfe-4c0c-8e6d-553d2a6574b9")
+		(property "Reference" "R3"
+			(at 93.218 40.64 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1K"
+			(at 93.98 43.18 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 93.98 44.958 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 93.98 43.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 93.98 43.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "517a6e25-42db-452a-991d-11f20b1896d7")
+		)
+		(pin "1"
+			(uuid "dbf7524a-1301-4ffc-ae27-f0fef7421817")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "R11")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "R3")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "R?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "R52")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "R78")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Analog_DAC:MCP4725xxx-xCH")
+		(at 77.47 154.94 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b11cd58f-6c1f-4e9d-a661-27f171614e2b")
+		(property "Reference" "U5"
+			(at 63.5 145.034 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "MCP4725AOT"
+			(at 68.326 148.082 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-6"
+			(at 77.47 161.29 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://ww1.microchip.com/downloads/en/DeviceDoc/22039d.pdf"
+			(at 77.47 154.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "12-bit Digital-to-Analog Converter, integrated EEPROM, I2C interface, SOT-23-6"
+			(at 77.47 154.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "3"
+			(uuid "ddeb311f-ebeb-4f93-921b-0554ddb9800f")
+		)
+		(pin "2"
+			(uuid "b360ce5a-ad70-48a6-8497-fcef487b6ddb")
+		)
+		(pin "1"
+			(uuid "896061ab-40ab-4b71-a337-7580c427d7b4")
+		)
+		(pin "5"
+			(uuid "ccab493f-a631-4313-99b7-6f46b277f459")
+		)
+		(pin "4"
+			(uuid "62b4bdb9-63cc-4770-ba42-e023ab4afa96")
+		)
+		(pin "6"
+			(uuid "693a8ef5-d434-44af-88f7-3e30690231bf")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "U10")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "U5")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "U?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "U12")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "U10")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 81.28 107.95 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b2e1b253-c638-408a-b254-87dcb06308f3")
+		(property "Reference" "C4"
+			(at 84.328 104.394 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 86.106 106.68 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 85.09 106.9848 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 81.28 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 81.28 107.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "30bba443-316e-4068-9959-f14c4b28adf8")
+		)
+		(pin "2"
+			(uuid "a4498ef5-34fb-4752-bede-3387c341a20d")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "C13")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "C4")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "C18")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "C12")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 104.14 160.02 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b35e1fef-dabb-4f88-87d8-ee372fa74623")
+		(property "Reference" "R10"
+			(at 98.806 158.242 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "100K"
+			(at 104.14 162.56 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 105.918 160.02 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 104.14 160.02 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 104.14 160.02 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "8910e657-1c3b-415e-91d6-5da776043802")
+		)
+		(pin "1"
+			(uuid "b09f10ef-475b-4f3a-b871-3368e62d9d4c")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "R18")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "R10")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "R?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "R59")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "R51")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 77.47 88.9 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b693109b-b72e-4123-bddb-b39d0fa42710")
+		(property "Reference" "#PWR023"
+			(at 77.47 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 81.28 90.678 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 77.47 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 77.47 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 77.47 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "d04cdb78-e479-4266-83a9-7285b0e7b969")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR049")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR023")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR074")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR043")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 86.36 109.22 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "bccf9523-701d-438a-a641-616d1deabec8")
+		(property "Reference" "#PWR030"
+			(at 86.36 115.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 90.17 110.998 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 86.36 109.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 86.36 109.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 86.36 109.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "c97e5cf4-1264-4974-a3b9-85b301d4e971")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR056")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR030")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR081")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR056")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 77.47 163.83 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "bdebec4b-7a83-4221-8139-7f30323a77bd")
+		(property "Reference" "#PWR027"
+			(at 77.47 170.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 81.28 165.608 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 77.47 163.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 77.47 163.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 77.47 163.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "6ae567fb-ec81-418b-9e87-4f66381638a9")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR053")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR027")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR078")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR055")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 210.82 67.31 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "c8e0d28f-2489-4dba-a7c5-bbf1c6a62c7e")
+		(property "Reference" "#PWR041"
+			(at 210.82 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 210.82 72.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 210.82 67.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 210.82 67.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 210.82 67.31 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "f9d525e5-7988-4f32-b2d8-7a998697afd9")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR067")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR041")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR095")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR058")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Amplifier_Operational:LM2902")
+		(at 120.65 82.55 0)
+		(unit 2)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "d40ce369-be77-4ced-8a5e-35f4cb75c179")
+		(property "Reference" "U6"
+			(at 120.65 72.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "LM2902"
+			(at 120.65 74.93 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm"
+			(at 119.38 80.01 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/lm2902-n.pdf"
+			(at 121.92 77.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Low-Power, Quad-Operational Amplifiers, DIP-14/SOIC-14/SSOP-14"
+			(at 120.65 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "7"
+			(uuid "97dd82d4-7c70-4075-a3ed-644e13292aba")
+		)
+		(pin "12"
+			(uuid "cabc7916-9c65-47aa-ad54-4ef64e0a07d7")
+		)
+		(pin "4"
+			(uuid "4e09fa70-3e7b-44b0-9204-494f754b6307")
+		)
+		(pin "10"
+			(uuid "50fa3610-d78c-431e-86e5-00f8ca957e3c")
+		)
+		(pin "5"
+			(uuid "85ce9a7d-c49b-4287-9db1-dcc5db6683b0")
+		)
+		(pin "14"
+			(uuid "65ecc838-514f-4806-b9d5-721d6c8b2261")
+		)
+		(pin "11"
+			(uuid "7af539c8-3a16-4996-a47e-106894ffc2ce")
+		)
+		(pin "9"
+			(uuid "c617d824-61ab-452e-9c78-ccd9f4ce5bae")
+		)
+		(pin "2"
+			(uuid "bb5413dc-c59f-40ec-9548-49560246d87c")
+		)
+		(pin "6"
+			(uuid "a2e5e005-04cf-4960-8d38-9141d0f3897b")
+		)
+		(pin "1"
+			(uuid "e9a9d924-ff43-4459-ac72-99a7413e57d3")
+		)
+		(pin "3"
+			(uuid "50b1ab02-461b-4ee3-927e-831dee44a22c")
+		)
+		(pin "8"
+			(uuid "dedd385b-798c-4587-bc5d-0de5edf9cf52")
+		)
+		(pin "13"
+			(uuid "4c721b13-daa4-44ad-9ab9-dab5e8e67653")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "U11")
+					(unit 2)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "U6")
+					(unit 2)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "U?")
+					(unit 2)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 104.14 48.26 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "d9eef2b2-11f1-4a6d-b7a2-47ebf1c63602")
+		(property "Reference" "R7"
+			(at 98.806 46.482 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "100K"
+			(at 104.14 50.8 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 105.918 48.26 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 104.14 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 104.14 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "2"
+			(uuid "f2764f8d-c3bb-434f-9bbe-9724ba21900f")
+		)
+		(pin "1"
+			(uuid "91d72c32-7b0d-4991-a177-858c7fa5ec8d")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "R15")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "R7")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "R?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "R56")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "R79")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 138.43 49.53 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "e42e6ca0-d7bf-44ec-a9b2-ed6e672de90e")
+		(property "Reference" "C6"
+			(at 142.24 48.2599 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100nF"
+			(at 142.24 50.7999 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 139.3952 53.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 138.43 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 138.43 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "e26a5713-c3d8-4ace-9ffc-6723e38e1afd")
+		)
+		(pin "2"
+			(uuid "850a4efc-ae8c-4add-9aa0-68ba1ecad76d")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "C15")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "C6")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "C20")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "C43")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 81.28 144.78 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e985ccba-fe07-4d31-8f3c-f945bc70af35")
+		(property "Reference" "C5"
+			(at 84.328 141.224 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 86.106 143.51 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 85.09 143.8148 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 81.28 144.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 81.28 144.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "a0303573-a767-4c32-af45-261938e18612")
+		)
+		(pin "2"
+			(uuid "b6c71507-d659-4cd3-8b37-5d3eb3c70fb4")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "C14")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "C5")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "C19")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "C13")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 138.43 86.36 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "eb623e6b-1a0d-4adc-a36a-162d08a11f24")
+		(property "Reference" "C7"
+			(at 142.24 85.0899 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100nF"
+			(at 142.24 87.6299 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 139.3952 90.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 138.43 86.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 138.43 86.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "359c4c86-1b2f-4d15-b1dd-c5a0a5978537")
+		)
+		(pin "2"
+			(uuid "f62ae58a-3ba3-4923-8ea2-41e0907b7ee6")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "C16")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "C7")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "C21")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "C10")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+15V")
+		(at 210.82 46.99 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "ee715b1b-6fa2-4c5b-bc51-c92d357a1456")
+		(property "Reference" "#PWR040"
+			(at 210.82 50.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+15V"
+			(at 210.82 41.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 210.82 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 210.82 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+15V\""
+			(at 210.82 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "59654c3f-65f0-4868-b0a4-81ad9bf2236b")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR066")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR040")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR094")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR0157")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 77.47 127 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "efd9dc24-b2e4-4d5e-aefa-d5e3673269d8")
+		(property "Reference" "#PWR025"
+			(at 77.47 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 81.28 128.778 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 77.47 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 77.47 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 77.47 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "48daccf2-0653-4bea-8920-2474313fd260")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR051")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR025")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR076")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR053")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 210.82 59.69 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "f32462ad-c9b5-45c3-a1ad-e05715586b97")
+		(property "Reference" "C10"
+			(at 214.63 58.4199 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100nF"
+			(at 214.63 60.9599 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 211.7852 63.5 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 210.82 59.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 210.82 59.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "88f9619f-5c5f-4af4-8f60-6ce66b931777")
+		)
+		(pin "2"
+			(uuid "20f2daa5-baee-4d2c-8fca-54e247ae00e4")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "C19")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "C10")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "C?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "C24")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "C11")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 104.14 88.9 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "f8330f86-cd2b-4b3b-be98-3602f9aee630")
+		(property "Reference" "#PWR033"
+			(at 104.14 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 107.95 90.678 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 104.14 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 104.14 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 104.14 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "6950a0c1-6a8e-42eb-8ebf-d7839ceaebb3")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR059")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR033")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR084")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR047")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Analog_DAC:MCP4725xxx-xCH")
+		(at 77.47 43.18 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "f85ed388-1fc5-4e32-be4a-498cda9a014b")
+		(property "Reference" "U2"
+			(at 63.5 33.274 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "MCP4725AOT"
+			(at 68.326 36.322 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-6"
+			(at 77.47 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://ww1.microchip.com/downloads/en/DeviceDoc/22039d.pdf"
+			(at 77.47 43.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "12-bit Digital-to-Analog Converter, integrated EEPROM, I2C interface, SOT-23-6"
+			(at 77.47 43.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "3"
+			(uuid "ca4f76ad-06dc-4b1f-b642-a2a6d32af9ec")
+		)
+		(pin "2"
+			(uuid "27db2a1e-aec8-42a5-89b5-b8d2f9f185d8")
+		)
+		(pin "1"
+			(uuid "7db3e73f-c302-4bc7-a925-fd504effa7fd")
+		)
+		(pin "5"
+			(uuid "e33d22c1-a7f5-421d-87bf-8cb15b4766cf")
+		)
+		(pin "4"
+			(uuid "702d706b-8429-4b40-a1d5-fe0f9481fad9")
+		)
+		(pin "6"
+			(uuid "78a0739f-808c-4240-b0e5-b52c06eb7768")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "U7")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "U2")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "U?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "U3")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "U4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:VCC")
+		(at 77.47 64.77 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "fba8b08f-e4d9-46bb-9fd8-95d5ad830f6b")
+		(property "Reference" "#PWR022"
+			(at 77.47 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VCC"
+			(at 74.676 63.246 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 77.47 64.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 77.47 64.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"VCC\""
+			(at 77.47 64.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "26b97761-1d76-4d86-8f14-3db6751f551c")
+		)
+		(instances
+			(project "saida_Analogica"
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR048")
+					(unit 1)
+				)
+				(path "/08ea34c1-45bc-491b-8b0e-6ee41d458aea/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR022")
+					(unit 1)
+				)
+			)
+			(project "Canal_Analogico"
+				(path "/71331089-eede-42c9-9b9d-c92cd16f8958"
+					(reference "#PWR?")
+					(unit 1)
+				)
+			)
+			(project "Placa_de_Controle"
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/0aeb7698-5fb3-407f-967b-3f2cc24bc16a"
+					(reference "#PWR073")
+					(unit 1)
+				)
+				(path "/a7e7726f-1d53-4428-a54d-b38f8145337a/070f003f-45b6-4007-a5b2-ed1ccd74a51a/bf9f452e-42f9-46d4-bc03-7fab717c39cb"
+					(reference "#PWR041")
+					(unit 1)
+				)
+			)
+		)
+	)
+)
