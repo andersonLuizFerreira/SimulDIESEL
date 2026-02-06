@@ -1,12 +1,13 @@
-# SD-GW-LINK – Exemplos em Hex
+# SD-GW-LINK — Exemplos em Hex (Vetores de Teste)
 
 Este diretório contém **vetores de teste oficiais** do protocolo de transporte
-**SD-GW-LINK**, utilizados para validação e referência de implementações.
+**SD-GW-LINK**, utilizados para validação de implementações do motor do protocolo,
+independentemente do meio físico (Serial, Wi-Fi, Bluetooth).
 
 Todos os arquivos `.hex` representam **frames completos no stream**, ou seja:
 
 - Dados **já codificados em COBS**
-- Incluem o **delimitador final `00`**
+- Incluem o **delimitador final `0x00`**
 - Utilizam **CRC-8/ATM** conforme a especificação oficial
 
 ---
@@ -14,7 +15,7 @@ Todos os arquivos `.hex` representam **frames completos no stream**, ou seja:
 ## Convenções
 
 - Bytes representados em hexadecimal, separados por espaço
-- Ordem exata de transmissão no link físico
+- Ordem exata de transmissão no stream de bytes
 - CRC calculado sobre: `CMD + FLAGS + SEQ + PAYLOAD`
 
 Parâmetros do CRC:
@@ -31,35 +32,34 @@ Parâmetros do CRC:
 ## Arquivos
 
 ### `ping.hex`
-Exemplo de comando simples (PING) solicitando ACK de transporte.
+Exemplo de comando simples solicitando ACK de transporte.
 
 Uso típico:
-- Teste básico de link
-- Validação de framing e CRC
+- Teste básico de framing
+- Validação de COBS e CRC
 
 ---
 
 ### `ack.hex`
-Exemplo de **ACK de transporte (T_ACK)** confirmando um frame anterior.
+Exemplo de **ACK de transporte (T_ACK)**.
 
 Uso típico:
-- Teste de mecanismo de confirmação
+- Teste de confirmação Stop-and-Wait
 - Validação de SEQ e FLAGS
 
 ---
 
 ### `event-level.hex`
-Exemplo de **evento assíncrono** enviado pelo Gateway para a API,
-contendo payload de aplicação.
+Exemplo de **evento assíncrono** enviado pelo Gateway para a API.
 
 Uso típico:
 - Teste de recepção espontânea
-- Verificação de IS_EVT
+- Validação de IS_EVT
 
 ---
 
 ### `payload-with-zero.hex`
-Exemplo contendo byte `00` no payload original,
+Exemplo contendo byte `0x00` no payload original,
 demonstrando o funcionamento correto do **COBS**.
 
 Uso típico:
@@ -72,7 +72,7 @@ Uso típico:
 
 - Os valores de `CMD` utilizados são **exemplos ilustrativos**
 - A semântica dos comandos pertence à **camada de aplicação**
-- Estes arquivos fazem parte da **especificação oficial** do protocolo
+- Estes arquivos validam apenas o **protocolo de transporte**
 
 ---
 

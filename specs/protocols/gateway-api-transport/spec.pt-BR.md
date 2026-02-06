@@ -7,6 +7,13 @@
 
 ---
 
+## 0. Documentos Relacionados
+
+- **Especificação do Protocolo (este documento):** `spec.pt-BR.md`
+- **Interface de Integração (DAL ↔ Protocolo ↔ Consumidor):** `interface.pt-BR.md`
+- **Vetores de Teste (hex):** `examples/` (ver `examples/README.md`)
+- **Decisão Arquitetural:** `specs/adr/ADR-0007-cobs-crc8.pt-BR.md`
+
 ## 1. Objetivo
 
 Este documento especifica a camada de transporte binária utilizada na comunicação entre:
@@ -183,24 +190,7 @@ CRC cobre:
 
 ```
 CMD + FLAGS + SEQ + PAYLOAD
-
 ```
-
-\## 15. Extensões Futuras
-
-
-
-Campos reservados:
-
-
-
-\- `FLAGS.FRAG` para fragmentação
-
-\- Janela deslizante (modo avançado)
-
-\- CRC16 superior para firmware
-
-
 
 ---
 
