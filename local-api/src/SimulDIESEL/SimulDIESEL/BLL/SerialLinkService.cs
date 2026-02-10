@@ -1,21 +1,23 @@
 ﻿using System;
 using System.IO.Ports;
-using System.Linq;
 using System.Text;
 using SimulDIESEL.DAL;
 
 namespace SimulDIESEL.BLL
 {
     /// <summary>
-    /// BLL mínima para conexão serial (sem tráfego/protocolo).
+    /// BLL mínima para conexão serial e handshake de link.
     /// UI fala com esta classe. Ela usa a DAL (SerialTransport).
     /// </summary>
     public sealed class SerialLinkService : IDisposable
     {
+        // =========================================================
+        // Infra / Comum
+        // =========================================================
         private readonly SerialTransport _transport; // acesso protegido por _disposed
         
-        private bool _disposed; // acesso protegido por _disposed
-        
+        private bool _disposed;
+
         public enum LinkState
         {
             Disconnected,
@@ -27,26 +29,20 @@ namespace SimulDIESEL.BLL
         }
 
         public event Action<LinkState> LinkStateChanged;
-
+        
         public LinkState State { get; private set; } = LinkState.Disconnected;
-
+        
         public bool IsLinked => State == LinkState.Linked;
-
-        private readonly object _linkSync = new object();
         
-        private System.Threading.Timer _linkTimer;
-
-        private readonly StringBuilder _rxBuffer = new StringBuilder();
-
-        private DateTime _drainUntil;
+        public bool IsConnected => IsLinked; // compatibilidade com UI
         
-        private DateTime _linkTimeoutUntil;
+        public bool IsSerialOpen => _transport.IsOpen;
 
-        private bool _draining;
-
-        private const string API_BANNER = "\nSIMULDIESELAPI\n";
+        public event Action<bool> ConnectionChanged;
         
-        private const string ESP_OK_PREFIX = "SimulDIESEL ver";
+        public event Action<string[]> Error;
+        
+        public event Action<byte[]> BytesReceived; // opcional (debug)
 
         private void SetState(LinkState newState)
         {
@@ -62,38 +58,49 @@ namespace SimulDIESEL.BLL
         {
             _transport = new SerialTransport();
 
-            _transport.ConnectionChanged -= OnConnectionChanged; // para evitar múltiplas inscrições se criar mais de um SerialLinkService (não deveria, mas só pra garantir)
-            _transport.ConnectionChanged += OnConnectionChanged; // repassa para UI
+            // evita múltiplas inscrições (defensivo)
+            _transport.ConnectionChanged -= OnTransportConnectionChanged;
+            _transport.Error -= OnTransportError;
+            _transport.BytesReceived -= OnTransportBytesReceived;
 
-            _transport.Error -= OnError; // para evitar múltiplas inscrições se criar mais de um SerialLinkService (não deveria, mas só pra garantir)
-            _transport.Error += OnError; // repassa para UI
-
-            _transport.BytesReceived -= OnBytesReceived; // para evitar múltiplas inscrições se criar mais de um SerialLinkService (não deveria, mas só pra garantir)
-            _transport.BytesReceived += OnBytesReceived; // por enquanto, só repassa (ou nem usa)
+            _transport.ConnectionChanged += OnTransportConnectionChanged;
+            _transport.Error += OnTransportError;
+            _transport.BytesReceived += OnTransportBytesReceived;
         }
 
-        public bool IsSerialOpen => _transport.IsOpen;
-        
-        public bool IsConnected => IsLinked;
-
-        public static string[] ListarPortas() // repassa para UI
+        public static string[] ListarPortas()
         {
             return SerialTransport.ListPorts();
         }
 
-        public event Action<bool> ConnectionChanged;
-        
-        public event Action<string[]> Error;
-        
-        public event Action<byte[]> BytesReceived; // opcional (debug), não vamos usar tráfego ainda
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
 
-        public bool Connect(string portName, int baudRate,
-                            bool dtrEnable = false,
-                            bool rtsEnable = false,
-                            Parity parity = Parity.None,
-                            int dataBits = 8,
-                            StopBits stopBits = StopBits.One,
-                            Handshake handshake = Handshake.None)
+            StopLinkTimer();
+
+            _transport.ConnectionChanged -= OnTransportConnectionChanged;
+            _transport.Error -= OnTransportError;
+            _transport.BytesReceived -= OnTransportBytesReceived;
+
+            _transport.Dispose();
+        }
+
+        // =========================================================
+        // Seção: Conexão Serial (abrir/fechar + eventos)
+        // =========================================================
+        #region Serial Connection
+
+        public bool Connect(
+            string portName,
+            int baudRate,
+            bool dtrEnable = false,
+            bool rtsEnable = false,
+            Parity parity = Parity.None,
+            int dataBits = 8,
+            StopBits stopBits = StopBits.One,
+            Handshake handshake = Handshake.None)
         {
             if (_disposed) throw new ObjectDisposedException(nameof(SerialLinkService));
 
@@ -115,7 +122,7 @@ namespace SimulDIESEL.BLL
             _transport.Disconnect();
         }
 
-        private void OnConnectionChanged(bool connected)
+        private void OnTransportConnectionChanged(bool connected)
         {
             ConnectionChanged?.Invoke(connected);
 
@@ -131,6 +138,40 @@ namespace SimulDIESEL.BLL
             SetState(LinkState.SerialConnected);
             StartHandshake();
         }
+
+        private void OnTransportError(string[] msg)
+        {
+            Error?.Invoke(msg);
+        }
+
+        private void OnTransportBytesReceived(byte[] data)
+        {
+            BytesReceived?.Invoke(data);
+            HandleHandshakeBytes(data); // delega para a seção de link
+        }
+
+        #endregion
+
+        // =========================================================
+        // Seção: Link / Handshake (drain + banner + detecção do OK)
+        // =========================================================
+        #region Link Handshake
+
+        private readonly object _linkSync = new object();
+        
+        private System.Threading.Timer _linkTimer;
+
+        private readonly StringBuilder _rxBuffer = new StringBuilder();
+        
+        private DateTime _drainUntil;
+        
+        private DateTime _linkTimeoutUntil;
+        
+        private bool _draining;
+
+        private const string API_BANNER = "\nSIMULDIESELAPI\n";
+        
+        private const string ESP_OK_PREFIX = "SimulDIESEL ver";
 
         private void StartHandshake()
         {
@@ -148,9 +189,8 @@ namespace SimulDIESEL.BLL
                 SetState(LinkState.Draining);
 
                 if (_linkTimer == null)
-                {
                     _linkTimer = new System.Threading.Timer(LinkTick, null, 50, 50);
-                }
+
                 _linkTimer.Change(50, 50);
             }
         }
@@ -173,7 +213,6 @@ namespace SimulDIESEL.BLL
                     _transport.Write(bannerBytes);
 
                     Console.WriteLine(" SerialLinkService. Banner enviado.");
-
                     SetState(LinkState.BannerSent);
                 }
 
@@ -188,20 +227,14 @@ namespace SimulDIESEL.BLL
             }
         }
 
-        private void OnError(string[] msg)
+        private void HandleHandshakeBytes(byte[] data)
         {
-            Error?.Invoke(msg);
-        }
-
-        private void OnBytesReceived(byte[] data)
-        {
-            BytesReceived?.Invoke(data);
-
             if (!_transport.IsOpen)
                 return;
 
             lock (_linkSync)
             {
+                // só processa durante o handshake
                 if (State != LinkState.Draining && State != LinkState.BannerSent)
                     return;
 
@@ -242,16 +275,6 @@ namespace SimulDIESEL.BLL
             _linkTimer?.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
         }
 
-        public void Dispose()
-        {
-            if (_disposed) return;
-            _disposed = true;
-
-            _transport.ConnectionChanged -= OnConnectionChanged;
-            _transport.Error -= OnError;
-            _transport.BytesReceived -= OnBytesReceived;
-
-            _transport.Dispose();
-        }
+        #endregion
     }
 }

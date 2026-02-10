@@ -43,18 +43,21 @@
             // 
             this.statusStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripStatusLINK,
-            this.toolStripStatusLabel2});
+            this.toolStripStatusLabel2,
+            this.toolStripStatusLINK});
             this.statusStrip1.Location = new System.Drawing.Point(0, 424);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 13, 0);
-            this.statusStrip1.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.statusStrip1.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.statusStrip1.Size = new System.Drawing.Size(800, 26);
             this.statusStrip1.TabIndex = 1;
             this.statusStrip1.Text = "statusStrip1";
             // 
             // toolStripStatusLINK
             // 
+            this.toolStripStatusLINK.AutoSize = false;
+            this.toolStripStatusLINK.BorderStyle = System.Windows.Forms.Border3DStyle.Raised;
+            this.toolStripStatusLINK.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.toolStripStatusLINK.Name = "toolStripStatusLINK";
             this.toolStripStatusLINK.Size = new System.Drawing.Size(104, 20);
             this.toolStripStatusLINK.Text = "Desconectado";
@@ -62,8 +65,8 @@
             // toolStripStatusLabel2
             // 
             this.toolStripStatusLabel2.Name = "toolStripStatusLabel2";
-            this.toolStripStatusLabel2.Size = new System.Drawing.Size(123, 20);
-            this.toolStripStatusLabel2.Text = ":STATUS DO LINK";
+            this.toolStripStatusLabel2.Size = new System.Drawing.Size(49, 20);
+            this.toolStripStatusLabel2.Text = "Serial:";
             // 
             // menuStrip1
             // 
