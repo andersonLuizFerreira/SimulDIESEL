@@ -3,15 +3,8 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-# -----------------------------
-# Defaults
-# -----------------------------
 $script:Remote = "origin"
 $script:Branch = "main"
-
-# -----------------------------
-# Helpers
-# -----------------------------
 
 function Pause-Here {
     Write-Host ""
@@ -29,9 +22,7 @@ function Require-Repo {
 }
 
 function Run-Git {
-    param(
-        [Parameter(Mandatory)][string[]]$Args
-    )
+    param([Parameter(Mandatory)][string[]]$Args)
 
     $cmd = "git " + ($Args -join " ")
     Write-Host ""
@@ -52,16 +43,12 @@ function Ensure-Branch-CheckedOut {
 
     $current = (& git rev-parse --abbrev-ref HEAD).Trim()
 
-    if ($current -eq $script:Branch) {
-        return
-    }
+    if ($current -eq $script:Branch) { return }
 
     Write-Host ""
     Write-Host "Voce esta no branch '$current'." -ForegroundColor Yellow
     $ans = Read-Host "Trocar para '$script:Branch'? (y/N)"
-    if ($ans -ne "y") {
-        throw "Operacao cancelada."
-    }
+    if ($ans -ne "y") { throw "Operacao cancelada." }
 
     & git show-ref --verify --quiet "refs/heads/$script:Branch"
     if ($LASTEXITCODE -ne 0) {
@@ -86,15 +73,12 @@ function Confirm {
 }
 
 function Maybe-Commit {
-
     if (-not (Has-UncommittedChanges)) { return }
 
     Write-Host ""
     Write-Host "Ha alteracoes nao commitadas." -ForegroundColor Yellow
 
-    if (-not (Confirm "Deseja dar git add + commit antes? (y/N)")) {
-        return
-    }
+    if (-not (Confirm "Deseja dar git add + commit antes? (y/N)")) { return }
 
     $msg = Read-Host "Mensagem do commit (vazio = 'chore: update')"
     if ([string]::IsNullOrWhiteSpace($msg)) { $msg = "chore: update" }
@@ -103,23 +87,22 @@ function Maybe-Commit {
     Run-Git @("commit", "-m", $msg)
 }
 
-# -----------------------------
-# Operations
-# -----------------------------
+function Op-Status {
+    if (-not (Require-Repo)) { return }
+    Run-Git @("status")
+    Pause-Here
+}
 
 function Op-Push {
     if (-not (Require-Repo)) { return }
-
     Ensure-Branch-CheckedOut
     Maybe-Commit
-
     Run-Git @("push", "-u", $script:Remote, $script:Branch)
     Pause-Here
 }
 
 function Op-Pull {
     if (-not (Require-Repo)) { return }
-
     Ensure-Branch-CheckedOut
     Run-Git @("pull", "--rebase", $script:Remote, $script:Branch)
     Pause-Here
@@ -127,12 +110,9 @@ function Op-Pull {
 
 function Op-ResetHard {
     if (-not (Require-Repo)) { return }
-
     Ensure-Branch-CheckedOut
 
-    Write-Host ""
     Write-Host "ATENCAO: isto descarta alteracoes locais." -ForegroundColor Red
-
     if (-not (Confirm "Confirmar RESET HARD? (y/N)")) { return }
 
     Run-Git @("fetch", $script:Remote)
@@ -142,12 +122,9 @@ function Op-ResetHard {
 
 function Op-ForcePush {
     if (-not (Require-Repo)) { return }
-
     Ensure-Branch-CheckedOut
 
-    Write-Host ""
     Write-Host "ATENCAO: isto sobrescreve o remoto." -ForegroundColor Red
-
     if (-not (Confirm "Confirmar FORCE PUSH? (y/N)")) { return }
 
     Run-Git @("push", "--force-with-lease", $script:Remote, $script:Branch)
@@ -155,52 +132,23 @@ function Op-ForcePush {
 }
 
 function Op-SetRemoteBranch {
-
-    Write-Host ""
-
     $r = Read-Host "Remote (vazio = '$script:Remote')"
-    if (-not [string]::IsNullOrWhiteSpace($r)) {
-        $script:Remote = $r
-    }
+    if (-not [string]::IsNullOrWhiteSpace($r)) { $script:Remote = $r }
 
     $b = Read-Host "Branch (vazio = '$script:Branch')"
-    if (-not [string]::IsNullOrWhiteSpace($b)) {
-        $script:Branch = $b
-    }
+    if (-not [string]::IsNullOrWhiteSpace($b)) { $script:Branch = $b }
 
-    Write-Host ""
     Write-Host "Configurado: $script:Remote/$script:Branch" -ForegroundColor Green
     Pause-Here
 }
 
 function Op-ListBranches {
-
     if (-not (Require-Repo)) { return }
-
-    Write-Host ""
-    Write-Host "===============================" -ForegroundColor DarkGray
-    Write-Host " BRANCHES LOCAIS" -ForegroundColor Cyan
-    Write-Host "===============================" -ForegroundColor DarkGray
     Run-Git @("branch")
-
-    Write-Host ""
-    Write-Host "===============================" -ForegroundColor DarkGray
-    Write-Host " BRANCHES REMOTAS" -ForegroundColor Yellow
-    Write-Host "===============================" -ForegroundColor DarkGray
     Run-Git @("branch", "-r")
-
-    Write-Host ""
-    Write-Host "===============================" -ForegroundColor DarkGray
-    Write-Host " TODAS (local + remoto)" -ForegroundColor Green
-    Write-Host "===============================" -ForegroundColor DarkGray
     Run-Git @("branch", "-a")
-
     Pause-Here
 }
-
-# -----------------------------
-# Menu
-# -----------------------------
 
 while ($true) {
 
@@ -210,32 +158,27 @@ while ($true) {
     Write-Host " Pasta: $(Get-Location)"
     Write-Host " Alvo:  $script:Remote/$script:Branch"
     Write-Host "==============================================="
-    Write-Host "1) Push"
-    Write-Host "2) Pull"
-    Write-Host "3) Reset HARD"
-    Write-Host "4) Force Push"
-    Write-Host "5) Ajustar Remote/Branch"
-    Write-Host "6) Listar Branches"
-    Write-Host "7) Sair"
+    Write-Host "1) Push              - Envia commits para o remoto"
+    Write-Host "2) Pull              - Atualiza branch com rebase"
+    Write-Host "3) Reset HARD        - Alinha local ao remoto"
+    Write-Host "4) Force Push        - Sobrescreve remoto"
+    Write-Host "5) Status            - Mostra estado atual"
+    Write-Host "6) Configurar Branch - Define remote e branch"
+    Write-Host "7) Listar Branches   - Exibe locais e remotas"
+    Write-Host "8) Sair              - Encerra o script"
     Write-Host ""
 
     $opt = Read-Host "Opcao"
 
-    try {
-        switch ($opt) {
-            "1" { Op-Push }
-            "2" { Op-Pull }
-            "3" { Op-ResetHard }
-            "4" { Op-ForcePush }
-            "5" { Op-SetRemoteBranch }
-            "6" { Op-ListBranches }
-            "7" { break }
-            default { Pause-Here }
-        }
-    }
-    catch {
-        Write-Host ""
-        Write-Host "[ERRO] $($_.Exception.Message)" -ForegroundColor Red
-        Pause-Here
+    switch ($opt) {
+        "1" { Op-Push }
+        "2" { Op-Pull }
+        "3" { Op-ResetHard }
+        "4" { Op-ForcePush }
+        "5" { Op-Status }
+        "6" { Op-SetRemoteBranch }
+        "7" { Op-ListBranches }
+        "8" { break }
+        default { Pause-Here }
     }
 }
