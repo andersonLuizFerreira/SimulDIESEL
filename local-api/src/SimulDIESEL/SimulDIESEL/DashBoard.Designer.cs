@@ -30,10 +30,13 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DashBoard));
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.toolStripStatusLINK = new System.Windows.Forms.ToolStripStatusLabel();
-            this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.tsLabelSerial = new System.Windows.Forms.ToolStripStatusLabel();
+            this.tsLedSerial = new System.Windows.Forms.ToolStripStatusLabel();
+            this.tsSeparador1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+            this.tsLabeLink = new System.Windows.Forms.ToolStripStatusLabel();
+            this.tsLedLink = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripConectar = new System.Windows.Forms.ToolStripButton();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -43,30 +46,36 @@
             // 
             this.statusStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripStatusLabel2,
-            this.toolStripStatusLINK});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 424);
+            this.tsLabelSerial,
+            this.tsLedSerial,
+            this.tsSeparador1,
+            this.tsLabeLink,
+            this.tsLedLink});
+            this.statusStrip1.Location = new System.Drawing.Point(0, 505);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 13, 0);
             this.statusStrip1.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.statusStrip1.Size = new System.Drawing.Size(800, 26);
+            this.statusStrip1.Size = new System.Drawing.Size(857, 26);
             this.statusStrip1.TabIndex = 1;
             this.statusStrip1.Text = "statusStrip1";
             // 
-            // toolStripStatusLINK
+            // tsLabelSerial
             // 
-            this.toolStripStatusLINK.AutoSize = false;
-            this.toolStripStatusLINK.BorderStyle = System.Windows.Forms.Border3DStyle.Raised;
-            this.toolStripStatusLINK.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.toolStripStatusLINK.Name = "toolStripStatusLINK";
-            this.toolStripStatusLINK.Size = new System.Drawing.Size(104, 20);
-            this.toolStripStatusLINK.Text = "Desconectado";
+            this.tsLabelSerial.Name = "tsLabelSerial";
+            this.tsLabelSerial.Size = new System.Drawing.Size(114, 20);
+            this.tsLabelSerial.Text = "Status da Serial:";
             // 
-            // toolStripStatusLabel2
+            // tsLedSerial
             // 
-            this.toolStripStatusLabel2.Name = "toolStripStatusLabel2";
-            this.toolStripStatusLabel2.Size = new System.Drawing.Size(49, 20);
-            this.toolStripStatusLabel2.Text = "Serial:";
+            this.tsLedSerial.Image = global::SimulDIESEL.Properties.Resources.LedRedDark_18x18;
+            this.tsLedSerial.Name = "tsLedSerial";
+            this.tsLedSerial.Size = new System.Drawing.Size(20, 20);
+            // 
+            // tsSeparador1
+            // 
+            this.tsSeparador1.Name = "tsSeparador1";
+            this.tsSeparador1.Size = new System.Drawing.Size(13, 20);
+            this.tsSeparador1.Text = "|";
             // 
             // menuStrip1
             // 
@@ -74,7 +83,7 @@
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(5, 2, 0, 2);
-            this.menuStrip1.Size = new System.Drawing.Size(800, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(857, 24);
             this.menuStrip1.TabIndex = 2;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -85,9 +94,21 @@
             this.toolStripConectar});
             this.toolStrip1.Location = new System.Drawing.Point(0, 24);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(800, 47);
+            this.toolStrip1.Size = new System.Drawing.Size(857, 47);
             this.toolStrip1.TabIndex = 3;
             this.toolStrip1.Text = "toolStrip1";
+            // 
+            // tsLabeLink
+            // 
+            this.tsLabeLink.Name = "tsLabeLink";
+            this.tsLabeLink.Size = new System.Drawing.Size(104, 20);
+            this.tsLabeLink.Text = "Status do Link:";
+            // 
+            // tsLedLink
+            // 
+            this.tsLedLink.Image = global::SimulDIESEL.Properties.Resources.LedRedDark_18x18;
+            this.tsLedLink.Name = "tsLedLink";
+            this.tsLedLink.Size = new System.Drawing.Size(20, 20);
             // 
             // toolStripConectar
             // 
@@ -104,7 +125,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(857, 531);
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.menuStrip1);
@@ -130,8 +151,11 @@
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripButton toolStripConectar;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLINK;
-        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel2;
+        private System.Windows.Forms.ToolStripStatusLabel tsLabelSerial;
+        private System.Windows.Forms.ToolStripStatusLabel tsLedSerial;
+        private System.Windows.Forms.ToolStripStatusLabel tsSeparador1;
+        private System.Windows.Forms.ToolStripStatusLabel tsLabeLink;
+        private System.Windows.Forms.ToolStripStatusLabel tsLedLink;
     }
 }
 

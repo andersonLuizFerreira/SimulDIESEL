@@ -46,8 +46,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BLL\SdGwHealthService.cs" />
+    <Compile Include="BLL\SdGwLinkEngine.cs" />
     <Compile Include="BLL\SerialLink.cs" />
     <Compile Include="BLL\SerialLinkService.cs" />
+    <Compile Include="DAL\IByteTransport.cs" />
     <Compile Include="DAL\SerialTransport.cs" />
     <Compile Include="DTL\DadosSerial.cs" />
     <Compile Include="UI\frmPortaSerial_UI.cs">
@@ -96,6 +99,16 @@
   <ItemGroup>
     <Content Include="RESOURCES\Conectado.png" />
     <Content Include="RESOURCES\Desconectado.png" />
+    <None Include="RESOURCES\LedYellowLight_18x18.png" />
+    <None Include="RESOURCES\LedYellowDark_18x18.png" />
+    <None Include="RESOURCES\LedYellowBright_18x18.png" />
+    <None Include="RESOURCES\LedRedLight_18x18.png" />
+    <None Include="RESOURCES\LedRedDark_18x18.png" />
+    <None Include="RESOURCES\LedRedBright_18x18.png" />
+    <None Include="RESOURCES\LedGreenLight_18x18.png" />
+    <None Include="RESOURCES\LedGreenDark_18x18.png" />
+    <None Include="RESOURCES\LedGreenBright_18x18.png" />
+    <None Include="RESOURCES\LedGrayOff_18x18.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="RESOURCES\VERDE OFF.png" />

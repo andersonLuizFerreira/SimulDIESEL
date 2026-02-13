@@ -83,6 +83,106 @@ namespace SimulDIESEL.Properties {
         /// <summary>
         ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap LedGrayOff_18x18 {
+            get {
+                object obj = ResourceManager.GetObject("LedGrayOff_18x18", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap LedGreenBright_18x18 {
+            get {
+                object obj = ResourceManager.GetObject("LedGreenBright_18x18", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap LedGreenDark_18x18 {
+            get {
+                object obj = ResourceManager.GetObject("LedGreenDark_18x18", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap LedGreenLight_18x18 {
+            get {
+                object obj = ResourceManager.GetObject("LedGreenLight_18x18", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap LedRedBright_18x18 {
+            get {
+                object obj = ResourceManager.GetObject("LedRedBright_18x18", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap LedRedDark_18x18 {
+            get {
+                object obj = ResourceManager.GetObject("LedRedDark_18x18", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap LedRedLight_18x18 {
+            get {
+                object obj = ResourceManager.GetObject("LedRedLight_18x18", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap LedYellowBright_18x18 {
+            get {
+                object obj = ResourceManager.GetObject("LedYellowBright_18x18", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap LedYellowDark_18x18 {
+            get {
+                object obj = ResourceManager.GetObject("LedYellowDark_18x18", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap LedYellowLight_18x18 {
+            get {
+                object obj = ResourceManager.GetObject("LedYellowLight_18x18", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Consulta um recurso localizado do tipo System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap VERDE_OFF {
             get {
                 object obj = ResourceManager.GetObject("VERDE OFF", resourceCulture);
