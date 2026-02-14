@@ -20,6 +20,7 @@ namespace SimulDIESEL.BLL
         /// </summary>
         public static bool IsLinked => Service.IsLinked;
 
+        public static string NomeDaInterface => Service.NomeDaInterface;
         /// <summary>
         /// Fecha a conexão serial (transporte).
         /// Não destrói o Service.

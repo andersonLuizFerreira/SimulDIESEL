@@ -23,6 +23,9 @@ namespace SimulDIESEL
             SerialLink.Service.Error -= Link_Error;
             SerialLink.Service.Error += Link_Error;
 
+            // NOME DA INTERFACE
+            SerialLink.Service.NomeDaInterfaceChanged -= NomeDaInterfaceChanged_Handler;
+            SerialLink.Service.NomeDaInterfaceChanged += NomeDaInterfaceChanged_Handler;
 
             AtualizarBotaoConectar();
             AtualizarStatusStrip();
@@ -135,7 +138,7 @@ namespace SimulDIESEL
                 // Você pode escolher:
                 // 1) mostrar simples:
                 //toolStripStatusLabel4.Text = SerialLink.IsLinked ? "Linked" : "Aguardando link";
-                //tsLabelLink.Text = SerialLink.Service.State.ToString();
+                //0,tsLabelLink.Text = SerialLink.Service.State.ToString();
 
 
                 // 2) OU mostrar estado detalhado:
@@ -153,6 +156,21 @@ namespace SimulDIESEL
 
             AtualizarBotaoConectar();
             AtualizarIndicadores();
+        }
+
+        private void NomeDaInterfaceChanged_Handler()
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(NomeDaInterfaceChanged_Handler));
+                return;
+            }
+
+            // Aqui você decide pela fonte de verdade:
+            // se estiver Linked, mostra o nome; senão "Nenhum".
+            tsNomeInterface.Text = SerialLink.Service.IsLinked
+                ? SerialLink.Service.NomeDaInterface
+                : "Nenhum";
         }
 
         private void Link_StateChanged(SerialLinkService.LinkState state)
@@ -182,9 +200,15 @@ namespace SimulDIESEL
         {
             SerialLink.Service.ConnectionChanged -= Serial_ConnectionChanged;
             SerialLink.Service.LinkStateChanged -= Link_StateChanged;
+            SerialLink.Service.NomeDaInterfaceChanged -= NomeDaInterfaceChanged_Handler;
             SerialLink.Service.Error -= Link_Error;
 
             base.OnFormClosing(e);
+        }
+
+        private void DashBoard_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

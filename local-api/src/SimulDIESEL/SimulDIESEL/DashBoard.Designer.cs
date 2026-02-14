@@ -33,10 +33,13 @@
             this.tsLabelSerial = new System.Windows.Forms.ToolStripStatusLabel();
             this.tsLedSerial = new System.Windows.Forms.ToolStripStatusLabel();
             this.tsSeparador1 = new System.Windows.Forms.ToolStripStatusLabel();
-            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
-            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.tsLabeLink = new System.Windows.Forms.ToolStripStatusLabel();
             this.tsLedLink = new System.Windows.Forms.ToolStripStatusLabel();
+            this.tsSeparador = new System.Windows.Forms.ToolStripStatusLabel();
+            this.tsLablelNomeInterface = new System.Windows.Forms.ToolStripStatusLabel();
+            this.tsNomeInterface = new System.Windows.Forms.ToolStripStatusLabel();
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripConectar = new System.Windows.Forms.ToolStripButton();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -50,7 +53,10 @@
             this.tsLedSerial,
             this.tsSeparador1,
             this.tsLabeLink,
-            this.tsLedLink});
+            this.tsLedLink,
+            this.tsSeparador,
+            this.tsLablelNomeInterface,
+            this.tsNomeInterface});
             this.statusStrip1.Location = new System.Drawing.Point(0, 505);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 13, 0);
@@ -77,6 +83,36 @@
             this.tsSeparador1.Size = new System.Drawing.Size(13, 20);
             this.tsSeparador1.Text = "|";
             // 
+            // tsLabeLink
+            // 
+            this.tsLabeLink.Name = "tsLabeLink";
+            this.tsLabeLink.Size = new System.Drawing.Size(104, 20);
+            this.tsLabeLink.Text = "Status do Link:";
+            // 
+            // tsLedLink
+            // 
+            this.tsLedLink.Image = global::SimulDIESEL.Properties.Resources.LedRedDark_18x18;
+            this.tsLedLink.Name = "tsLedLink";
+            this.tsLedLink.Size = new System.Drawing.Size(20, 20);
+            // 
+            // tsSeparador
+            // 
+            this.tsSeparador.Name = "tsSeparador";
+            this.tsSeparador.Size = new System.Drawing.Size(13, 20);
+            this.tsSeparador.Text = "|";
+            // 
+            // tsLablelNomeInterface
+            // 
+            this.tsLablelNomeInterface.Name = "tsLablelNomeInterface";
+            this.tsLablelNomeInterface.Size = new System.Drawing.Size(136, 20);
+            this.tsLablelNomeInterface.Text = "Nome da Interface:";
+            // 
+            // tsNomeInterface
+            // 
+            this.tsNomeInterface.Name = "tsNomeInterface";
+            this.tsNomeInterface.Size = new System.Drawing.Size(65, 20);
+            this.tsNomeInterface.Text = "Nunhum";
+            // 
             // menuStrip1
             // 
             this.menuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
@@ -97,18 +133,6 @@
             this.toolStrip1.Size = new System.Drawing.Size(857, 47);
             this.toolStrip1.TabIndex = 3;
             this.toolStrip1.Text = "toolStrip1";
-            // 
-            // tsLabeLink
-            // 
-            this.tsLabeLink.Name = "tsLabeLink";
-            this.tsLabeLink.Size = new System.Drawing.Size(104, 20);
-            this.tsLabeLink.Text = "Status do Link:";
-            // 
-            // tsLedLink
-            // 
-            this.tsLedLink.Image = global::SimulDIESEL.Properties.Resources.LedRedDark_18x18;
-            this.tsLedLink.Name = "tsLedLink";
-            this.tsLedLink.Size = new System.Drawing.Size(20, 20);
             // 
             // toolStripConectar
             // 
@@ -136,6 +160,7 @@
             this.Name = "DashBoard";
             this.Text = "SimulDIESEL";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
+            this.Load += new System.EventHandler(this.DashBoard_Load);
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.toolStrip1.ResumeLayout(false);
@@ -156,6 +181,9 @@
         private System.Windows.Forms.ToolStripStatusLabel tsSeparador1;
         private System.Windows.Forms.ToolStripStatusLabel tsLabeLink;
         private System.Windows.Forms.ToolStripStatusLabel tsLedLink;
+        private System.Windows.Forms.ToolStripStatusLabel tsSeparador;
+        private System.Windows.Forms.ToolStripStatusLabel tsLablelNomeInterface;
+        private System.Windows.Forms.ToolStripStatusLabel tsNomeInterface;
     }
 }
 

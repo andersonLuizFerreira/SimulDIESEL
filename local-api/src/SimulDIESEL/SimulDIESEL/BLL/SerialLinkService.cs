@@ -5,23 +5,16 @@ using SimulDIESEL.DAL;
 
 namespace SimulDIESEL.BLL
 {
-    /// <summary>
-    /// BLL mínima para conexão serial e handshake de link.
-    /// UI fala com esta classe. Ela usa a DAL (SerialTransport).
-    /// </summary>
     public sealed class SerialLinkService : IDisposable
     {
-        // =========================================================
-        // Infra / Comum
-        // =========================================================
         private readonly SerialTransport _transport;
         private bool _disposed;
 
-        // =========================================================
-        // SD-GW-LINK Engine + Health
-        // =========================================================
         private SdGwLinkEngine _engine;
         private SdGwHealthService _health;
+
+        private volatile bool _isDisconnecting;
+
 
         public enum LinkState
         {
@@ -34,27 +27,24 @@ namespace SimulDIESEL.BLL
         }
 
         public event Action<LinkState> LinkStateChanged;
+        public event Action<bool> ConnectionChanged;
+        public event Action<string[]> Error;
+        public event Action<byte[]> BytesReceived;
+        public event Action NomeDaInterfaceChanged;
 
         public LinkState State { get; private set; } = LinkState.Disconnected;
 
+        public string NomeDaInterface { get; private set; } = "Nenhum";
+
         public bool IsLinked => State == LinkState.Linked;
-
-        // "Connected" = transporte aberto
         public bool IsConnected => _transport.IsOpen;
-
         public bool IsSerialOpen => _transport.IsOpen;
-
-        public event Action<bool> ConnectionChanged;
-        public event Action<string[]> Error;
-        public event Action<byte[]> BytesReceived; // opcional (debug)
 
         private void SetState(LinkState newState)
         {
             if (State == newState) return;
-
             State = newState;
             LinkStateChanged?.Invoke(State);
-
             Console.WriteLine($" SerialLinkService. LinkStateChanged => {State}");
         }
 
@@ -62,9 +52,6 @@ namespace SimulDIESEL.BLL
         {
             _transport = new SerialTransport();
 
-            // =======================
-            // Subscrições do transporte (defensivo)
-            // =======================
             _transport.ConnectionChanged -= OnTransportConnectionChanged;
             _transport.Error -= OnTransportError;
             _transport.BytesReceived -= OnTransportBytesReceived;
@@ -73,9 +60,6 @@ namespace SimulDIESEL.BLL
             _transport.Error += OnTransportError;
             _transport.BytesReceived += OnTransportBytesReceived;
 
-            // =======================
-            // SD-GW-LINK Engine
-            // =======================
             var cfg = new SdGwLinkEngine.Config
             {
                 CmdAck = 0xF1,
@@ -84,12 +68,8 @@ namespace SimulDIESEL.BLL
                 FlagIsEvt = 0x02,
                 MaxRawFrameLen = 250
             };
-
             _engine = new SdGwLinkEngine(cfg, WriteRaw);
 
-            // =======================
-            // Health / Ping Service
-            // =======================
             var healthCfg = new SdGwHealthService.Config
             {
                 PingCmd = 0x55,
@@ -97,14 +77,11 @@ namespace SimulDIESEL.BLL
                 PingTimeoutMs = 150,
                 PingRetries = 2
             };
-
             _health = new SdGwHealthService(_engine, healthCfg);
 
-            // quando health muda, isso faz parte do Link (defensivo)
             _health.LinkHealthChanged -= Health_LinkHealthChanged;
             _health.LinkHealthChanged += Health_LinkHealthChanged;
 
-            // Só ativa ping quando estiver Linked (defensivo)
             LinkStateChanged -= OnLinkStateChanged_ForHealth;
             LinkStateChanged += OnLinkStateChanged_ForHealth;
         }
@@ -118,16 +95,13 @@ namespace SimulDIESEL.BLL
 
         private void Health_LinkHealthChanged(bool alive)
         {
-            // Pode vir de thread de Timer
             if (_disposed) return;
 
-            // Se não estiver LINKED, health não deve mandar no estado do link
-            if (State != LinkState.Linked)
-                return;
+            // health só manda quando estava Linked
+            if (State != LinkState.Linked) return;
 
-            // Se a serial caiu, o próprio ConnectionChanged já derruba tudo
-            if (!_transport.IsOpen)
-                return;
+            // se já caiu transporte, não faz nada aqui (o ConnectionChanged(false) vai resolver)
+            if (!_transport.IsOpen) return;
 
             if (!alive)
             {
@@ -135,27 +109,19 @@ namespace SimulDIESEL.BLL
 
                 lock (_linkSync)
                 {
-                    // derruba link (mas NÃO desconecta serial)
                     SetState(LinkState.LinkFailed);
 
-                    // reseta tentativa para re-handshake
                     _attemptActive = false;
                     _draining = false;
                     _rxBuffer.Clear();
 
-                    // tenta imediatamente
                     _nextAttemptAtUtc = DateTime.UtcNow;
-
-                    // garante que o loop de handshake está rodando
                     StartLinkLoop_NoLock();
                 }
             }
         }
 
-        public static string[] ListarPortas()
-        {
-            return SerialTransport.ListPorts();
-        }
+        public static string[] ListarPortas() => SerialTransport.ListPorts();
 
         public void Dispose()
         {
@@ -164,16 +130,11 @@ namespace SimulDIESEL.BLL
 
             StopLinkTimer();
 
-            // Desinscrições (defensivo)
             _transport.ConnectionChanged -= OnTransportConnectionChanged;
             _transport.Error -= OnTransportError;
             _transport.BytesReceived -= OnTransportBytesReceived;
 
-            if (_health != null)
-            {
-                _health.LinkHealthChanged -= Health_LinkHealthChanged;
-            }
-
+            if (_health != null) _health.LinkHealthChanged -= Health_LinkHealthChanged;
             LinkStateChanged -= OnLinkStateChanged_ForHealth;
 
             if (_health != null) _health.Dispose();
@@ -183,9 +144,6 @@ namespace SimulDIESEL.BLL
             _transport.Dispose();
         }
 
-        // =========================================================
-        // Seção: Conexão Serial (abrir/fechar + eventos)
-        // =========================================================
         #region Serial Connection
 
         public bool Connect(
@@ -215,12 +173,44 @@ namespace SimulDIESEL.BLL
         public void Disconnect()
         {
             if (_disposed) return;
-            _transport.Disconnect();
+
+            _isDisconnecting = true;
+            try
+            {
+                // 1) Mata tudo que pode gerar TX, antes de fechar a porta
+                lock (_linkSync)
+                {
+                    _health?.SetEnabled(false);
+
+                    _attemptActive = false;
+                    _draining = false;
+                    _rxBuffer.Clear();
+
+                    StopLinkTimer();
+                    SetState(LinkState.Disconnected);
+
+                    if (NomeDaInterface != "Nenhum")
+                    {
+                        NomeDaInterface = "Nenhum";
+                    }
+                }
+
+                // 2) Cancela qualquer SendAsync pendente e limpa RX do engine
+                _engine?.OnTransportDown("Disconnect requested");
+
+                // 3) Agora fecha o transporte
+                _transport.Disconnect();
+
+                // 4) Notifica nome (fora do lock)
+                NomeDaInterfaceChanged?.Invoke();
+            }
+            finally
+            {
+                _isDisconnecting = false;
+            }
         }
 
-        /// <summary>
-        /// Método público para o Engine escrever bytes no transporte (stream).
-        /// </summary>
+
         public bool WriteRaw(byte[] data)
         {
             if (_disposed) return false;
@@ -230,33 +220,60 @@ namespace SimulDIESEL.BLL
         private void OnTransportConnectionChanged(bool connected)
         {
             ConnectionChanged?.Invoke(connected);
-
             Console.WriteLine($" SerialLinkService. ConnectionChanged Invoked. Connected={connected}");
+
+            bool raiseNomeChanged = false;
 
             lock (_linkSync)
             {
                 if (!connected)
                 {
-                    // Transporte caiu => link cai junto, para tentativas
+                    if (_isDisconnecting)
+                    {
+                        // Já derrubamos estado/timers no Disconnect(); não precisa refazer tudo nem logar
+                        return;
+                    }
+
+                    // Desliga health imediatamente
+                    _health?.SetEnabled(false);
+
+                    // Informa o LinkEngine que o transporte caiu (encerra SendAsync pendentes)
+                    _engine?.OnTransportDown("Serial transport disconnected");
+
+                    // Para handshake completamente e limpa estado
                     _attemptActive = false;
+                    _draining = false;
                     _rxBuffer.Clear();
+
                     StopLinkTimer();
                     SetState(LinkState.Disconnected);
-                    return;
+
+                    // Limpa nome da interface
+                    if (NomeDaInterface != "Nenhum")
+                    {
+                        NomeDaInterface = "Nenhum";
+                        raiseNomeChanged = true;
+                    }
                 }
+                else
+                {
+                    // Transporte subiu
+                    SetState(LinkState.SerialConnected);
 
-                // Transporte voltou (IsOpen == true) => inicia tentativas automáticas de link
-                SetState(LinkState.SerialConnected);
+                    _attemptActive = false;
+                    _draining = false;
+                    _rxBuffer.Clear();
 
-                _attemptActive = false;
-                _rxBuffer.Clear();
-
-                // Primeira tentativa imediata; depois, em caso de falha, a cada 3s
-                _nextAttemptAtUtc = DateTime.UtcNow;
-
-                StartLinkLoop_NoLock();
+                    _nextAttemptAtUtc = DateTime.UtcNow;
+                    StartLinkLoop_NoLock();
+                }
             }
+
+            // Disparar evento sempre fora do lock
+            if (raiseNomeChanged)
+                NomeDaInterfaceChanged?.Invoke();
         }
+
 
         private void OnTransportError(string[] msg)
         {
@@ -267,39 +284,31 @@ namespace SimulDIESEL.BLL
         {
             BytesReceived?.Invoke(data);
 
-            // Durante handshake: só processa ASCII/banner
             if (State != LinkState.Linked)
             {
                 HandleHandshakeBytes(data);
                 return;
             }
 
-            // Após Linked: bytes pertencem ao SD-GW-LINK (COBS/CRC)
             if (_engine != null)
                 _engine.OnBytesReceived(data);
         }
 
         #endregion
 
-        // =========================================================
-        // Seção: Link / Handshake (drain + banner + detecção do OK)
-        // =========================================================
         #region Link Handshake
 
         private readonly object _linkSync = new object();
         private System.Threading.Timer _linkTimer;
-
         private readonly StringBuilder _rxBuffer = new StringBuilder();
 
         private DateTime _drainUntil;
         private bool _draining;
 
-        // Controle de tentativas
         private bool _attemptActive;
         private DateTime _attemptDeadlineUtc;
         private DateTime _nextAttemptAtUtc;
 
-        // Timings conforme seu requisito
         private static readonly TimeSpan DrainWindow = TimeSpan.FromMilliseconds(300);
         private static readonly TimeSpan HandshakeTimeout = TimeSpan.FromMilliseconds(2000);
         private static readonly TimeSpan RetryInterval = TimeSpan.FromSeconds(3);
@@ -309,7 +318,6 @@ namespace SimulDIESEL.BLL
 
         private void StartLinkLoop_NoLock()
         {
-            // Pré-condição: já está dentro de lock(_linkSync)
             if (_linkTimer == null)
                 _linkTimer = new System.Threading.Timer(LinkTick, null, 50, 50);
 
@@ -328,11 +336,9 @@ namespace SimulDIESEL.BLL
 
                 var now = DateTime.UtcNow;
 
-                // Ainda não é hora da próxima tentativa
                 if (!_attemptActive && now < _nextAttemptAtUtc)
                     return;
 
-                // Início de uma tentativa
                 if (!_attemptActive)
                 {
                     _rxBuffer.Clear();
@@ -347,7 +353,6 @@ namespace SimulDIESEL.BLL
                     return;
                 }
 
-                // Fim da janela de DRAIN => envia banner
                 if (_draining && now >= _drainUntil)
                 {
                     _draining = false;
@@ -359,7 +364,6 @@ namespace SimulDIESEL.BLL
                     SetState(LinkState.BannerSent);
                 }
 
-                // Timeout da tentativa atual (NÃO desconecta serial)
                 if (now >= _attemptDeadlineUtc && State != LinkState.Linked)
                 {
                     Console.WriteLine(" SerialLinkService. Handshake timeout (tentativa falhou).");
@@ -367,7 +371,7 @@ namespace SimulDIESEL.BLL
                     SetState(LinkState.LinkFailed);
 
                     _attemptActive = false;
-                    _nextAttemptAtUtc = now.Add(RetryInterval); // tenta de novo em 3s
+                    _nextAttemptAtUtc = now.Add(RetryInterval);
                 }
             }
         }
@@ -377,17 +381,16 @@ namespace SimulDIESEL.BLL
             if (!_transport.IsOpen)
                 return;
 
+            bool raiseNomeChanged = false;
+
             lock (_linkSync)
             {
-                // Só processa se estivermos numa tentativa ativa
                 if (!_attemptActive)
                     return;
 
-                // só processa durante o handshake
                 if (State != LinkState.Draining && State != LinkState.BannerSent)
                     return;
 
-                // Durante DRAIN descarta tudo
                 if (_draining)
                     return;
 
@@ -413,14 +416,18 @@ namespace SimulDIESEL.BLL
                     {
                         SetState(LinkState.Linked);
 
-                        // Link estabelecido: para as tentativas
                         _attemptActive = false;
                         StopLinkTimer();
 
-                        return;
+                        NomeDaInterface = line;
+                        raiseNomeChanged = true;
+                        break;
                     }
                 }
             }
+
+            if (raiseNomeChanged)
+                NomeDaInterfaceChanged?.Invoke();
         }
 
         private void StopLinkTimer()
