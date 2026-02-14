@@ -1,15 +1,7 @@
 ﻿using SimulDIESEL.BLL;
 using SimulDIESEL.UI;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using SimulDIESEL.BLL;
 
 namespace SimulDIESEL
 {
@@ -19,12 +11,25 @@ namespace SimulDIESEL
         {
             InitializeComponent();
 
-            SerialLink.Service.ConnectionChanged -= Serial_ConnectionChanged; // garante que não tem mais de um handler (se o form for reaberto)
-            SerialLink.Service.ConnectionChanged += Serial_ConnectionChanged; // se a conexão mudar, atualiza o botão e status
-            AtualizarBotaoConectar(); // estado inicial
+            // SERIAL
+            SerialLink.Service.ConnectionChanged -= Serial_ConnectionChanged;
+            SerialLink.Service.ConnectionChanged += Serial_ConnectionChanged;
+
+            // LINK
+            SerialLink.Service.LinkStateChanged -= Link_StateChanged;
+            SerialLink.Service.LinkStateChanged += Link_StateChanged;
+
+            // ERRO (opcional, mas recomendado)
+            SerialLink.Service.Error -= Link_Error;
+            SerialLink.Service.Error += Link_Error;
+
+            // NOME DA INTERFACE
+            SerialLink.Service.NomeDaInterfaceChanged -= NomeDaInterfaceChanged_Handler;
+            SerialLink.Service.NomeDaInterfaceChanged += NomeDaInterfaceChanged_Handler;
+
+            AtualizarBotaoConectar();
+            AtualizarStatusStrip();
         }
-
-
 
         private void toolStripConectar_Click(object sender, EventArgs e)
         {
@@ -32,7 +37,9 @@ namespace SimulDIESEL
             if (SerialLink.IsConnected)
             {
                 SerialLink.Close();
-                AtualizarBotaoConectar(); // atualiza texto/ícone
+                // Os eventos vão atualizar, mas atualizar aqui ajuda a dar resposta imediata
+                AtualizarBotaoConectar();
+                AtualizarStatusStrip();
                 return;
             }
 
@@ -55,11 +62,88 @@ namespace SimulDIESEL
         private void AtualizarBotaoConectar()
         {
             toolStripConectar.Text = SerialLink.IsConnected ? "Desconectar" : "Conectar";
-            toolStripStatusLINK.Text = SerialLink.IsConnected ? "Conectado" : "Desconectado";
 
             toolStripConectar.Image = SerialLink.IsConnected
-            ? Properties.Resources.Conectado
-            : Properties.Resources.Desconectado;
+                ? Properties.Resources.Conectado
+                : Properties.Resources.Desconectado;
+        }
+
+        private void AtualizarIndicadores()
+        {
+            bool serialOk = SerialLink.IsConnected;
+            var state = SerialLink.Service.State;
+
+            // ==========================
+            // SERIAL
+            // ==========================
+            tsLedSerial.Image = serialOk
+                ? Properties.Resources.LedGreenBright_18x18
+                : Properties.Resources.LedRedDark_18x18;
+
+            tsLabelSerial.Text = "Status da Serial: " + (serialOk ? "Conectado" : "Desconectado");
+
+            // ==========================
+            // LINK
+            // ==========================
+            if (!serialOk)
+            {
+                tsLedLink.Image = Properties.Resources.LedGrayOff_18x18;
+                //tsLabelLink.Text = "Status do Link: Desconectado";
+                return;
+            }
+
+            switch (state)
+            {
+                case SerialLinkService.LinkState.Linked:
+                    tsLedLink.Image = Properties.Resources.LedGreenBright_18x18;
+                    //tsLabelLink.Text = "Status do Link: Linked";
+                    break;
+
+                case SerialLinkService.LinkState.LinkFailed:
+                    tsLedLink.Image = Properties.Resources.LedRedBright_18x18;
+                    //tsLabelLink.Text = "Status do Link: Falhou (retry 3s)";
+                    break;
+
+                case SerialLinkService.LinkState.Draining:
+                case SerialLinkService.LinkState.BannerSent:
+                case SerialLinkService.LinkState.SerialConnected:
+                    tsLedLink.Image = Properties.Resources.LedYellowBright_18x18;
+                    //tsLabelLink.Text = "Status do Link: Conectando...";
+                    break;
+
+                default:
+                    tsLedLink.Image = Properties.Resources.LedGrayOff_18x18;
+                    //tsLabelLink.Text = "Status do Link: " + state.ToString();
+                    break;
+            }
+        }
+
+
+        private void AtualizarStatusStrip()
+        {
+            // IMPORTANTE: no seu Designer:
+            // toolStripStatusLINK = valor do Status da Serial
+            // toolStripStatusLabel4 = valor do Status do Link
+
+            // Status da Serial (transporte)
+            //tsLabelSerialValue.Text = SerialLink.IsConnected ? "Conectado" : "Desconectado";
+
+            // Status do Link (handshake)
+            if (!SerialLink.IsConnected)
+            {
+                //tsLabelLink.Text = "Desconectado";
+            }
+            else
+            {
+                // Você pode escolher:
+                // 1) mostrar simples:
+                //toolStripStatusLabel4.Text = SerialLink.IsLinked ? "Linked" : "Aguardando link";
+                //0,tsLabelLink.Text = SerialLink.Service.State.ToString();
+
+
+                // 2) OU mostrar estado detalhado:
+                // toolStripStatusLabel4.Text = SerialLink.Service.State.ToString();
+            }
         }
 
         private void Serial_ConnectionChanged(bool connected)
@@ -70,20 +154,61 @@ namespace SimulDIESEL
                 return;
             }
 
-            Console.WriteLine($" DashBoard. Serial_ConnectionChanged Invoked. Connected={connected}");
-            // Aqui já está na thread da UI
             AtualizarBotaoConectar();
+            AtualizarIndicadores();
+        }
 
-            // Se você tiver StatusStrip/Label/ícone:
-            // lblStatus.Text = connected ? "Conectado" : "Desconectado";
-            // lblStatus.ForeColor = connected ? Color.Green : Color.Red;
+        private void NomeDaInterfaceChanged_Handler()
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(NomeDaInterfaceChanged_Handler));
+                return;
+            }
+
+            // Aqui você decide pela fonte de verdade:
+            // se estiver Linked, mostra o nome; senão "Nenhum".
+            tsNomeInterface.Text = SerialLink.Service.IsLinked
+                ? SerialLink.Service.NomeDaInterface
+                : "Nenhum";
+        }
+
+        private void Link_StateChanged(SerialLinkService.LinkState state)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(() => Link_StateChanged(state)));
+                return;
+            }
+
+            AtualizarIndicadores();
+        }
+
+        private void Link_Error(string[] msg)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(() => Link_Error(msg)));
+                return;
+            }
+
+            // Se quiser, pode registrar em console ou colocar em um ToolStripStatusLabel extra
+            // Console.WriteLine($"ERROR: {string.Join(" | ", msg ?? Array.Empty<string>())}");
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             SerialLink.Service.ConnectionChanged -= Serial_ConnectionChanged;
+            SerialLink.Service.LinkStateChanged -= Link_StateChanged;
+            SerialLink.Service.NomeDaInterfaceChanged -= NomeDaInterfaceChanged_Handler;
+            SerialLink.Service.Error -= Link_Error;
+
             base.OnFormClosing(e);
         }
 
+        private void DashBoard_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }

@@ -124,6 +124,36 @@
   <data name="Desconectado" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\RESOURCES\Desconectado.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="LedGrayOff_18x18" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\RESOURCES\LedGrayOff_18x18.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="LedGreenBright_18x18" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\RESOURCES\LedGreenBright_18x18.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="LedGreenDark_18x18" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\RESOURCES\LedGreenDark_18x18.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="LedGreenLight_18x18" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\RESOURCES\LedGreenLight_18x18.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="LedRedBright_18x18" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\RESOURCES\LedRedBright_18x18.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="LedRedDark_18x18" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\RESOURCES\LedRedDark_18x18.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="LedRedLight_18x18" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\RESOURCES\LedRedLight_18x18.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="LedYellowBright_18x18" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\RESOURCES\LedYellowBright_18x18.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="LedYellowDark_18x18" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\RESOURCES\LedYellowDark_18x18.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="LedYellowLight_18x18" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\RESOURCES\LedYellowLight_18x18.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="VERDE OFF" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\RESOURCES\VERDE OFF.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>

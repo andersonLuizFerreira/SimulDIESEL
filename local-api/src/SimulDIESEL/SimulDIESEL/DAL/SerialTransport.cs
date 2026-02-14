@@ -8,52 +8,40 @@ namespace SimulDIESEL.DAL
     /// Responsabilidades: listar portas, abrir/fechar, enviar bytes, receber bytes (raw).
     /// NÃO faz framing, checksum, CTS, fila, etc.
     /// </summary>
-    public sealed class SerialTransport : IDisposable
+    public sealed class SerialTransport : IDisposable, IByteTransport
     {
-        private SerialPort _port; // acesso protegido por _sync
-        private readonly object _sync = new object(); // lock para proteger acesso a _port e _disposed
-        private bool _disposed; // acesso protegido por _sync
+        private SerialPort _port;                 // acesso protegido por _sync
+        private readonly object _sync = new object();
+        private bool _disposed;
+
+        // FONTE DE VERDADE (não confie em SerialPort.IsOpen para "cabo removido")
+        private bool _connected;
 
         public bool IsOpen
         {
-            get { lock (_sync) { return _port != null && _port.IsOpen; } }
+            get { lock (_sync) { return _connected; } }
         }
 
         public string PortName
         {
-            get { lock (_sync) { return _port?.PortName; } }
+            get { lock (_sync) { return _port != null ? _port.PortName : null; } }
         }
 
         public int BaudRate
         {
-            get { lock (_sync) { return _port?.BaudRate ?? 0; } }
+            get { lock (_sync) { return _port != null ? _port.BaudRate : 0; } }
         }
 
-        /// <summary>Dispara bytes recebidos (crus).</summary>
         public event Action<byte[]> BytesReceived;
-
-        /// <summary>Dispara quando conecta/desconecta.</summary>
         public event Action<bool> ConnectionChanged;
-
-        /// <summary>Dispara erro com mensagem e origem.</summary>
         public event Action<string[]> Error;
 
         public static string[] ListPorts()
         {
-            try
-            {
-                return SerialPort.GetPortNames();
-            }
-            catch (Exception ex)
-            {
-                // Como é static, não tem evento aqui. Quem chamar trata exceção se quiser.
-                return Array.Empty<string>();
-            }
+            try { return SerialPort.GetPortNames(); }
+            catch { return Array.Empty<string>(); }
         }
 
-        /// <summary>
-        /// Abre a porta serial.
-        /// </summary>
         public bool Connect(string portName, int baudRate,
                             Parity parity = Parity.None,
                             int dataBits = 8,
@@ -68,7 +56,7 @@ namespace SimulDIESEL.DAL
             {
                 ThrowIfDisposed();
 
-                if (IsOpen) return true;
+                if (_connected) return true;
 
                 try
                 {
@@ -81,6 +69,10 @@ namespace SimulDIESEL.DAL
                         RtsEnable = rtsEnable
                     };
 
+                    // boas práticas: -= antes de +=
+                    _port.DataReceived -= OnDataReceived;
+                    _port.ErrorReceived -= OnErrorReceived;
+
                     _port.DataReceived += OnDataReceived;
                     _port.ErrorReceived += OnErrorReceived;
 
@@ -88,36 +80,46 @@ namespace SimulDIESEL.DAL
                     _port.DiscardInBuffer();
                     _port.DiscardOutBuffer();
 
-                    ConnectionChanged?.Invoke(true);
-                    Console.WriteLine($" SerialTransport. ConnectionChanged Invoked Conectado à porta {portName} a {baudRate} bps.");
-                    return true;
+                    _connected = true;
                 }
                 catch (Exception ex)
                 {
+                    // garante estado consistente
                     SafeClose_NoThrow();
-                    RaiseError($"Erro ao conectar: {ex.Message}");
+                    _connected = false;
+
+                    RaiseError("Erro ao conectar: " + ex.Message);
                     return false;
                 }
             }
+
+            // fora do lock (evita reentrância)
+            ConnectionChanged?.Invoke(true);
+            return true;
         }
 
-        /// <summary>
-        /// Fecha a porta serial.
-        /// </summary>
         public void Disconnect()
         {
+            bool shouldNotify = false;
+
             lock (_sync)
             {
                 if (_disposed) return;
 
+                // se já está desconectado logicamente, não repete evento
+                if (_connected)
+                {
+                    shouldNotify = true;
+                    _connected = false;
+                }
+
                 SafeClose_NoThrow();
-                ConnectionChanged?.Invoke(false);
             }
+
+            if (shouldNotify)
+                ConnectionChanged?.Invoke(false);
         }
 
-        /// <summary>
-        /// Envia bytes (crus).
-        /// </summary>
         public bool Write(byte[] data)
         {
             if (data == null || data.Length == 0) return true;
@@ -126,8 +128,9 @@ namespace SimulDIESEL.DAL
             {
                 ThrowIfDisposed();
 
-                if (!IsOpen)
+                if (!_connected || _port == null)
                 {
+                    // NÃO abra MessageBox em loop; apenas evento + false
                     RaiseError("Tentativa de envio com porta fechada.");
                     return false;
                 }
@@ -139,7 +142,8 @@ namespace SimulDIESEL.DAL
                 }
                 catch (Exception ex)
                 {
-                    RaiseError($"Erro ao enviar dados: {ex.Message}");
+                    // Falha de escrita = provável cabo removido/porta inválida
+                    HandleTransportFault("Erro ao enviar dados: " + ex.Message);
                     return false;
                 }
             }
@@ -147,16 +151,18 @@ namespace SimulDIESEL.DAL
 
         private void OnDataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            // Evento pode vir em thread de sistema.
             try
             {
                 SerialPort sp;
                 lock (_sync)
                 {
                     if (_disposed) return;
+                    if (!_connected) return;
+
                     sp = _port;
                 }
-                if (sp == null || !sp.IsOpen) return;
+
+                if (sp == null) return;
 
                 int count = sp.BytesToRead;
                 if (count <= 0) return;
@@ -167,7 +173,6 @@ namespace SimulDIESEL.DAL
 
                 if (read != buffer.Length)
                 {
-                    // Ajusta caso leia menos
                     var trimmed = new byte[read];
                     Buffer.BlockCopy(buffer, 0, trimmed, 0, read);
                     buffer = trimmed;
@@ -177,35 +182,47 @@ namespace SimulDIESEL.DAL
             }
             catch (Exception ex)
             {
-                RaiseError($"Erro ao receber dados: {ex.Message}");
+                HandleTransportFault("Erro ao receber dados: " + ex.Message);
             }
         }
 
         private void OnErrorReceived(object sender, SerialErrorReceivedEventArgs e)
         {
             string msg;
-
             switch (e.EventType)
             {
-                case SerialError.Frame:
-                    msg = "Erro de enquadramento na comunicação.";
-                    break;
-                case SerialError.Overrun:
-                    msg = "Erro de overrun: buffer cheio.";
-                    break;
-                case SerialError.RXOver:
-                    msg = "Erro RXOver.";
-                    break;
-                case SerialError.RXParity:
-                    msg = "Erro de paridade.";
-                    break;
-                default:
-                    msg = "Erro desconhecido.";
-                    break;
+                case SerialError.Frame: msg = "Erro de enquadramento (Frame)."; break;
+                case SerialError.Overrun: msg = "Overrun: buffer cheio."; break;
+                case SerialError.RXOver: msg = "Erro RXOver."; break;
+                case SerialError.RXParity: msg = "Erro de paridade (RXParity)."; break;
+                default: msg = "Erro serial desconhecido."; break;
             }
 
+            HandleTransportFault(msg);
+        }
 
-            RaiseError(msg);
+        private void HandleTransportFault(string message)
+        {
+            bool shouldNotifyDisconnected = false;
+
+            lock (_sync)
+            {
+                if (_disposed) return;
+
+                if (_connected)
+                {
+                    shouldNotifyDisconnected = true;
+                    _connected = false;
+                }
+
+                SafeClose_NoThrow();
+            }
+
+            // fora do lock
+            RaiseError(message);
+
+            if (shouldNotifyDisconnected)
+                ConnectionChanged?.Invoke(false);
         }
 
         private void RaiseError(string message)
@@ -222,6 +239,7 @@ namespace SimulDIESEL.DAL
                     _port.DataReceived -= OnDataReceived;
                     _port.ErrorReceived -= OnErrorReceived;
 
+                    // Close pode lançar quando o cabo some; por isso try/catch externo
                     if (_port.IsOpen)
                         _port.Close();
 
@@ -231,7 +249,6 @@ namespace SimulDIESEL.DAL
             }
             catch
             {
-                // não propaga
                 _port = null;
             }
         }
@@ -246,6 +263,8 @@ namespace SimulDIESEL.DAL
             lock (_sync)
             {
                 if (_disposed) return;
+
+                _connected = false;
                 SafeClose_NoThrow();
                 _disposed = true;
             }

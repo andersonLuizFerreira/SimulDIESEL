@@ -40,7 +40,7 @@ namespace SimulDIESEL.UI
             ConfiguraStatusStrip();
 
             // BLL (conexão apenas)
-            _serial = _serial = SerialLink.Service;
+            _serial = SerialLink.Service;
             _serial.ConnectionChanged += Serial_ConnectionChanged;
             _serial.Error += Serial_Error;
         }
