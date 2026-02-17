@@ -46,13 +46,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BLL\LedGwTest_BLL.cs" />
+    <Compile Include="BLL\SdGgwClient.cs" />
     <Compile Include="BLL\SdGwHealthService.cs" />
     <Compile Include="BLL\SdGwLinkEngine.cs" />
     <Compile Include="BLL\SerialLink.cs" />
     <Compile Include="BLL\SerialLinkService.cs" />
     <Compile Include="DAL\IByteTransport.cs" />
     <Compile Include="DAL\SerialTransport.cs" />
-    <Compile Include="DTL\DadosSerial.cs" />
+    <Compile Include="DTL\DeviceInfo.cs" />
+    <Compile Include="DTL\SggwCmd.cs" />
+    <Compile Include="DTL\SggwFrame.cs" />
+    <Compile Include="UI\frmLedGw.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\frmLedGw.Designer.cs">
+      <DependentUpon>frmLedGw.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\frmPortaSerial_UI.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -67,6 +77,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="UI\frmLedGw.resx">
+      <DependentUpon>frmLedGw.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\frmPortaSerial_UI.resx">
       <DependentUpon>frmPortaSerial_UI.cs</DependentUpon>
     </EmbeddedResource>

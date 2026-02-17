@@ -7,6 +7,9 @@ namespace SimulDIESEL.BLL
 {
     public sealed class SdGwLinkEngine
     {
+        // ======================================================
+        // CONFIG / TIPOS
+        // ======================================================
         public sealed class Config
         {
             public byte CmdAck { get; set; } = 0xF1;
@@ -31,7 +34,7 @@ namespace SimulDIESEL.BLL
                 Cmd = cmd;
                 Flags = flags;
                 Seq = seq;
-                Payload = payload ?? new byte[0];
+                Payload = payload ?? Array.Empty<byte>();
             }
         }
 
@@ -54,30 +57,53 @@ namespace SimulDIESEL.BLL
             public byte AdditionalFlags { get; set; } = 0;
         }
 
+        public readonly struct SendTicket
+        {
+            public readonly byte Seq;
+            public readonly Task<SendOutcome> Task;
+
+            public SendTicket(byte seq, Task<SendOutcome> task)
+            {
+                Seq = seq;
+                Task = task ?? throw new ArgumentNullException(nameof(task));
+            }
+        }
+
+        // ======================================================
+        // CAMPOS
+        // ======================================================
         private readonly Config _cfg;
         private readonly Func<byte[], bool> _write;
 
+        // RX (thread-safe)
+        private readonly object _rxSync = new object();
         private readonly List<byte> _rx = new List<byte>(512);
 
-        private byte _txSeq;
+        // TX seq (thread-safe)
+        private int _txSeq; // usa Interlocked.Increment
 
+        // dedup ACK de RX
         private bool _hasLastRxSeq;
         private byte _lastRxSeq;
 
+        // stop-and-wait (thread-safe via _swSync)
         private readonly object _swSync = new object();
         private bool _waitAck;
         private byte _waitSeq;
-        private byte[] _lastTxFrame;
+        private byte[] _lastTxFrame = Array.Empty<byte>();
         private int _retriesLeft;
         private int _timeoutMs;
         private Timer _ackTimer;
         private TaskCompletionSource<SendOutcome> _tcs;
 
+        // ======================================================
+        // EVENTOS
+        // ======================================================
         public event Action<AppFrame> AppFrameReceived;
         public event Action<string> ProtocolError;
         public event Action<byte, SendOutcome> SendCompleted;
 
-        // NOVO (opcional): indica falha física do transporte para log/ações externas
+        // opcional: log de falha física do transporte
         public event Action<string> TransportFault;
 
         public SdGwLinkEngine(Config cfg, Func<byte[], bool> write)
@@ -87,27 +113,30 @@ namespace SimulDIESEL.BLL
         }
 
         // ======================================================
-        // NOVO: chame isto quando a DAL/Serial cair (cabo puxado)
+        // TRANSPORTE CAIU (cabo puxado / porta fechou)
         // ======================================================
         public void OnTransportDown(string reason = null)
         {
             if (!string.IsNullOrEmpty(reason))
                 TransportFault?.Invoke(reason);
 
+            // encerra qualquer stop-and-wait pendente imediatamente
             lock (_swSync)
             {
-                // encerra qualquer stop-and-wait pendente imediatamente
                 if (_waitAck)
                     CompleteWait_NoLock(_waitSeq, SendOutcome.TransportDown);
             }
 
-            // limpa RX buffer (evita lixo acumulado)
-            _rx.Clear();
+            // limpa RX buffer (evita lixo acumulado e corridas)
+            lock (_rxSync)
+            {
+                _rx.Clear();
+            }
         }
 
-        // =========================
-        // RX: Alimenta bytes do stream
-        // =========================
+        // ======================================================
+        // RX: Alimenta bytes do stream (COBS + 0x00 delimiter)
+        // ======================================================
         public void OnBytesReceived(byte[] chunk)
         {
             if (chunk == null || chunk.Length == 0) return;
@@ -116,22 +145,32 @@ namespace SimulDIESEL.BLL
             {
                 byte b = chunk[i];
 
+                // acumula até delimitador 0x00
                 if (b != 0x00)
                 {
-                    _rx.Add(b);
+                    bool overflow = false;
 
-                    if (_rx.Count > _cfg.MaxRawFrameLen + 16)
+                    lock (_rxSync)
                     {
-                        _rx.Clear();
-                        ProtocolError?.Invoke("RX overflow: frame sem delimitador 0x00 (descartado).");
+                        _rx.Add(b);
+                        overflow = _rx.Count > _cfg.MaxRawFrameLen + 16;
+                        if (overflow) _rx.Clear();
                     }
+
+                    if (overflow)
+                        ProtocolError?.Invoke("RX overflow: frame sem delimitador 0x00 (descartado).");
+
                     continue;
                 }
 
-                if (_rx.Count == 0) continue;
-
-                var encoded = _rx.ToArray();
-                _rx.Clear();
+                // delimitador encontrado: pega frame acumulado
+                byte[] encoded;
+                lock (_rxSync)
+                {
+                    if (_rx.Count == 0) continue;
+                    encoded = _rx.ToArray();
+                    _rx.Clear();
+                }
 
                 byte[] decoded;
                 try
@@ -152,7 +191,6 @@ namespace SimulDIESEL.BLL
 
                 byte crcRx = decoded[decoded.Length - 1];
                 byte crcCalc = Crc8Atm(decoded, 0, decoded.Length - 1);
-
                 if (crcRx != crcCalc)
                 {
                     ProtocolError?.Invoke("CRC inválido (descartado).");
@@ -162,9 +200,11 @@ namespace SimulDIESEL.BLL
                 byte cmd = decoded[0];
                 byte flags = decoded[1];
                 byte seq = decoded[2];
-                int payloadLen = decoded.Length - 4;
-                byte[] payload = payloadLen > 0 ? Slice(decoded, 3, payloadLen) : new byte[0];
 
+                int payloadLen = decoded.Length - 4;
+                byte[] payload = payloadLen > 0 ? Slice(decoded, 3, payloadLen) : Array.Empty<byte>();
+
+                // ACK/ERR de transporte
                 if (cmd == _cfg.CmdAck)
                 {
                     HandleAck(seq);
@@ -172,6 +212,7 @@ namespace SimulDIESEL.BLL
                         AppFrameReceived?.Invoke(new AppFrame(cmd, flags, seq, payload));
                     continue;
                 }
+
                 if (cmd == _cfg.CmdErr)
                 {
                     HandleErr(seq);
@@ -180,10 +221,11 @@ namespace SimulDIESEL.BLL
                     continue;
                 }
 
+                // ACK requerido pelo emissor
                 bool ackReq = (flags & _cfg.FlagAckReq) != 0;
-
                 if (ackReq)
                 {
+                    // dedup: se repetir o mesmo seq, só re-ack e não entrega para app
                     if (_hasLastRxSeq && seq == _lastRxSeq)
                     {
                         SendTransportAck(seq);
@@ -200,13 +242,17 @@ namespace SimulDIESEL.BLL
             }
         }
 
-        // =========================
-        // TX: Enviar frame de aplicação
-        // =========================
-        public Task<SendOutcome> SendAsync(byte cmd, byte[] payload, SendOptions opt)
+        // ======================================================
+        // TX: Envio (com ou sem stop-and-wait)
+        // ======================================================
+        public SendTicket SendWithSeq(byte cmd, byte[] payload, SendOptions opt)
         {
-            if (opt == null) opt = new SendOptions();
-            if (payload == null) payload = new byte[0];
+            if (opt == null)
+                opt = new SendOptions();
+
+            if (payload == null)
+                payload = new byte[0];
+
 
             byte flags = opt.AdditionalFlags;
             if (opt.IsEvent) flags |= _cfg.FlagIsEvt;
@@ -215,17 +261,24 @@ namespace SimulDIESEL.BLL
             if (payload.Length + 4 > _cfg.MaxRawFrameLen)
                 throw new ArgumentException("Payload excede MTU do frame cru (250).");
 
+            // Sem ACK: envia e retorna resultado imediato
             if (!opt.RequireAck)
             {
-                byte seq = NextTxSeq();
-                var stream = BuildStreamFrame(cmd, flags, seq, payload);
-                bool ok = _write(stream);
-                return Task.FromResult(ok ? SendOutcome.Enqueued : SendOutcome.TransportDown);
+                byte seqNoAck = NextTxSeq();
+                var streamNoAck = BuildStreamFrame(cmd, flags, seqNoAck, payload);
+                bool okNoAck = _write(streamNoAck);
+
+                return new SendTicket(
+                    seqNoAck,
+                    Task.FromResult(okNoAck ? SendOutcome.Enqueued : SendOutcome.TransportDown)
+                );
             }
 
+            // Com ACK: stop-and-wait por seq
             lock (_swSync)
             {
-                if (_waitAck) return Task.FromResult(SendOutcome.Busy);
+                if (_waitAck)
+                    return new SendTicket(0, Task.FromResult(SendOutcome.Busy));
 
                 byte seq = NextTxSeq();
                 var stream = BuildStreamFrame(cmd, flags, seq, payload);
@@ -237,25 +290,28 @@ namespace SimulDIESEL.BLL
                 _timeoutMs = Math.Max(1, opt.TimeoutMs);
 
                 _tcs = new TaskCompletionSource<SendOutcome>(TaskCreationOptions.RunContinuationsAsynchronously);
-                var localTcs = _tcs; // <<< FIX: captura antes de qualquer CompleteWait
+                var localTcs = _tcs;
 
                 bool ok = _write(stream);
                 if (!ok)
                 {
                     CompleteWait_NoLock(seq, SendOutcome.TransportDown);
-                    return localTcs.Task; // <<< retorna a Task válida (não _tcs)
+                    return new SendTicket(seq, localTcs.Task);
                 }
 
-                if (_ackTimer != null) _ackTimer.Dispose();
+                _ackTimer?.Dispose();
                 _ackTimer = new Timer(AckTimeoutTick, null, _timeoutMs, Timeout.Infinite);
 
-                return localTcs.Task;
+                return new SendTicket(seq, localTcs.Task);
             }
         }
 
-        // =========================
-        // Internos: ACK/ERR/Timeout
-        // =========================
+        public Task<SendOutcome> SendAsync(byte cmd, byte[] payload, SendOptions opt)
+            => SendWithSeq(cmd, payload, opt).Task;
+
+        // ======================================================
+        // ACK / ERR / TIMEOUT
+        // ======================================================
         private void HandleAck(byte seq)
         {
             lock (_swSync)
@@ -295,7 +351,7 @@ namespace SimulDIESEL.BLL
                         return;
                     }
 
-                    if (_ackTimer != null) _ackTimer.Change(_timeoutMs, Timeout.Infinite);
+                    _ackTimer?.Change(_timeoutMs, Timeout.Infinite);
                     return;
                 }
 
@@ -303,52 +359,43 @@ namespace SimulDIESEL.BLL
             }
         }
 
-        // >>> IMPORTANTE: este método assume que já está dentro de lock(_swSync)
-        // >>> IMPORTANTE: este método assume que já está dentro de lock(_swSync)
+        // IMPORTANTE: assume lock(_swSync)
         private void CompleteWait_NoLock(byte seq, SendOutcome outcome)
         {
-            if (_ackTimer != null)
-            {
-                _ackTimer.Dispose();
-                _ackTimer = null;
-            }
+            _ackTimer?.Dispose();
+            _ackTimer = null;
 
             _waitAck = false;
 
             var localTcs = _tcs;
             _tcs = null;
 
-            // capture o delegate para invocar fora do lock
             var sendCompleted = SendCompleted;
 
-            if (localTcs != null)
-                localTcs.TrySetResult(outcome);
+            localTcs?.TrySetResult(outcome);
 
-            // >>> NÃO invoque evento dentro do lock:
-            // SendCompleted?.Invoke(seq, outcome);
-
-            // Invoca fora do lock usando Task (não bloqueia e evita reentrância no lock)
+            // evento fora do lock
             if (sendCompleted != null)
                 Task.Run(() => sendCompleted(seq, outcome));
         }
 
-
         private void SendTransportAck(byte seq)
         {
-            var stream = BuildStreamFrame(_cfg.CmdAck, 0x00, seq, new byte[0]);
+            var stream = BuildStreamFrame(_cfg.CmdAck, 0x00, seq, Array.Empty<byte>());
             _write(stream);
         }
 
         private byte NextTxSeq()
         {
-            unchecked { _txSeq++; }
-            return _txSeq;
+            int v = Interlocked.Increment(ref _txSeq);
+            return unchecked((byte)v);
         }
 
         private byte[] BuildStreamFrame(byte cmd, byte flags, byte seq, byte[] payload)
         {
-            int n = 3 + payload.Length + 1;
+            int n = 3 + payload.Length + 1; // cmd+flags+seq + payload + crc
             var raw = new byte[n];
+
             raw[0] = cmd;
             raw[1] = flags;
             raw[2] = seq;
@@ -359,9 +406,11 @@ namespace SimulDIESEL.BLL
             raw[n - 1] = Crc8Atm(raw, 0, n - 1);
 
             var enc = CobsEncode(raw);
+
             var stream = new byte[enc.Length + 1];
             Buffer.BlockCopy(enc, 0, stream, 0, enc.Length);
-            stream[stream.Length - 1] = 0x00;
+            stream[stream.Length - 1] = 0x00; // delimiter
+
             return stream;
         }
 
@@ -372,6 +421,9 @@ namespace SimulDIESEL.BLL
             return dst;
         }
 
+        // ======================================================
+        // CRC8-ATM
+        // ======================================================
         public static byte Crc8Atm(byte[] data, int offset, int len)
         {
             byte crc = 0x00;
@@ -388,15 +440,18 @@ namespace SimulDIESEL.BLL
             return crc;
         }
 
+        // ======================================================
+        // COBS
+        // ======================================================
         public static byte[] CobsEncode(byte[] input)
         {
-            if (input == null) return new byte[0];
+            if (input == null) return Array.Empty<byte>();
 
             var output = new List<byte>(input.Length + 2);
             int codeIndex = 0;
             byte code = 1;
 
-            output.Add(0);
+            output.Add(0); // placeholder do code
 
             for (int i = 0; i < input.Length; i++)
             {
@@ -428,7 +483,7 @@ namespace SimulDIESEL.BLL
 
         public static byte[] CobsDecode(byte[] input)
         {
-            if (input == null || input.Length == 0) return new byte[0];
+            if (input == null || input.Length == 0) return Array.Empty<byte>();
 
             var output = new List<byte>(input.Length);
             int i = 0;

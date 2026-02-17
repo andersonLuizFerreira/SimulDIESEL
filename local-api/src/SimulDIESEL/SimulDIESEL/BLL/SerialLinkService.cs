@@ -2,19 +2,21 @@
 using System.IO.Ports;
 using System.Text;
 using SimulDIESEL.DAL;
+using SimulDIESEL.DTL;
 
 namespace SimulDIESEL.BLL
 {
     public sealed class SerialLinkService : IDisposable
     {
         private readonly SerialTransport _transport;
+
         private bool _disposed;
 
         private SdGwLinkEngine _engine;
+
         private SdGwHealthService _health;
 
         private volatile bool _isDisconnecting;
-
 
         public enum LinkState
         {
@@ -27,14 +29,20 @@ namespace SimulDIESEL.BLL
         }
 
         public event Action<LinkState> LinkStateChanged;
+
         public event Action<bool> ConnectionChanged;
+
         public event Action<string[]> Error;
+
         public event Action<byte[]> BytesReceived;
+
         public event Action NomeDaInterfaceChanged;
 
         public LinkState State { get; private set; } = LinkState.Disconnected;
 
         public string NomeDaInterface { get; private set; } = "Nenhum";
+
+        public SdGgwClient Sggw { get; private set; }
 
         public bool IsLinked => State == LinkState.Linked;
         public bool IsConnected => _transport.IsOpen;
@@ -70,6 +78,8 @@ namespace SimulDIESEL.BLL
             };
             _engine = new SdGwLinkEngine(cfg, WriteRaw);
 
+            Sggw = new SdGgwClient(_engine);
+
             var healthCfg = new SdGwHealthService.Config
             {
                 PingCmd = 0x55,
@@ -97,10 +107,10 @@ namespace SimulDIESEL.BLL
         {
             if (_disposed) return;
 
-            // health só manda quando estava Linked
-            if (State != LinkState.Linked) return;
+            // se estou desconectando manualmente, ignore health
+            if (_isDisconnecting) return;
 
-            // se já caiu transporte, não faz nada aqui (o ConnectionChanged(false) vai resolver)
+            if (State != LinkState.Linked) return;
             if (!_transport.IsOpen) return;
 
             if (!alive)
@@ -109,6 +119,8 @@ namespace SimulDIESEL.BLL
 
                 lock (_linkSync)
                 {
+                    if (_isDisconnecting) return;
+
                     SetState(LinkState.LinkFailed);
 
                     _attemptActive = false;
@@ -128,7 +140,10 @@ namespace SimulDIESEL.BLL
             if (_disposed) return;
             _disposed = true;
 
-            StopLinkTimer();
+            lock (_linkSync)
+            {
+                StopAndDisposeLinkTimer_NoLock();
+            }
 
             _transport.ConnectionChanged -= OnTransportConnectionChanged;
             _transport.Error -= OnTransportError;
@@ -177,39 +192,71 @@ namespace SimulDIESEL.BLL
             _isDisconnecting = true;
             try
             {
-                // 1) Mata tudo que pode gerar TX, antes de fechar a porta
+                bool raiseNomeChanged = false;
+                bool shouldSendLogout = false;
+
                 lock (_linkSync)
                 {
                     _health?.SetEnabled(false);
+
+                    shouldSendLogout = _transport.IsOpen && Sggw != null && State == LinkState.Linked;
 
                     _attemptActive = false;
                     _draining = false;
                     _rxBuffer.Clear();
 
-                    StopLinkTimer();
+                    // (5) para e DISPOSE do timer (parada definitiva)
+                    StopAndDisposeLinkTimer_NoLock();
+
                     SetState(LinkState.Disconnected);
 
                     if (NomeDaInterface != "Nenhum")
                     {
                         NomeDaInterface = "Nenhum";
+                        raiseNomeChanged = true;
                     }
                 }
 
-                // 2) Cancela qualquer SendAsync pendente e limpa RX do engine
+                // tenta LOGOUT (opcional)
+                if (shouldSendLogout)
+                {
+                    try
+                    {
+                        var ticket = Sggw.SendWithSeq(SggwCmd.LOGOUT, requireAck: true, timeoutMs: 150, retries: 1);
+                        Console.WriteLine($" SerialLinkService. LOGOUT enviado. seq={ticket.Seq}");
+
+                        if (ticket.Task.Wait(500))
+                        {
+                            var outcome = ticket.Task.Result;
+                            Console.WriteLine($" SerialLinkService. LOGOUT result. seq={ticket.Seq} outcome={outcome}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($" SerialLinkService. LOGOUT wait timeout. seq={ticket.Seq}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(" SerialLinkService. LOGOUT send failed: " + ex.Message);
+                    }
+                }
+
+                // cancela pendências do engine
                 _engine?.OnTransportDown("Disconnect requested");
 
-                // 3) Agora fecha o transporte
+                // fecha o transporte
                 _transport.Disconnect();
 
-                // 4) Notifica nome (fora do lock)
-                NomeDaInterfaceChanged?.Invoke();
+                if (raiseNomeChanged)
+                    NomeDaInterfaceChanged?.Invoke();
+                else
+                    NomeDaInterfaceChanged?.Invoke();
             }
             finally
             {
                 _isDisconnecting = false;
             }
         }
-
 
         public bool WriteRaw(byte[] data)
         {
@@ -229,26 +276,21 @@ namespace SimulDIESEL.BLL
                 if (!connected)
                 {
                     if (_isDisconnecting)
-                    {
-                        // Já derrubamos estado/timers no Disconnect(); não precisa refazer tudo nem logar
                         return;
-                    }
 
-                    // Desliga health imediatamente
                     _health?.SetEnabled(false);
 
-                    // Informa o LinkEngine que o transporte caiu (encerra SendAsync pendentes)
                     _engine?.OnTransportDown("Serial transport disconnected");
 
-                    // Para handshake completamente e limpa estado
                     _attemptActive = false;
                     _draining = false;
                     _rxBuffer.Clear();
 
-                    StopLinkTimer();
+                    // (5) como o transporte caiu, podemos parar e DISPOSE do timer
+                    StopAndDisposeLinkTimer_NoLock();
+
                     SetState(LinkState.Disconnected);
 
-                    // Limpa nome da interface
                     if (NomeDaInterface != "Nenhum")
                     {
                         NomeDaInterface = "Nenhum";
@@ -257,7 +299,6 @@ namespace SimulDIESEL.BLL
                 }
                 else
                 {
-                    // Transporte subiu
                     SetState(LinkState.SerialConnected);
 
                     _attemptActive = false;
@@ -269,11 +310,9 @@ namespace SimulDIESEL.BLL
                 }
             }
 
-            // Disparar evento sempre fora do lock
             if (raiseNomeChanged)
                 NomeDaInterfaceChanged?.Invoke();
         }
-
 
         private void OnTransportError(string[] msg)
         {
@@ -284,14 +323,45 @@ namespace SimulDIESEL.BLL
         {
             BytesReceived?.Invoke(data);
 
-            if (State != LinkState.Linked)
+            // (6) Se já está Linked, mas o firmware ainda envia texto/log ASCII,
+            // descartamos esse "ruído" para não poluir o SdGwLinkEngine (CRC/overflow).
+            if (State == LinkState.Linked)
             {
-                HandleHandshakeBytes(data);
+                if (LooksLikeAsciiTextNoise(data))
+                    return;
+
+                if (_engine != null)
+                    _engine.OnBytesReceived(data);
+
                 return;
             }
 
-            if (_engine != null)
-                _engine.OnBytesReceived(data);
+            // não linked: bytes pertencem ao handshake textual
+            HandleHandshakeBytes(data);
+        }
+
+        // (6) filtro conservador de ruído ASCII:
+        // - não contém 0x00 (delimitador do COBS)
+        // - todos bytes são ASCII imprimíveis/controle comum (\r \n \t)
+        private static bool LooksLikeAsciiTextNoise(byte[] data)
+        {
+            if (data == null || data.Length == 0) return false;
+
+            for (int i = 0; i < data.Length; i++)
+            {
+                byte b = data[i];
+                if (b == 0x00) return false; // parece frame binário (delimitador presente)
+
+                bool ok =
+                    b == (byte)'\r' ||
+                    b == (byte)'\n' ||
+                    b == (byte)'\t' ||
+                    (b >= 32 && b <= 126);
+
+                if (!ok) return false; // tem byte não-ASCII -> não tratar como "texto"
+            }
+
+            return true;
         }
 
         #endregion
@@ -320,8 +390,8 @@ namespace SimulDIESEL.BLL
         {
             if (_linkTimer == null)
                 _linkTimer = new System.Threading.Timer(LinkTick, null, 50, 50);
-
-            _linkTimer.Change(50, 50);
+            else
+                _linkTimer.Change(50, 50);
         }
 
         private void LinkTick(object state)
@@ -414,10 +484,14 @@ namespace SimulDIESEL.BLL
 
                     if (line.IndexOf(ESP_OK_PREFIX, StringComparison.OrdinalIgnoreCase) >= 0)
                     {
+                        // IMPORTANTE: após Linked, o firmware IDEALMENTE deve parar logs texto
+                        // e operar 100% em frames COBS+CRC.
                         SetState(LinkState.Linked);
 
                         _attemptActive = false;
-                        StopLinkTimer();
+
+                        // (5) Linked: para e DISPOSE do timer (não precisa mais)
+                        StopAndDisposeLinkTimer_NoLock();
 
                         NomeDaInterface = line;
                         raiseNomeChanged = true;
@@ -430,9 +504,15 @@ namespace SimulDIESEL.BLL
                 NomeDaInterfaceChanged?.Invoke();
         }
 
-        private void StopLinkTimer()
+        // (5) Parada definitiva do timer (evita callback zumbi / vazamento)
+        private void StopAndDisposeLinkTimer_NoLock()
         {
-            _linkTimer?.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
+            if (_linkTimer != null)
+            {
+                try { _linkTimer.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite); } catch { }
+                try { _linkTimer.Dispose(); } catch { }
+                _linkTimer = null;
+            }
         }
 
         #endregion
