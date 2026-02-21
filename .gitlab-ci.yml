@@ -1,1 +1,7 @@
-# pipeline sera preenchido depois 
+stages:
+  - placeholder
+
+placeholder:
+  stage: placeholder
+  script:
+    - echo "CI placeholder (pipeline será preenchido depois)"
