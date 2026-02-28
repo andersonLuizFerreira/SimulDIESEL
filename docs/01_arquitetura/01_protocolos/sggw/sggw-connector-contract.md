@@ -1,6 +1,6 @@
-# SGGW Connector Contract
+﻿# SGGW Connector Contract
 
-**SimulDIESEL — Serial Gateway Connector Specification**
+**SimulDIESEL â€” Serial Gateway Connector Specification**
 Version: 1.0
 Status: Stable
 Layer: BLL (Business Logic Layer)
@@ -11,32 +11,32 @@ Layer: BLL (Business Logic Layer)
 
 Este documento define o **contrato oficial do conector SGGW (SimulDIESEL Serial Gateway)**.
 
-Este conector é o único ponto autorizado de acesso ao protocolo SGGW para qualquer camada consumidora dentro da aplicação.
+Este conector Ã© o Ãºnico ponto autorizado de acesso ao protocolo SGGW para qualquer camada consumidora dentro da aplicaÃ§Ã£o.
 
-Este documento deve ser considerado a fonte única de verdade para:
+Este documento deve ser considerado a fonte Ãºnica de verdade para:
 
 * envio de comandos
 * recebimento de frames
-* integração com dispositivos externos
-* implementação de serviços consumidores do link
+* integraÃ§Ã£o com dispositivos externos
+* implementaÃ§Ã£o de serviÃ§os consumidores do link
 
 ---
 
 # 2. Architectural Overview
 
-Arquitetura completa da comunicação:
+Arquitetura completa da comunicaÃ§Ã£o:
 
 ```
 UI Layer
-   ↓
+   â†“
 BLL Consumer Services
-   ↓
-SdGgwClient   ← OFFICIAL CONNECTOR
-   ↓
+   â†“
+SdGgwClient   â† OFFICIAL CONNECTOR
+   â†“
 SdGwLinkEngine
-   ↓
+   â†“
 SerialTransport
-   ↓
+   â†“
 Physical Device (ESP-32, Gateway, etc)
 ```
 
@@ -48,7 +48,7 @@ Consumidores nunca devem acessar camadas inferiores diretamente.
 
 # 3. Connector Access
 
-O conector é acessado exclusivamente através de:
+O conector Ã© acessado exclusivamente atravÃ©s de:
 
 ```csharp
 SerialLink.Service.Sggw
@@ -78,15 +78,15 @@ SerialLink.IsLinked
 SerialLink.Service.State
 ```
 
-Definições:
+DefiniÃ§Ãµes:
 
 | Propriedade | Significado                           |
 | ----------- | ------------------------------------- |
 | IsConnected | Transporte serial ativo               |
-| IsLinked    | Handshake concluído                   |
-| State       | Estado completo da máquina de estados |
+| IsLinked    | Handshake concluÃ­do                   |
+| State       | Estado completo da mÃ¡quina de estados |
 
-Estados possíveis:
+Estados possÃ­veis:
 
 ```
 Disconnected
@@ -101,7 +101,7 @@ LinkFailed
 
 # 5. Transmission Contract
 
-Método oficial de envio:
+MÃ©todo oficial de envio:
 
 ```csharp
 Task<SendOutcome> SendAsync(
@@ -112,21 +112,21 @@ Task<SendOutcome> SendAsync(
     int retries = 2)
 ```
 
-Parâmetros:
+ParÃ¢metros:
 
-| Parâmetro  | Descrição                |
+| ParÃ¢metro  | DescriÃ§Ã£o                |
 | ---------- | ------------------------ |
 | cmd        | comando do protocolo     |
 | payload    | dados do comando         |
-| requireAck | requer confirmação       |
+| requireAck | requer confirmaÃ§Ã£o       |
 | timeoutMs  | timeout de ACK           |
-| retries    | número de retransmissões |
+| retries    | nÃºmero de retransmissÃµes |
 
 ---
 
 # 6. SendOutcome Definition
 
-Resultados possíveis:
+Resultados possÃ­veis:
 
 ```
 Enqueued
@@ -141,20 +141,20 @@ Busy
 
 # 7. Frame Reception Contract
 
-Eventos disponíveis:
+Eventos disponÃ­veis:
 
 ```csharp
 event Action<SggwFrame> FrameReceived;
 event Action<SggwFrame> EventReceived;
 ```
 
-Definições:
+DefiniÃ§Ãµes:
 
 FrameReceived
-→ disparado quando qualquer frame válido é recebido
+â†’ disparado quando qualquer frame vÃ¡lido Ã© recebido
 
 EventReceived
-→ disparado quando frame contém flag Event
+â†’ disparado quando frame contÃ©m flag Event
 
 ---
 
@@ -183,18 +183,18 @@ SggwCmd CommandEnum
 
 Garantias:
 
-* CRC já validado
-* COBS já decodificado
+* CRC jÃ¡ validado
+* COBS jÃ¡ decodificado
 * integridade garantida
 * duplicatas filtradas
 
-Consumidor não deve validar CRC.
+Consumidor nÃ£o deve validar CRC.
 
 ---
 
 # 9. Thread Safety Model
 
-O conector é thread-safe.
+O conector Ã© thread-safe.
 
 Eventos podem ocorrer em threads internas.
 
@@ -224,7 +224,7 @@ O conector encapsula completamente:
 * frame parsing
 * link reliability
 
-Consumidores não devem implementar estas funções.
+Consumidores nÃ£o devem implementar estas funÃ§Ãµes.
 
 ---
 
@@ -237,7 +237,7 @@ Consumidores devem:
 * receber eventos via SdGgwClient
 * interpretar payload conforme DTL
 
-Consumidores não devem:
+Consumidores nÃ£o devem:
 
 * acessar SerialTransport
 * acessar SdGwLinkEngine
@@ -247,14 +247,14 @@ Consumidores não devem:
 
 # 12. Connector Lifecycle
 
-O conector é:
+O conector Ã©:
 
 * singleton
 * criado automaticamente
-* persistente durante execução
-* destruído apenas com SerialLinkService
+* persistente durante execuÃ§Ã£o
+* destruÃ­do apenas com SerialLinkService
 
-Consumidores não devem destruir o conector.
+Consumidores nÃ£o devem destruir o conector.
 
 ---
 
@@ -264,21 +264,21 @@ Fluxo completo:
 
 ```
 Consumer Service
-   ↓
+   â†“
 SdGgwClient
-   ↓
+   â†“
 SdGwLinkEngine
-   ↓
+   â†“
 SerialTransport
-   ↓
+   â†“
 Physical Device
-   ↓
+   â†“
 SerialTransport
-   ↓
+   â†“
 SdGwLinkEngine
-   ↓
+   â†“
 SdGgwClient
-   ↓
+   â†“
 Consumer Service
 ```
 
@@ -286,11 +286,11 @@ Consumer Service
 
 # 14. Stability Contract
 
-Este conector é considerado estável.
+Este conector Ã© considerado estÃ¡vel.
 
 Qualquer nova funcionalidade deve ser implementada acima desta camada.
 
-Não modificar este comportamento sem atualização deste documento.
+NÃ£o modificar este comportamento sem atualizaÃ§Ã£o deste documento.
 
 ---
 
@@ -303,3 +303,4 @@ Component: SdGgwClient
 ---
 
 # END OF DOCUMENT
+

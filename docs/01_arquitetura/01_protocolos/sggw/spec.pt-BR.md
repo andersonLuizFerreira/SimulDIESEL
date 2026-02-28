@@ -1,34 +1,34 @@
-# SD-GW-LINK — Especificação do Protocolo de Transporte (Gateway ↔ API)
+﻿# SD-GW-LINK â€” EspecificaÃ§Ã£o do Protocolo de Transporte (Gateway â†” API)
 
 **Projeto:** SimulDIESEL  
 **Protocolo:** SD-GW-LINK  
-**Versão:** 1.0.0  
-**Status:** Estável (Transport Layer)
+**VersÃ£o:** 1.0.0  
+**Status:** EstÃ¡vel (Transport Layer)
 
 ---
 
 ## 0. Documentos Relacionados
 
-- **Especificação do Protocolo (este documento):** `spec.pt-BR.md`
-- **Interface de Integração (DAL ↔ Protocolo ↔ Consumidor):** `interface.pt-BR.md`
-- **Vetores de Teste (hex):** `examples/` (ver `examples/README.md`)
-- **Decisão Arquitetural:** `specs/adr/ADR-0007-cobs-crc8.pt-BR.md`
+- **EspecificaÃ§Ã£o do Protocolo (este documento):** `spec.pt-BR.md`
+- **Interface de IntegraÃ§Ã£o (DAL â†” Protocolo â†” Consumidor):** `interface.pt-BR.md`
+- **Vetores de Teste (hex):** `examples/` (ver `examples/SGGW_OVERVIEW.md`)
+- **DecisÃ£o Arquitetural:** `specs/adr/ADR-0007-cobs-crc8.pt-BR.md`
 
 ## 1. Objetivo
 
-Este documento especifica a camada de transporte binária utilizada na comunicação entre:
+Este documento especifica a camada de transporte binÃ¡ria utilizada na comunicaÃ§Ã£o entre:
 
 - **Gateway embarcado** (ex.: ESP32 Bridge)
 - **API Local / Host PC**
 
-A camada SD-GW-LINK é responsável exclusivamente por:
+A camada SD-GW-LINK Ã© responsÃ¡vel exclusivamente por:
 
-- Delimitação e framing de mensagens
+- DelimitaÃ§Ã£o e framing de mensagens
 - Integridade via CRC
 - Entrega opcional via ACK de transporte
-- Suporte a eventos assíncronos
+- Suporte a eventos assÃ­ncronos
 
-A camada **não interpreta comandos de aplicação** (CAN, periféricos, firmware).
+A camada **nÃ£o interpreta comandos de aplicaÃ§Ã£o** (CAN, perifÃ©ricos, firmware).
 
 ---
 
@@ -41,29 +41,29 @@ A camada **não interpreta comandos de aplicação** (CAN, periféricos, firmwar
 - CRC-8/ATM
 - Sequenciamento SEQ
 - ACK/NACK de transporte
-- Eventos espontâneos Gateway → API
+- Eventos espontÃ¢neos Gateway â†’ API
 
-### Não inclui
+### NÃ£o inclui
 
-- Definição de comandos de aplicação
+- DefiniÃ§Ã£o de comandos de aplicaÃ§Ã£o
 - Estruturas internas de payload (CAN, J1939)
-- Fragmentação de firmware (reservada)
+- FragmentaÃ§Ã£o de firmware (reservada)
 
 ---
 
 ## 3. Terminologia
 
 - **Frame cru:** mensagem antes do COBS
-- **Frame codificado:** mensagem após COBS + delimitador `0x00`
-- **Gateway:** dispositivo embarcado que interliga hardware ↔ API
-- **API:** software host responsável por controle e interface
-- **MTU:** tamanho máximo permitido do frame cru
+- **Frame codificado:** mensagem apÃ³s COBS + delimitador `0x00`
+- **Gateway:** dispositivo embarcado que interliga hardware â†” API
+- **API:** software host responsÃ¡vel por controle e interface
+- **MTU:** tamanho mÃ¡ximo permitido do frame cru
 
 ---
 
-## 4. Transporte e Delimitação
+## 4. Transporte e DelimitaÃ§Ã£o
 
-O SD-GW-LINK opera sobre um **stream de bytes 8-bit**, independente do meio físico.
+O SD-GW-LINK opera sobre um **stream de bytes 8-bit**, independente do meio fÃ­sico.
 
 ### Delimitador
 
@@ -75,7 +75,7 @@ Todo frame transmitido termina com:
 
 ### Encoding
 
-O conteúdo do frame cru é codificado com:
+O conteÃºdo do frame cru Ã© codificado com:
 
 - **COBS (Consistent Overhead Byte Stuffing)**
 
@@ -83,13 +83,13 @@ O conteúdo do frame cru é codificado com:
 
 ## 5. MTU
 
-O tamanho máximo do frame cru é fixado em:
+O tamanho mÃ¡ximo do frame cru Ã© fixado em:
 
 - **250 bytes**
 
 Portanto:
 
-- **PAYLOAD máximo = 246 bytes**
+- **PAYLOAD mÃ¡ximo = 246 bytes**
 
 ---
 
@@ -111,35 +111,35 @@ CMD | FLAGS | SEQ | PAYLOAD | CRC8
 
 ---
 
-## 7. SEQ (Sequência)
+## 7. SEQ (SequÃªncia)
 
-O campo `SEQ` é um contador 8-bit:
+O campo `SEQ` Ã© um contador 8-bit:
 
 - Range: 0..255
-- Contadores independentes por direção
+- Contadores independentes por direÃ§Ã£o
 
 ---
 
 ## 8. FLAGS
 
-| Bit | Nome      | Descrição |
+| Bit | Nome      | DescriÃ§Ã£o |
 |-----|----------|-----------|
 | 0   | ACK_REQ  | Solicita ACK de transporte |
-| 1   | IS_ACK   | Frame é ACK de transporte |
-| 2   | IS_ERR   | Frame é erro/NACK transporte |
-| 3   | IS_EVT   | Evento assíncrono Gateway→API |
-| 4   | FRAG     | Reservado para fragmentação |
-| 5–7 | —        | Reservados |
+| 1   | IS_ACK   | Frame Ã© ACK de transporte |
+| 2   | IS_ERR   | Frame Ã© erro/NACK transporte |
+| 3   | IS_EVT   | Evento assÃ­ncrono Gatewayâ†’API |
+| 4   | FRAG     | Reservado para fragmentaÃ§Ã£o |
+| 5â€“7 | â€”        | Reservados |
 
 ---
 
 ## 9. Comandos Reservados de Transporte
 
-### `CMD=0x01` — T_ACK
+### `CMD=0x01` â€” T_ACK
 
-Confirma recepção correta de um frame.
+Confirma recepÃ§Ã£o correta de um frame.
 
-### `CMD=0x02` — T_ERR
+### `CMD=0x02` â€” T_ERR
 
 Indica falha de transporte.
 
@@ -147,7 +147,7 @@ Indica falha de transporte.
 
 ## 10. Erros de Transporte
 
-| Código | Nome            |
+| CÃ³digo | Nome            |
 |-------|-----------------|
 | 0x01  | ERR_BAD_FRAME   |
 | 0x02  | ERR_BUSY        |
@@ -157,23 +157,23 @@ Indica falha de transporte.
 
 ---
 
-## 11. ACK e Retransmissão
+## 11. ACK e RetransmissÃ£o
 
-Frames críticos usam `ACK_REQ=1`.
+Frames crÃ­ticos usam `ACK_REQ=1`.
 
-Timeout padrão: **100 ms** (configurável).
-
----
-
-## 12. Deduplicação
-
-Reenvio do mesmo SEQ não reprocessa aplicação, apenas reenviar ACK.
+Timeout padrÃ£o: **100 ms** (configurÃ¡vel).
 
 ---
 
-## 13. Eventos Assíncronos
+## 12. DeduplicaÃ§Ã£o
 
-Gateway pode transmitir frames espontâneos com `IS_EVT=1`.
+Reenvio do mesmo SEQ nÃ£o reprocessa aplicaÃ§Ã£o, apenas reenviar ACK.
+
+---
+
+## 13. Eventos AssÃ­ncronos
+
+Gateway pode transmitir frames espontÃ¢neos com `IS_EVT=1`.
 
 ---
 
@@ -222,4 +222,5 @@ CMD + FLAGS + SEQ + PAYLOAD
 
 ---
 
-**Fim da Especificação SD-GW-LINK v1.0.0**
+**Fim da EspecificaÃ§Ã£o SD-GW-LINK v1.0.0**
+
