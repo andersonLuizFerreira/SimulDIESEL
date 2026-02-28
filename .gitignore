@@ -149,3 +149,7 @@ build/
 # FIM
 ############################################################
 
+
+# docs audits
+docs/00_visao-geral/AUDITORIA_DOCS.md
+
