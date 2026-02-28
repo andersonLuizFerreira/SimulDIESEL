@@ -1,86 +1,53 @@
-# SimulDIESEL
+﻿# SimulDIESEL — Documentação Técnica
 
-**SimulDIESEL** é uma plataforma modular para simulação e diagnóstico de módulos eletrônicos automotivos, projetada com arquitetura em camadas e foco em escalabilidade, robustez e evolução incremental.
-
----
-
-# 📐 Arquitetura
-
-O projeto segue uma estrutura vertical bem definida:
-
-```
-UI → BLL → DAL → Hardware
-```
-
-- **UI**: Interface do usuário (WinForms)
-- **BLL**: Lógica de negócio e controle de estados
-- **DAL**: Transporte serial cru
-- **Hardware**: ESP-32 e módulos simulados
-
-Documentação detalhada:
-
-- 📘 [Architecture Overview](01_arquitetura/architecture-overview.md)
-- 📘 [Serial Connection (Baseline)](01_arquitetura/serial-connection.md)
-- 📘 [Link Handshake (Feature)](01_arquitetura/link-handshake.md)
-- 📘 [Technical Roadmap](01_arquitetura/technical-roadmap.md)
+Este diretório contém a documentação técnica oficial do projeto SimulDIESEL.
 
 ---
 
-# 🚀 Estado Atual
+## 📘 1. Visão Geral
 
-## ✅ v0.1.0 – Serial Base
-
-- Conexão serial estável
-- Eventos propagando corretamente
-- UI sincronizada automaticamente
-- Arquitetura em camadas consolidada
-
-## 🔄 Em desenvolvimento – v0.2.0
-
-- Implementação da camada de LINK
-- Handshake textual com validação de dispositivo
-- Máquina de estados
-- Preparação para protocolo SGGW
+- [Master Specification](00_visao-geral/MASTER_SPEC.md)
 
 ---
 
-# 🧱 Estrutura do Projeto
+## 🏗 2. Arquitetura
 
-```
-/docs
-    /architecture
-/src
-    /UI
-    /BLL
-    /DAL
-```
+### Protocolos
+- [SGGW Protocol](01_arquitetura/01_protocolos/sggw/)
 
----
+### Gateway (ESP32)
+- [Gateway Documentation](01_arquitetura/03_gateway/)
 
-# 🎯 Próximos Marcos
+### Integrações
+- [Integrações Hardware](01_arquitetura/02_integracoes/)
 
-- Implementação do protocolo SGGW
-- Heartbeat e watchdog
-- Multi-transporte (WiFi / Bluetooth)
-- Camada de simulação CAN
-- Integração com infraestrutura em nuvem
+### Aplicação PC
+- [Arquitetura PC](01_arquitetura/04_pc/)
 
 ---
 
-# 📌 Princípios do Projeto
+## 🧩 3. Desenvolvimento
 
-- Transporte não conhece protocolo
-- Protocolo não conhece UI
-- Estados são explícitos
-- Evolução incremental por versão
-- Cada feature em branch própria
+- [Technical Roadmap](04_desenvolvimento/technical-roadmap.md)
+- [ADRs (Architecture Decision Records)](04_desenvolvimento/adr/)
 
 ---
 
-# 📄 Licença
+## 🔌 4. Hardware
 
-Definir conforme estratégia futura do projeto.
+- [Hardware Overview](05_hardware/)
 
 ---
 
-**SimulDIESEL – Plataforma de Simulação Modular Automotiva**
+## 📂 Organização
+
+A documentação está organizada por domínio técnico:
+
+- `00_visao-geral` → especificação consolidada
+- `01_arquitetura` → contratos, protocolos e integração
+- `04_desenvolvimento` → roadmap e decisões arquiteturais
+- `05_hardware` → descrição física e elétrica
+
+---
+
+SimulDIESEL — Plataforma Modular de Simulação Automotiva
