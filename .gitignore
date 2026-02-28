@@ -149,3 +149,10 @@ build/
 # FIM
 ############################################################
 
+
+# tools outputs
+tools/out/
+
+docs/00_visao-geral/AUDITORIA_DOCS.md
+docs/00_visao-geral/CONSISTENCIA_DOCS.md
+
