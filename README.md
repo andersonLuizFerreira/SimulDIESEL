@@ -17,12 +17,6 @@ SimulDIESEL/
 │  ├─ 05_hardware/
 │  └─ images/
 │
-├─ specs/                       # Especificações e decisões técnicas
-│  ├─ requirements/             # Requisitos funcionais e não funcionais
-│  ├─ adr/                      # Architecture Decision Records (ADRs)
-│  ├─ protocols/                # Protocolos entre módulos (Serial/CAN/etc.)
-│  └─ data-models/              # Modelos de dados e schemas
-│
 ├─ tools/                       # Scripts auxiliares (build, flash, release)
 │  ├─ build/
 │  ├─ flash/
