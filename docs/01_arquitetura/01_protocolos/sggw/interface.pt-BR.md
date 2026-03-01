@@ -1,7 +1,7 @@
-# SD-GW-LINK — Interface de Integração (DAL ↔ Protocolo ↔ Consumidor)
+# SGGW — Interface de Integração (DAL ↔ Protocolo ↔ Consumidor)
 
 **Projeto:** SimulDIESEL  
-**Protocolo:** SD-GW-LINK  
+**Protocolo:** SGGW  
 **Versão:** 1.0.0  
 **Status:** Estável (Interface de Integração)
 
@@ -10,13 +10,15 @@
 ## 1. Objetivo
 
 Este documento define a **interface conceitual** (contratos) para integrar o motor do protocolo
-**SD-GW-LINK** com:
+**SGGW** com:
 
 - a **camada inferior (DAL / Transporte físico)**, responsável por enviar/receber bytes; e
 - a **camada superior (Consumidor / Aplicação)**, responsável por interpretar comandos e payloads de aplicação.
 
 > Este documento **não** define detalhes físicos (baudrate, RTS/DTR, IP, sockets, etc.).  
 > Tais detalhes pertencem à DAL específica (Serial, Wi‑Fi, Bluetooth).
+
+> Fronteira explícita: o framing SGGW aplica-se somente em **PC ↔ Gateway**; no enlace **Gateway ↔ Baby Board** usa-se protocolo de barramento (ex.: TLV + CRC), sem framing SGGW.
 
 ---
 
@@ -33,7 +35,7 @@ A DAL é responsável por:
 A DAL **não** deve:
 
 - interpretar COBS, CRC, SEQ, ACK, comandos;
-- segmentar frames SD-GW-LINK.
+- segmentar frames SGGW.
 
 Exemplos de DAL:
 - `SerialTransport` (COM/USB-CDC)
@@ -42,7 +44,7 @@ Exemplos de DAL:
 
 ---
 
-### 2.2 Motor do Protocolo (SD-GW-LINK Engine)
+### 2.2 Motor do Protocolo (SGGW Engine)
 
 O Engine é responsável por:
 
@@ -52,7 +54,7 @@ O Engine é responsável por:
 - gerenciamento de **SEQ por direção**;
 - **ACK/NACK de transporte** (Stop-and-Wait opcional quando `ACK_REQ=1`);
 - deduplicação de retransmissões;
-- roteamento interno de `T_ACK`/`T_ERR` (não sobe como “frame de aplicação” por padrão).
+- roteamento interno de `ACK`/`ERR` (`CMD=0xF1`/`CMD=0xF2`) (não sobe como “frame de aplicação” por padrão).
 
 O Engine **não** deve:
 
@@ -111,7 +113,7 @@ O Engine expõe ao Consumidor um **AppFrame** (frame de aplicação) com:
 - `TimestampRx` (opcional)
 - `Direction` (opcional)
 
-**Regra:** Por padrão, `T_ACK` e `T_ERR` são consumidos internamente pelo Engine
+**Regra:** Por padrão, `ACK` e `ERR` são consumidos internamente pelo Engine
 e não são entregues como `AppFrame` (exceto em modo diagnóstico).
 
 ---
@@ -132,7 +134,7 @@ onde `options` inclui:
 
 **Resultado do envio (contrato):**
 - Para `RequireAck=false`: entrega “aceite local” (enfileirado para TX) ou falha imediata (DAL indisponível).
-- Para `RequireAck=true`: entrega sucesso somente após `T_ACK`, ou falha após timeout/retries ou `T_ERR`.
+- Para `RequireAck=true`: entrega sucesso somente após `ACK`, ou falha após timeout/retries ou `ERR`.
 
 ---
 
@@ -155,7 +157,7 @@ Quando `RequireAck=true`, o Engine opera em Stop-and-Wait para aquele envio.
 Estados mínimos:
 
 - **IDLE**: pronto para enviar
-- **WAIT_ACK(seq)**: aguarda `T_ACK` (ou `T_ERR`) para o `seq` em questão
+- **WAIT_ACK(seq)**: aguarda `ACK` (ou `ERR`) para o `seq` em questão
 - **RETRY(seq, k)**: retransmissão após timeout (k = tentativa atual)
 - **FAIL(seq)**: falha definitiva (retries esgotados ou erro fatal)
 
@@ -175,9 +177,9 @@ Regras:
 3. Engine aplica COBS decode
 4. Engine valida CRC-8/ATM
 5. Se válido:
-   - se `CMD` é `T_ACK`/`T_ERR`: tratar internamente (liberar WAIT_ACK, etc.)
+   - se `CMD` é `ACK`/`ERR`: tratar internamente (liberar WAIT_ACK, etc.)
    - senão:
-     - se `ACK_REQ=1`: Engine envia `T_ACK` automaticamente
+     - se `ACK_REQ=1`: Engine envia `ACK` automaticamente
      - Engine dispara `OnAppFrameReceived(frame)`
 
 ### 6.2 TX (AppFrame → bytes)
@@ -186,7 +188,7 @@ Regras:
 2. Engine monta frame cru e calcula CRC
 3. Engine codifica em COBS e adiciona `0x00`
 4. Engine chama `DAL.Write(bytes)`
-5. Se `RequireAck=true`: aguarda `T_ACK` com `SEQ` correspondente
+5. Se `RequireAck=true`: aguarda `ACK` com `SEQ` correspondente
 
 ---
 
@@ -210,11 +212,11 @@ Exemplos:
 
 Por padrão:
 - descartar frame e atualizar estatísticas
-- **não** gerar `T_ERR` para CRC inválido
+- **não** gerar `ERR` para CRC inválido
 
-### 7.3 Erros de transporte (T_ERR)
+### 7.3 Erros de transporte (ERR)
 
-`T_ERR` é um **frame válido** recebido, indicando rejeição do outro lado (ex.: `ERR_BUSY`).
+`ERR` é um **frame válido** recebido, indicando rejeição do outro lado (ex.: `ERR_BUSY`).
 
 Deve:
 - encerrar o envio confiável com falha para o Consumidor
@@ -232,7 +234,7 @@ O Engine deve expor contadores/estatísticas:
 - ACKs enviados/recebidos
 - retries executados
 - timeouts
-- `T_ERR` recebidos por código
+- `ERR` recebidos por código
 
 ---
 
@@ -243,7 +245,7 @@ Uma implementação é considerada conforme se:
 - delimita frames por `0x00` e usa COBS corretamente;
 - valida CRC-8/ATM conforme especificação;
 - respeita MTU (250 bytes no frame cru);
-- trata `T_ACK`/`T_ERR` conforme definido;
+- trata `ACK`/`ERR` conforme definido;
 - implementa dedupe para envios com `ACK_REQ=1`;
 - não mistura semântica de aplicação dentro do Engine.
 
@@ -253,8 +255,8 @@ Uma implementação é considerada conforme se:
 
 - Especificação do protocolo: `spec.pt-BR.md`
 - Vetores de teste: `examples/*.hex` e `examples/README.md`
-- ADR: `specs/adr/ADR-0007-cobs-crc8.pt-BR.md`
+- ADR: `docs/04_desenvolvimento/adr/ADR-0007-cobs-crc8.pt-BR.md`
 
 ---
 
-**Fim — Interface SD-GW-LINK v1.0.0**
+**Fim — Interface SGGW v1.0.0**

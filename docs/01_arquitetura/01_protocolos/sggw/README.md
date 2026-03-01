@@ -1,15 +1,17 @@
-# SD-GW-LINK — Gateway ↔ API Transport Protocol
+# SGGW — Gateway ↔ API Transport Protocol
 
 **Projeto:** SimulDIESEL  
-**Protocolo:** SD-GW-LINK  
+**Protocolo:** SGGW  
 **Versão:** 1.0.0  
 **Status:** Estável  
+**Status de versão:** SGGW v1.0 congelado.  
+**Política de versionamento:** v1.0.x compatível, v2.0 breaking; este diretório é a fonte da verdade.
 
 ---
 
 ## Visão Geral
 
-O **SD-GW-LINK** é um **protocolo de transporte binário independente de meio físico**,
+O **SGGW** é um **protocolo de transporte binário independente de meio físico**,
 utilizado na comunicação entre:
 
 - **Gateway embarcado** (ex.: ESP32)
@@ -26,7 +28,7 @@ O protocolo opera sobre um **stream de bytes 8-bit**, podendo ser transportado p
 
 ## Responsabilidades do Protocolo
 
-O SD-GW-LINK é responsável exclusivamente por:
+O SGGW é responsável exclusivamente por:
 
 - Framing e delimitação de frames via **COBS**
 - Integridade de dados via **CRC-8/ATM**
@@ -36,6 +38,8 @@ O SD-GW-LINK é responsável exclusivamente por:
 
 > ❗ O protocolo **não** interpreta comandos de aplicação  
 > (CAN, periféricos, firmware, lógica de negócio).
+
+> Nota de depreciação: o nome **SD-GW-LINK** foi substituído publicamente por **SGGW**.
 
 ---
 
@@ -84,7 +88,7 @@ Arquivos incluídos:
 
 Decisões técnicas relevantes estão documentadas em:
 
-- `specs/adr/ADR-0007-cobs-crc8.pt-BR.md`
+- `docs/04_desenvolvimento/adr/ADR-0007-cobs-crc8.pt-BR.md`
 
 ---
 
@@ -97,4 +101,4 @@ devem residir em seus respectivos módulos de firmware ou software.
 
 ---
 
-**Fim — SD-GW-LINK**
+**Fim — SGGW**

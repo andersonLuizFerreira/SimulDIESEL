@@ -1,7 +1,7 @@
-# SD-GW-LINK — Especificação do Protocolo de Transporte (Gateway ↔ API)
+# SGGW — Especificação do Protocolo de Transporte (Gateway ↔ API)
 
 **Projeto:** SimulDIESEL  
-**Protocolo:** SD-GW-LINK  
+**Protocolo:** SGGW  
 **Versão:** 1.0.0  
 **Status:** Estável (Transport Layer)
 
@@ -12,7 +12,7 @@
 - **Especificação do Protocolo (este documento):** `spec.pt-BR.md`
 - **Interface de Integração (DAL ↔ Protocolo ↔ Consumidor):** `interface.pt-BR.md`
 - **Vetores de Teste (hex):** `examples/` (ver `examples/README.md`)
-- **Decisão Arquitetural:** `specs/adr/ADR-0007-cobs-crc8.pt-BR.md`
+- **Decisão Arquitetural:** `docs/04_desenvolvimento/adr/ADR-0007-cobs-crc8.pt-BR.md`
 
 ## 1. Objetivo
 
@@ -21,7 +21,7 @@ Este documento especifica a camada de transporte binária utilizada na comunica�
 - **Gateway embarcado** (ex.: ESP32 Bridge)
 - **API Local / Host PC**
 
-A camada SD-GW-LINK é responsável exclusivamente por:
+A camada SGGW é responsável exclusivamente por:
 
 - Delimitação e framing de mensagens
 - Integridade via CRC
@@ -49,6 +49,11 @@ A camada **não interpreta comandos de aplicação** (CAN, periféricos, firmwar
 - Estruturas internas de payload (CAN, J1939)
 - Fragmentação de firmware (reservada)
 
+### Fronteira de framing entre enlaces
+
+- **PC ↔ Gateway:** usa framing SGGW (`CMD|FLAGS|SEQ|PAYLOAD|CRC8` + COBS + delimitador `0x00`).
+- **Gateway ↔ Baby Board:** **não** usa framing SGGW; usa protocolo de barramento (ex.: TLV + CRC em I2C/SPI), conforme contratos de integração.
+
 ---
 
 ## 3. Terminologia
@@ -63,7 +68,7 @@ A camada **não interpreta comandos de aplicação** (CAN, periféricos, firmwar
 
 ## 4. Transporte e Delimitação
 
-O SD-GW-LINK opera sobre um **stream de bytes 8-bit**, independente do meio físico.
+O SGGW opera sobre um **stream de bytes 8-bit**, independente do meio físico.
 
 ### Delimitador
 
@@ -111,7 +116,26 @@ CMD | FLAGS | SEQ | PAYLOAD | CRC8
 
 ---
 
-## 7. SEQ (Sequência)
+## 7. Interpretação do CMD pelo Gateway
+
+No enlace PC → Gateway, o campo `CMD` (1 byte) é interpretado como:
+
+```
+CMD = [ADDR:4][OP:4]
+```
+
+Esta decodificação por nibble é uma convenção da aplicação Gateway; no SGGW, `CMD` permanece definido como um byte opaco de comando.
+
+- `ADDR = CMD >> 4`
+- `OP = CMD & 0x0F`
+
+Comportamento esperado no Gateway:
+
+- `ADDR=0x0`: comando local do próprio Gateway.
+- `ADDR=0xF`: broadcast reservado.
+- `ADDR` diferente de `0x0` e `0xF`: roteamento para a Baby Board destino via tabela de dispositivos e barramento correspondente.
+
+## 8. SEQ (Sequência)
 
 O campo `SEQ` é um contador 8-bit:
 
@@ -120,32 +144,32 @@ O campo `SEQ` é um contador 8-bit:
 
 ---
 
-## 8. FLAGS
+## 9. FLAGS
 
 | Bit | Nome      | Descrição |
 |-----|----------|-----------|
-| 0   | ACK_REQ  | Solicita ACK de transporte |
-| 1   | IS_ACK   | Frame é ACK de transporte |
-| 2   | IS_ERR   | Frame é erro/NACK transporte |
-| 3   | IS_EVT   | Evento assíncrono Gateway→API |
-| 4   | FRAG     | Reservado para fragmentação |
-| 5–7 | —        | Reservados |
+| 0   | ACK_REQ  | Solicita confirmação de transporte (ACK/ERR) |
+| 1   | IS_EVT   | Evento assíncrono Gateway→API |
+| 2–7 | RESERVED | Reservados e **devem ser 0** |
+
+Numeração de bits: `ACK_REQ` é o bit 0 (LSB), `IS_EVT` é o bit 1 e os bits 2..7 são reservados.
 
 ---
 
-## 9. Comandos Reservados de Transporte
+## 10. Comandos Reservados de Transporte
 
-### `CMD=0x01` — T_ACK
+### `CMD=0xF1` — ACK
 
-Confirma recepção correta de um frame.
+ACK: `CMD=0xF1`, enviado em resposta a frames com `ACK_REQ=1`; o `SEQ` no cabeçalho correlaciona a confirmação.
 
-### `CMD=0x02` — T_ERR
+### `CMD=0xF2` — ERR
 
-Indica falha de transporte.
+ERR: `CMD=0xF2`, enviado em resposta a frames com `ACK_REQ=1`; incluir `err_code` no payload; o `SEQ` no cabeçalho correlaciona o erro.
+Formato mínimo de payload do ERR: `PAYLOAD[0]=err_code` (1 byte), `PAYLOAD[1..]` detalhes opcionais.
 
 ---
 
-## 10. Erros de Transporte
+## 11. Erros de Transporte
 
 | Código | Nome            |
 |-------|-----------------|
@@ -157,7 +181,7 @@ Indica falha de transporte.
 
 ---
 
-## 11. ACK e Retransmissão
+## 12. ACK e Retransmissão
 
 Frames críticos usam `ACK_REQ=1`.
 
@@ -165,19 +189,19 @@ Timeout padrão: **100 ms** (configurável).
 
 ---
 
-## 12. Deduplicação
+## 13. Deduplicação
 
 Reenvio do mesmo SEQ não reprocessa aplicação, apenas reenviar ACK.
 
 ---
 
-## 13. Eventos Assíncronos
+## 14. Eventos Assíncronos
 
 Gateway pode transmitir frames espontâneos com `IS_EVT=1`.
 
 ---
 
-## 14. CRC Oficial
+## 15. CRC Oficial
 
 ### CRC-8/ATM
 
@@ -222,4 +246,4 @@ CMD + FLAGS + SEQ + PAYLOAD
 
 ---
 
-**Fim da Especificação SD-GW-LINK v1.0.0**
+**Fim da Especificação SGGW v1.0.0**

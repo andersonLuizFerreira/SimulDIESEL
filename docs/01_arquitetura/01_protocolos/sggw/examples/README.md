@@ -1,7 +1,7 @@
-# SD-GW-LINK — Exemplos em Hex (Vetores de Teste)
+# SGGW — Exemplos em Hex (Vetores de Teste)
 
 Este diretório contém **vetores de teste oficiais** do protocolo de transporte
-**SD-GW-LINK**, utilizados para validação de implementações do motor do protocolo,
+**SGGW**, utilizados para validação de implementações do motor do protocolo,
 independentemente do meio físico (Serial, Wi-Fi, Bluetooth).
 
 Todos os arquivos `.hex` representam **frames completos no stream**, ou seja:
@@ -41,7 +41,7 @@ Uso típico:
 ---
 
 ### `ack.hex`
-Exemplo de **ACK de transporte (T_ACK)**.
+Exemplo de **ACK de transporte (`CMD=0xF1`)**.
 
 Uso típico:
 - Teste de confirmação Stop-and-Wait
@@ -73,9 +73,10 @@ Uso típico:
 - Os valores de `CMD` utilizados são **exemplos ilustrativos**
 - A semântica dos comandos pertence à **camada de aplicação**
 - Estes arquivos validam apenas o **protocolo de transporte**
+- Estes vetores cobrem o enlace **PC ↔ Gateway** (SGGW), não o enlace **Gateway ↔ Baby Board**
 
 ---
 
 Projeto: **SimulDIESEL**  
-Protocolo: **SD-GW-LINK**  
+Protocolo: **SGGW**  
 Versão: **1.0.0**
