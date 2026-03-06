@@ -1,0 +1,25 @@
+﻿Base criada em: C:\PROJETOS\SimulDIESEL\new_docs
+
+Arquivos copiados automaticamente:
+- README principal
+- MASTER_SPEC
+- contratos oficiais sem underline
+- núcleo SGGW
+- gateway docs
+- babyboard GSA
+- ADR-0007
+- technical-roadmap
+- docs de hardware GSA
+
+Arquivos propositalmente NÃO copiados:
+- AUDITORIA_DOCS.md
+- CONSISTENCIA_DOCS.md
+- AI_WORKFLOW.md
+- arquivos duplicados em maiúsculo/minúsculo
+- arquivos com prefixo "_"
+- placeholders de integrações
+- arquivos antigos de 04_pc
+- arquivos contaminados por prompt/rascunho
+
+Próxima etapa:
+- gerar os arquivos corrigidos e consolidados em new_docs

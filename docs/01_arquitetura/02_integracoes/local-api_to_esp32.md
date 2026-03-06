@@ -1,1 +1,0 @@
-# Protocolo: Local API -

@@ -179,5 +179,10 @@ namespace SimulDIESEL
             frmLED.StartPosition = FormStartPosition.CenterParent;
             frmLED.Show();
         }
+
+        private void DashBoard_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }

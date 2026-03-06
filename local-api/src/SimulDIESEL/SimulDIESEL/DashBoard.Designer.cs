@@ -39,10 +39,10 @@
             this.tsLablelNomeInterface = new System.Windows.Forms.ToolStripStatusLabel();
             this.tsNomeInterface = new System.Windows.Forms.ToolStripStatusLabel();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
-            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
-            this.toolStripConectar = new System.Windows.Forms.ToolStripButton();
             this.mnuFerramentas = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuFerramentasLed = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
+            this.toolStripConectar = new System.Windows.Forms.ToolStripButton();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -127,6 +127,21 @@
             this.menuStrip1.Size = new System.Drawing.Size(857, 28);
             this.menuStrip1.TabIndex = 2;
             // 
+            // mnuFerramentas
+            // 
+            this.mnuFerramentas.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mnuFerramentasLed});
+            this.mnuFerramentas.Name = "mnuFerramentas";
+            this.mnuFerramentas.Size = new System.Drawing.Size(104, 24);
+            this.mnuFerramentas.Text = "&Ferramentas";
+            // 
+            // mnuFerramentasLed
+            // 
+            this.mnuFerramentasLed.Name = "mnuFerramentasLed";
+            this.mnuFerramentasLed.Size = new System.Drawing.Size(246, 26);
+            this.mnuFerramentasLed.Text = "Teste de LED GATEWAY";
+            this.mnuFerramentasLed.Click += new System.EventHandler(this.mnuFerramentasLed_Click);
+            // 
             // toolStrip1
             // 
             this.toolStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
@@ -149,21 +164,6 @@
             this.toolStripConectar.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.toolStripConectar.Click += new System.EventHandler(this.toolStripConectar_Click);
             // 
-            // mnuFerramentas
-            // 
-            this.mnuFerramentas.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mnuFerramentasLed});
-            this.mnuFerramentas.Name = "mnuFerramentas";
-            this.mnuFerramentas.Size = new System.Drawing.Size(104, 24);
-            this.mnuFerramentas.Text = "&Ferramentas";
-            // 
-            // mnuFerramentasLed
-            // 
-            this.mnuFerramentasLed.Name = "mnuFerramentasLed";
-            this.mnuFerramentasLed.Size = new System.Drawing.Size(246, 26);
-            this.mnuFerramentasLed.Text = "Teste de LED GATEWAY";
-            this.mnuFerramentasLed.Click += new System.EventHandler(this.mnuFerramentasLed_Click);
-            // 
             // DashBoard
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -179,6 +179,7 @@
             this.Name = "DashBoard";
             this.Text = "SimulDIESEL";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
+            this.Load += new System.EventHandler(this.DashBoard_Load);
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.menuStrip1.ResumeLayout(false);
