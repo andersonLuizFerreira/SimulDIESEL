@@ -16,5 +16,5 @@
 *.ino text eol=lf
 
 # Windows-specific
-*.sln  text eol=crlf
-*.csproj text eol=crlf# gitattributes 
+*.sln text eol=crlf
+*.csproj text eol=crlf
