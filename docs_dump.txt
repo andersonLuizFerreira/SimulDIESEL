@@ -1,0 +1,4724 @@
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\00-INDICE.md
+===================================================
+
+# 00-INDICE — Índice da documentação oficial
+
+## README principal
+
+- [README da documentação oficial](README.md)
+
+## 01-visao-geral
+
+- [01. Introdução](01-visao-geral/01-introducao.md)
+- [02. Objetivos](01-visao-geral/02-objetivos.md)
+- [03. Escopo](01-visao-geral/03-escopo.md)
+
+## 02-arquitetura
+
+- [01. Visão arquitetural](02-arquitetura/01-visao-arquitetural.md)
+- [02. Camadas do sistema](02-arquitetura/02-camadas-do-sistema.md)
+- [03. Fluxo de comunicação](02-arquitetura/03-fluxo-de-comunicacao.md)
+
+## 03-hardware
+
+- [01. Backplane](03-hardware/01-backplane.md)
+- [02. Baby boards](03-hardware/02-baby-boards.md)
+- [03. Barramentos](03-hardware/03-barramentos.md)
+- [04. Alimentação](03-hardware/04-alimentacao.md)
+
+## 04-firmware
+
+- [01. Arquitetura de firmware](04-firmware/01-arquitetura-firmware.md)
+- [02. Drivers](04-firmware/02-drivers.md)
+- [03. Gerenciamento de recursos](04-firmware/03-gerenciamento-recursos.md)
+
+## 05-software-dashboard
+
+- [01. Arquitetura software](05-software-dashboard/01-arquitetura-software.md)
+- [02. Interface de usuário](05-software-dashboard/02-interface-usuario.md)
+- [03. Camada hardware](05-software-dashboard/03-camada-hardware.md)
+
+## 06-protocolos
+
+- [01. SDH/SGGW (modelo de comando)](06-protocolos/01-sdh-command-model.md)
+- [02. CAN](06-protocolos/02-can.md)
+- [03. J1939](06-protocolos/03-j1939.md)
+
+## 07-simulacoes
+
+- [01. Simulação de módulos](07-simulacoes/01-simulacao-modulos.md)
+- [02. Simulação de sensores](07-simulacoes/02-simulacao-sensores.md)
+- [03. Simulação de atuadores](07-simulacoes/03-simulacao-atuadores.md)
+
+## 08-casos-de-uso
+
+- [01. Manutenção de módulos](08-casos-de-uso/01-manutencao-modulos.md)
+- [02. Diagnóstico](08-casos-de-uso/02-diagnostico.md)
+- [03. Testes de bancada](08-casos-de-uso/03-testes-bancada.md)
+
+## 09-desenvolvimento
+
+- [01. Organização do repositório](09-desenvolvimento/01-organizacao-repositorio.md)
+- [02. Padrões de código](09-desenvolvimento/02-padroes-codigo.md)
+- [03. Fluxo Git](09-desenvolvimento/03-fluxo-git.md)
+
+## 10-testes
+
+- [01. Testes de hardware](10-testes/01-testes-hardware.md)
+- [02. Testes de firmware](10-testes/02-testes-firmware.md)
+- [03. Testes de integração](10-testes/03-testes-integracao.md)
+
+## 11-planejamento
+
+- [01. Planejamento atual](11-planejamento/01-planejamento.md)
+- [02. Próximas funcionalidades](11-planejamento/02-proximas-funcionalidades.md)
+
+## 12-documentacao-tecnica
+
+- [01. Especificações](12-documentacao-tecnica/01-especificacoes.md)
+- [02. Diagramas](12-documentacao-tecnica/02-diagramas.md)
+- [03. Contratos de software](12-documentacao-tecnica/03-contratos-software.md)
+
+## Legado técnico preservado
+
+- [Índice legado](legacy-docs/00-INDICE-LEGACY.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\README.md
+===================================================
+
+# Documentação Oficial do SimulDIESEL
+
+Esta pasta concentra a documentação oficial do estado atual do projeto SimulDIESEL. O conteúdo foi reorganizado para refletir o que está implementado no repositório hoje: hardware embarcado, firmware de gateway, firmware de periféricos, software local em C# e contratos/protocolos preservados em material legado.
+
+## Visão rápida
+
+O repositório mostra uma arquitetura de bancada composta por:
+
+- `local-api/`: aplicação local em C# com camadas `UI`, `BLL`, `DAL` e `DTL`.
+- `hardware/firmware/esp32-api-bridge/`: gateway embarcado baseado em ESP32 que faz o enlace com o host e roteia requisições para barramentos internos.
+- `hardware/firmware/gerador-sinais-analogicos-GSA/`: firmware de periférico I2C com pilha `Transport -> Link -> Service`.
+- `hardware/boards/`: artefatos de placas, backplane e conectores.
+- `cloud/`: área reservada para contratos e evolução de integração remota; no estado atual, os contratos OpenAPI ainda não descrevem endpoints ativos.
+
+## Navegação
+
+### Visão geral
+
+- [00 - Índice](./00-INDICE.md)
+- [Introdução](./01-visao-geral/01-introducao.md)
+- [Objetivos](./01-visao-geral/02-objetivos.md)
+- [Escopo](./01-visao-geral/03-escopo.md)
+
+### Arquitetura
+
+- [Visão arquitetural](./02-arquitetura/01-visao-arquitetural.md)
+- [Camadas do sistema](./02-arquitetura/02-camadas-do-sistema.md)
+- [Fluxo de comunicação](./02-arquitetura/03-fluxo-de-comunicacao.md)
+
+### Hardware e firmware
+
+- [Backplane](./03-hardware/01-backplane.md)
+- [Baby boards](./03-hardware/02-baby-boards.md)
+- [Barramentos](./03-hardware/03-barramentos.md)
+- [Alimentação](./03-hardware/04-alimentacao.md)
+- [Arquitetura de firmware](./04-firmware/01-arquitetura-firmware.md)
+- [Drivers](./04-firmware/02-drivers.md)
+- [Gerenciamento de recursos](./04-firmware/03-gerenciamento-recursos.md)
+
+### Software local e protocolos
+
+- [Arquitetura do software](./05-software-dashboard/01-arquitetura-software.md)
+- [Interface de usuário](./05-software-dashboard/02-interface-usuario.md)
+- [Camada de hardware do software](./05-software-dashboard/03-camada-hardware.md)
+- [SDH Command Model](./06-protocolos/01-sdh-command-model.md)
+- [CAN](./06-protocolos/02-can.md)
+- [J1939](./06-protocolos/03-j1939.md)
+
+### Simulações, uso e desenvolvimento
+
+- [Simulação de módulos](./07-simulacoes/01-simulacao-modulos.md)
+- [Simulação de sensores](./07-simulacoes/02-simulacao-sensores.md)
+- [Simulação de atuadores](./07-simulacoes/03-simulacao-atuadores.md)
+- [Manutenção de módulos](./08-casos-de-uso/01-manutencao-modulos.md)
+- [Diagnóstico](./08-casos-de-uso/02-diagnostico.md)
+- [Testes de bancada](./08-casos-de-uso/03-testes-bancada.md)
+- [Organização do repositório](./09-desenvolvimento/01-organizacao-repositorio.md)
+- [Padrões de código](./09-desenvolvimento/02-padroes-codigo.md)
+- [Fluxo Git](./09-desenvolvimento/03-fluxo-git.md)
+
+### Testes, planejamento e documentação técnica
+
+- [Testes de hardware](./10-testes/01-testes-hardware.md)
+- [Testes de firmware](./10-testes/02-testes-firmware.md)
+- [Testes de integração](./10-testes/03-testes-integracao.md)
+- [Planejamento](./11-planejamento/01-planejamento.md)
+- [Próximas funcionalidades](./11-planejamento/02-proximas-funcionalidades.md)
+- [Especificações](./12-documentacao-tecnica/01-especificacoes.md)
+- [Diagramas](./12-documentacao-tecnica/02-diagramas.md)
+- [Contratos de software](./12-documentacao-tecnica/03-contratos-software.md)
+
+## Material legado preservado
+
+A pasta `docs/legacy-docs/` continua sendo a principal fonte histórica para contratos, decisões arquiteturais e roadmap técnico. Ela não substitui a documentação oficial atual, mas sustenta diversas descrições aqui consolidadas, especialmente sobre o protocolo `SGGW`, decisões de enquadramento `COBS + CRC8` e o planejamento incremental do gateway.
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\01-visao-geral\01-introducao.md
+===================================================
+
+# Introdução
+
+## Estado atual
+
+O SimulDIESEL é um ambiente de bancada para comunicação com módulos e periféricos eletrônicos por meio de um gateway embarcado e de um software local em C#. O que está efetivamente implementado no repositório hoje é um caminho operacional entre o host e um gateway ESP32, com roteamento para dispositivos mapeados em tabela e um periférico I2C concreto, o firmware `gerador-sinais-analogicos-GSA`, que expõe comandos de serviço simples.
+
+A composição observada no código é a seguinte:
+
+- a aplicação local usa `SerialTransport`, `SerialLinkService`, `SdGwLinkEngine` e `SdGgwClient` para abrir a serial, executar handshake textual, encapsular frames binários e monitorar a saúde do enlace;
+- o gateway `esp32-api-bridge` implementa parser, link confiável com `ACK` e roteamento por endereço lógico;
+- o periférico `GSA` processa TLVs curtos sobre I2C e delega o comportamento a um serviço local.
+
+```
+PC/WinForms -> Serial ASCII/Binário -> ESP32 Gateway -> I2C/SPI -> Dispositivo endereçado
+```
+
+## Funcionamento técnico
+
+O fluxo inicia no host com a abertura da serial e a execução de um handshake de link. A classe `SerialLinkService` administra a máquina de estados `Disconnected -> SerialConnected -> Draining -> BannerSent -> Linked/LinkFailed`, drenando ruído inicial, enviando o banner `SIMULDIESELAPI` e aguardando a linha de identificação do firmware.
+
+Após o estado `Linked`, a comunicação passa a usar frames binários delimitados por `0x00`, codificados em `COBS` e protegidos por `CRC8`. No gateway, `SggwLink` recebe o quadro, valida o enquadramento e entrega o conteúdo lógico para `GatewayApp`. Se o endereço do comando aponta para o próprio gateway, a resposta é tratada localmente; caso contrário, `GwRouter` consulta `GwDeviceTable` e escolhe `GwI2cBus` ou `GwSpiBus`.
+
+O GSA recebe a transação como TLV curto em I2C slave, valida comprimento e `CRC`, resolve comandos em `Service` e devolve a resposta para o gateway, que a reencapsula no protocolo host.
+
+## Limitações
+
+O repositório ainda não apresenta uma cadeia completa de funcionalidades compatível com o nome amplo do projeto. Há evidência forte de infraestrutura de comunicação, mas poucos serviços de domínio concluídos. O firmware do GSA, por exemplo, implementa hoje apenas leitura e escrita de estado de LED, apesar do nome sugerir geração analógica mais rica. Também não há endpoints operacionais em `cloud/api-contracts/openapi.yaml`.
+
+## Evolução prevista
+
+O material legado de roadmap indica progressão por fases: primeiro o enlace serial confiável, depois o modelo de comandos do gateway e, por fim, a expansão de dispositivos, serviços e contratos. O estado atual do código confirma que as fundações de transporte e roteamento estão consolidadas; a próxima evolução natural é ampliar os serviços embarcados e documentar os dispositivos reais suportados pela tabela do gateway.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\01-visao-geral\02-objetivos.md
+===================================================
+
+# Objetivos
+
+## Estado atual
+
+Os objetivos concretamente sustentados pelo repositório podem ser agrupados em quatro frentes:
+
+- estabelecer um enlace local confiável entre estação de bancada e gateway;
+- permitir roteamento uniforme para dispositivos em barramentos diferentes;
+- desacoplar protocolo de host, transporte físico e serviços de dispositivo;
+- criar base para expansão gradual de módulos de simulação e diagnóstico.
+
+Esses objetivos são observáveis no código e não apenas em documentos. O uso de interfaces de transporte, máquinas de estado de link, tabela de dispositivos e serviços embarcados dedicados mostra que o projeto foi estruturado para crescer sem acoplamento direto entre UI, barramento e lógica de dispositivo.
+
+## Funcionamento técnico
+
+### Objetivo 1: enlace confiável com o host
+
+No `local-api`, `IByteTransport` abstrai o meio físico. `SerialTransport` implementa a serial bruta, enquanto `SerialLinkService` cuida da transição do modo textual de bootstrap para o modo binário de operação. `SdGwLinkEngine` acrescenta confirmação por sequência, repetição por timeout e deduplicação de respostas.
+
+### Objetivo 2: roteamento por endereço lógico
+
+O protocolo usa `CMD = [ADDR:4][OP:4]`, permitindo que o host trate gateway e periféricos com a mesma estrutura básica. No ESP32, `GatewayApp` decide se o comando é local ou roteado. `GwRouter` consulta `GwDeviceTable` para descobrir barramento, endereço físico e metadados da transação.
+
+### Objetivo 3: padronização de serviços embarcados
+
+No GSA, a pilha `Transport -> Link -> Service -> LedService` mostra a intenção de separar recepção física, validação do frame e regra funcional. Isso reduz impacto quando um novo serviço for adicionado ao mesmo dispositivo ou quando outro periférico reaproveitar a mesma pilha.
+
+### Objetivo 4: suporte a bancada e diagnóstico
+
+O software local já possui telas voltadas a serial e teste de LED, além de um serviço de saúde de link (`SdGwHealthService`) baseado em `ping`. A combinação desses componentes atende a um objetivo claro de operação assistida em bancada, com observabilidade mínima do enlace.
+
+## Limitações
+
+Nem todos os objetivos amplos do nome SimulDIESEL aparecem implementados no código atual. Não há, por exemplo, uma camada de nuvem operacional, um conjunto extenso de sensores simulados nem contratos maduros para CAN/J1939 em produção. O objetivo presente no repositório é mais fundacional: consolidar a espinha dorsal de comunicação e o primeiro conjunto de serviços embarcados.
+
+## Evolução prevista
+
+O roadmap legado sugere expansão em ciclos curtos. A tendência técnica natural é:
+
+- ampliar a tabela de dispositivos e os serviços roteáveis;
+- transformar o GSA em periférico mais completo que o serviço atual de LED;
+- consolidar contratos de software entre host, gateway e módulos;
+- evoluir a observabilidade do software local para cenários de diagnóstico mais ricos.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\01-visao-geral\03-escopo.md
+===================================================
+
+# Escopo
+
+## Estado atual
+
+O escopo efetivo do repositório inclui firmware, software local, artefatos de hardware e documentação técnica. O que está dentro do escopo operacional atual é o fluxo de bancada local, sem dependência obrigatória de serviços externos.
+
+Estão dentro do escopo comprovado pelo código:
+
+- comunicação host <-> gateway por serial;
+- protocolo binário com enquadramento `COBS + CRC8`;
+- roteamento interno do gateway para I2C e SPI;
+- tabela de dispositivos no firmware do ESP32;
+- periférico I2C `GSA` com serviço real de LED;
+- interface local WinForms para abertura de porta, health check e teste de LED.
+
+## Funcionamento técnico
+
+O escopo do projeto pode ser lido como uma cadeia de responsabilidades:
+
+```
+Operação de bancada
+  -> software local
+  -> link serial confiável
+  -> gateway embarcado
+  -> barramentos internos
+  -> periféricos endereçados
+```
+
+O software local cobre a sessão com o gateway. O gateway cobre encapsulamento, roteamento e resposta. Cada periférico cobre sua lógica de serviço específica. A documentação oficial, por sua vez, cobre o comportamento observado nessas camadas e usa `legacy-docs` apenas como apoio histórico.
+
+## Limitações
+
+Os itens abaixo não aparecem como escopo implementado no estado atual do repositório:
+
+- backend de nuvem com contratos ativos;
+- malha completa de módulos diesel e tabelas de sensores/atuadores em produção;
+- pilhas CAN e J1939 operacionais no código analisado;
+- especificação textual consolidada de todas as placas físicas em `hardware/boards`.
+
+Há sinais de intenção arquitetural para esses pontos, mas a base objetiva disponível hoje está concentrada no enlace local, no gateway e no primeiro periférico.
+
+## Evolução prevista
+
+O escopo tende a crescer em duas direções compatíveis com o material legado e com o código atual:
+
+- horizontalmente, com novos periféricos ou serviços adicionados à tabela do gateway;
+- verticalmente, com contratos mais ricos, testes de integração e eventual expansão para protocolos automotivos e integração remota.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\02-arquitetura\01-visao-arquitetural.md
+===================================================
+
+# Visão Arquitetural
+
+## Estado atual
+
+A arquitetura do SimulDIESEL é multicamada e orientada a gateways. O host não fala diretamente com cada periférico; ele fala com um gateway ESP32 que centraliza enquadramento, confiabilidade de link e roteamento para barramentos internos. Esse desenho já está visível tanto no software local em C# quanto no firmware do `esp32-api-bridge`.
+
+```
++--------------------+       +----------------------+       +------------------+
+| UI / BLL / DAL     |       | ESP32 API Bridge     |       | Dispositivos     |
+| local-api (C#)     |<----->| Link / Router / Buses|<----->| I2C / SPI        |
++--------------------+       +----------------------+       +------------------+
+```
+
+## Funcionamento técnico
+
+### Camada host
+
+- `SerialTransport`: leitura e escrita de bytes crus.
+- `SerialLinkService`: sincronização inicial, controle de estado e descarte de ruído textual.
+- `SdGwLinkEngine`: montagem e análise de frames, `ACK`, retransmissão e deduplicação por sequência.
+- `SdGgwClient`: API de envio para a camada superior.
+- `SdGwHealthService`: supervisão periódica com `ping`.
+
+### Camada gateway
+
+- `SggwTransport`: abstração do meio serial no ESP32.
+- `SggwParser`: validação de `COBS`, tamanho e `CRC8`.
+- `SggwLink`: sessão host/gateway, tratamento de `ACK`, respostas em cache e watchdog.
+- `GatewayApp`: tratamento de comandos do endereço do gateway.
+- `GwRouter`: resolução do destino lógico.
+- `GwDeviceTable`: catálogo local de dispositivos e barramentos.
+- `GwI2cBus` e `GwSpiBus`: execução da transação física.
+
+### Camada de dispositivo
+
+No `GSA`, a organização é explícita:
+
+- `Transport`: integra callbacks do barramento.
+- `Link`: valida frame TLV e administra erros de protocolo.
+- `Service`: interpreta comando funcional.
+- `LedService`: atua sobre o pino físico.
+
+### Fluxo arquitetural real
+
+1. A UI solicita uma operação.
+2. O cliente C# monta um frame lógico.
+3. O gateway valida e resolve o endereço.
+4. O barramento selecionado entrega o comando ao dispositivo.
+5. O dispositivo responde em TLV.
+6. O gateway reconstrói a resposta do protocolo host.
+7. O host confirma `ACK` e atualiza a interface.
+
+## Limitações
+
+A arquitetura está mais madura nos mecanismos de transporte do que nos serviços de domínio. O mapeamento de dispositivos existe, mas a tabela ainda é curta e parte dos endereços aponta para dispositivos cuja documentação textual não está consolidada no repositório. Também não há, no estado atual, uma camada de integração em nuvem equivalente ao nível de detalhe do enlace local.
+
+## Evolução prevista
+
+As decisões já presentes no código favorecem expansão sem ruptura:
+
+- inclusão de novos dispositivos por tabela, sem alterar o protocolo host;
+- reaproveitamento da pilha `Transport/Link/Service` em novos periféricos;
+- enriquecimento do dashboard com mais casos de uso sem reescrever o enlace;
+- evolução dos contratos formais quando os serviços embarcados deixarem de ser apenas infraestrutura básica.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\02-arquitetura\02-camadas-do-sistema.md
+===================================================
+
+# Camadas do Sistema
+
+## Camada de Apresentação (UI)
+
+**Arquivos principais:** `DashBoard`, `frmPortaSerial_UI`, `frmLedGw`.
+
+Responsabilidades observadas:
+- exibir estado de serial/link;
+- acionar conexão/desconexão;
+- iniciar testes de comando simples (ex.: LED no GSA).
+
+A UI responde por eventos, sem manipular diretamente framing/protocolo.
+
+## Camada de Aplicação/BLL
+
+**Arquivos principais:**
+- `SerialLinkService`
+- `SdGwLinkEngine`
+- `SdGwHealthService`
+- `SdGgwClient`
+- `LedGwTest_BLL`
+
+Responsabilidades:
+- manter estado do link;
+- orquestrar handshake de link;
+- parser/encode de frames SGGW;
+- reintentos e timeout de mensagens críticas;
+- manter watchdog de conexão.
+
+## Camada de Acesso a Dados (DAL)
+
+**Arquivo:** `SerialTransport`.
+
+Responsável por I/O serial bruto: listar portas, abrir/fechar, escrever bytes e repassar bytes recebidos.
+
+## Camada de Gateway embarcada
+
+**Arquivos:** `SggwTransport`, `SggwLink`, `GatewayApp`, `GwRouter`, `GwI2cBus`, `GwSpiBus`.
+
+Responsabilidades:
+- handshake de validação textual com ESP32;
+- parsing e roteamento de comandos lógicos (`ADDR/OP`);
+- tradução para barramentos internos (TLV+CRC para módulos).
+
+## Camada de módulos
+
+No estado atual, a implementação de módulo ativa no repositório é `gerador-sinais-analógicos` com comunicação TLV no barramento I2C.
+
+## Dependências entre camadas
+
+A integridade da arquitetura depende da ordem de inicialização:
+1. UI disponível;
+2. DAL aberta;
+3. handshake;
+4. ativação do protocolo binário.
+
+Qualquer variação fora dessa ordem aumenta risco de frames inválidos no primeiro minuto de conexão.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\02-arquitetura\03-fluxo-de-comunicacao.md
+===================================================
+
+# Fluxo de Comunicação
+
+## Estado atual
+
+O fluxo de comunicação implementado no repositório é híbrido: textual no bootstrap e binário durante a operação normal. Essa escolha aparece em ambos os lados do enlace e explica por que o host primeiro procura um banner legível antes de passar a tratar frames delimitados por `0x00`.
+
+## Funcionamento técnico
+
+### Fase 1: estabelecimento de link
+
+Máquina de estados do host (`SerialLinkService`):
+
+```
+Disconnected
+  -> SerialConnected
+  -> Draining
+  -> BannerSent
+  -> Linked
+  -> LinkFailed
+```
+
+Máquina de estados do gateway (`SggwLink`):
+
+```
+WaitingBanner
+  -> Linked
+  -> WaitingBanner (se resetar ou expirar)
+```
+
+O host drena a serial, envia o banner de ativação e aguarda uma linha iniciada por `SimulDIESEL ver`. Depois disso, ativa o motor de frames.
+
+### Fase 2: frame lógico host/gateway
+
+Estrutura lógica observada em `Sggw.defs.h`:
+
+```text
+CMD | FLAGS | SEQ | PAYLOAD... | CRC8
+```
+
+- `CMD`: 4 bits de endereço e 4 bits de operação.
+- `FLAGS`: inclui pedido de `ACK` e marcação de evento.
+- `SEQ`: número de sequência para deduplicação.
+- `CRC8`: validação do quadro lógico.
+
+Esse bloco é codificado em `COBS` e finalizado com delimitador `0x00`.
+
+### Exemplo de ida e volta
+
+Exemplo conceitual de `PING` para o endereço do gateway:
+
+```text
+Host
+  Frame lógico: CMD=0x01 FLAGS=0x01 SEQ=0x10 PAYLOAD=[]
+  -> COBS(...)
+  -> 00
+
+Gateway
+  valida frame
+  gera ACK/RESP
+  devolve frame com mesmo SEQ
+```
+
+Exemplo de operação roteada para o GSA:
+
+```text
+Host -> Gateway:
+  CMD = [ADDR_GSA | OP_GSA_TLV]
+  PAYLOAD = TLV do dispositivo
+
+Gateway -> GSA (I2C):
+  T | L | V... | CRC8
+
+GSA -> Gateway:
+  T | L | V... | CRC8
+```
+
+### Fase 3: roteamento interno
+
+`GwRouter` consulta `GwDeviceTable` para determinar:
+
+- tipo do barramento (`I2C` ou `SPI`);
+- endereço físico ou pino de seleção;
+- parâmetros necessários para a transação.
+
+`GwI2cBus::transact` e `GwSpiBus::transact` usam a mesma ideia de request/resposta curta e validada, preservando um contrato uniforme para o restante do firmware.
+
+## Limitações
+
+O protocolo do host está bem definido no código, mas o repertório funcional ainda é enxuto. O canal existe, a confiabilidade existe e o roteamento existe; o número de comandos de alto nível e a quantidade de dispositivos funcionais ainda são limitados. Também não há evidência, no fluxo atual, de multiplexação avançada de sessões ou fila concorrente de requisições.
+
+## Evolução prevista
+
+O fluxo atual já suporta a ampliação natural do sistema:
+
+- novos `OP codes` por endereço;
+- novos dispositivos na tabela do gateway;
+- novos tipos de evento gerados do firmware para a UI;
+- maior densidade de payloads TLV, desde que respeitados os limites de tamanho do enlace.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\03-hardware\01-backplane.md
+===================================================
+
+# Backplane
+
+## Estado atual
+
+O repositório contém artefatos de hardware em `hardware/boards/` que apontam para uma arquitetura física com backplane e placas satélites. A documentação textual dessa parte ainda é menos detalhada que o firmware, mas a estrutura do código embarcado deixa claro o papel do backplane: servir como base de interconexão entre o gateway ESP32, barramentos internos e dispositivos conectados.
+
+Do ponto de vista arquitetural, o backplane sustenta:
+
+- distribuição de conectividade entre gateway e periféricos;
+- exposição de barramentos `I2C` e `SPI`;
+- organização modular compatível com tabela de dispositivos;
+- montagem de bancada com placas substituíveis.
+
+## Funcionamento técnico
+
+Mesmo sem uma pinagem textual consolidada, o comportamento do firmware mostra o que o backplane precisa viabilizar:
+
+```text
+ESP32 Gateway
+  -> linhas seriais para o host
+  -> barramento I2C para periféricos endereçados
+  -> barramento SPI para dispositivos selecionados por chip-select
+```
+
+`GwDeviceTable` materializa essa visão ao separar dispositivos por barramento e por identidade lógica. Isso indica que o backplane não é apenas suporte mecânico; ele é o ponto de integração física que torna a tabela roteável na prática.
+
+Há também evidência de que a solução foi pensada para expansão incremental: a inclusão de um dispositivo novo tende a exigir entrada na tabela do gateway e suporte físico correspondente no conjunto de placas.
+
+## Limitações
+
+O repositório atual não apresenta, na documentação oficial ou nos arquivos textuais do hardware, uma descrição consolidada de conectores, tensões, proteção elétrica, topologia mecânica ou revisões de placa do backplane. Por isso, este documento descreve com segurança apenas o papel sistêmico sustentado pelo código e pelos artefatos de placa existentes.
+
+## Evolução prevista
+
+A evolução natural da documentação de backplane é consolidar, em texto rastreável:
+
+- quais slots ou conectores correspondem a cada classe de dispositivo;
+- quais sinais são compartilhados entre placas;
+- como a alimentação e o aterramento são distribuídos;
+- como a tabela lógica do gateway se relaciona com a montagem física da bancada.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\03-hardware\02-baby-boards.md
+===================================================
+
+# Baby Boards
+
+## Estado atual
+
+A estrutura do repositório e a presença de um gateway com tabela de dispositivos indicam que o hardware foi concebido de forma modular, com placas filhas ou periféricos conectados ao backplane. O exemplo concreto mais claro no código é o `GSA`, acessado como dispositivo remoto via barramento e tratado como serviço independente.
+
+As baby boards, no contexto atual do projeto, cumprem dois papéis:
+
+- encapsular funções específicas de simulação ou interface física;
+- permitir expansão do sistema sem alteração estrutural do software local.
+
+## Funcionamento técnico
+
+O comportamento esperado de uma baby board já aparece cristalizado no firmware:
+
+1. o gateway identifica o destino por endereço lógico;
+2. a tabela de dispositivos informa o barramento adequado;
+3. o barramento entrega uma mensagem curta ao periférico;
+4. o periférico responde dentro de um contrato simples e validado.
+
+No caso do `GSA`, a placa atua como escravo `I2C` no endereço `0x23` e usa uma pilha curta:
+
+```text
+I2C callback -> Transport -> Link -> Service -> LedService
+```
+
+Essa decomposição deixa claro que uma baby board não precisa conhecer o protocolo do host. Ela precisa conhecer apenas o contrato interno do barramento que o gateway encaminha.
+
+## Limitações
+
+Nem todas as baby boards sugeridas pela árvore de hardware possuem descrição textual ou firmware analisável no repositório atual. A tabela de dispositivos do gateway contém entradas suficientes para provar a intenção modular, mas não descreve sozinha função elétrica completa, revisão de placa ou conjunto de sensores/atuadores de cada módulo.
+
+## Evolução prevista
+
+Para que a documentação de baby boards fique completa, a evolução recomendada é publicar para cada placa:
+
+- finalidade funcional;
+- barramento usado;
+- endereço físico ou critérios de seleção;
+- serviços expostos ao gateway;
+- limites de operação observáveis em firmware e hardware.
+
+Enquanto essa consolidação não acontece, o GSA permanece como referência mais concreta do padrão de integração de placas filhas.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\03-hardware\03-barramentos.md
+===================================================
+
+# Barramentos
+
+## Estado atual
+
+O repositório implementa três camadas de transporte claramente distintas:
+
+- serial entre host e gateway;
+- `I2C` entre gateway e periféricos como o GSA;
+- `SPI` entre gateway e dispositivos mapeados na tabela.
+
+Esses barramentos não são equivalentes. A serial transporta o protocolo completo de sessão com `COBS`, `CRC8`, `ACK` e sequência. `I2C` e `SPI` transportam requisições curtas já resolvidas pelo gateway para os dispositivos.
+
+## Funcionamento técnico
+
+### Serial host/gateway
+
+Responsabilidades:
+
+- transporte bruto em `SerialTransport`;
+- sincronização textual em `SerialLinkService`;
+- confiabilidade e enquadramento em `SdGwLinkEngine` e `SggwLink`.
+
+Características observadas:
+
+- delimitador `0x00`;
+- codificação `COBS`;
+- `CRC8 ATM`;
+- sequência para deduplicação;
+- `ACK` e resposta de erro específicos do protocolo.
+
+### I2C gateway/dispositivo
+
+No GSA, o dispositivo é escravo `I2C` em `0x23`. O gateway monta uma carga TLV curta, escreve no periférico e depois solicita a resposta preparada pelo callback de leitura. O contrato do periférico é do tipo:
+
+```text
+T | L | V... | CRC8
+```
+
+Esse desenho privilegia simplicidade de firmware e permite que o gateway concentre a inteligência de sessão.
+
+### SPI gateway/dispositivo
+
+`GwSpiBus` indica suporte a dispositivos selecionados por `chip select`, inclusive com metadados adicionais como pino de interrupção em entradas da tabela. O padrão do código sugere o mesmo ciclo request/resposta usado em `I2C`, mas com a mecânica física do `SPI`.
+
+## Limitações
+
+O repositório não apresenta, na parte oficial de documentação, uma tabela elétrica consolidada com clock, resistores de pull-up, níveis lógicos ou restrições temporais dos barramentos. Também não há implementação operacional de `CAN` ou `J1939` no código analisado, embora esses protocolos apareçam como temas documentais e de evolução futura.
+
+## Evolução prevista
+
+Os barramentos existentes já permitem expansão modular. Os próximos passos coerentes com a arquitetura atual são:
+
+- ampliar a tabela de dispositivos por barramento;
+- padronizar documentação de payloads internos por dispositivo;
+- consolidar critérios de timeout e tratamento de erro por tipo de barramento;
+- documentar, quando implementados, os transportes automotivos ainda ausentes no código atual.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\03-hardware\04-alimentacao.md
+===================================================
+
+# Alimentação
+
+## Estado atual
+
+A alimentação do sistema é uma dimensão essencial da bancada, mas o repositório atual documenta esse tema de forma indireta. O que pode ser afirmado com segurança é que a solução envolve pelo menos três classes de consumidores:
+
+- o controlador principal no gateway ESP32;
+- os periféricos conectados por `I2C` ou `SPI`;
+- os elementos de atuação local, como o LED controlado pelo firmware do GSA.
+
+Os artefatos existentes mostram que a alimentação é parte do desenho físico, mas o código não explicita tensões, correntes máximas, proteção ou sequência formal de energização.
+
+## Funcionamento técnico
+
+Do ponto de vista de sistema, a alimentação precisa suportar o seguinte fluxo operacional:
+
+```text
+Fonte da bancada
+  -> energiza gateway
+  -> gateway inicializa barramentos
+  -> periféricos entram em modo responsivo
+  -> host estabelece comunicação serial
+```
+
+Esse encadeamento é coerente com o comportamento observado no firmware. O host só consegue atingir `Linked` se o gateway estiver energizado e executando o banner de inicialização. O gateway só consegue rotear para um dispositivo se o barramento e o periférico estiverem ativos. No GSA, a ação sobre `LED_PIN` também pressupõe estabilidade da placa filha.
+
+## Limitações
+
+Não há, no estado atual do repositório, especificação textual confiável de:
+
+- tensão nominal do backplane;
+- trilhas ou domínios de alimentação separados;
+- proteção contra sobrecorrente, polaridade reversa ou transientes;
+- orçamento de potência por slot ou por placa.
+
+Por isso, este documento deve ser lido como descrição de dependências funcionais da energização, não como ficha elétrica completa.
+
+## Evolução prevista
+
+Para que a documentação de alimentação fique madura, é necessário consolidar:
+
+- diagrama de distribuição de energia do backplane;
+- relação entre fonte externa, reguladores e domínios locais;
+- requisitos mínimos para a bancada de desenvolvimento;
+- consequências de reset parcial ou queda de energia sobre a sessão de comunicação.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\04-firmware\01-arquitetura-firmware.md
+===================================================
+
+# Arquitetura de Firmware do SimulDIESEL
+
+## Visão geral
+
+O repositório possui dois firmwares principais:
+
+- Gateway de integração: `hardware/firmware/esp32-api-bridge`
+- Módulo de borda (GSA): `hardware/firmware/gerador-sinais-analogicos-GSA`
+
+Os dois firmwares compartilham uma ideia comum de arquitetura em camadas, com separação entre transporte, protocolo/encaminhamento e serviços de aplicação.
+
+## Camada de transporte
+
+No ESP32 Gateway:
+
+- `SggwTransport` encapsula `HardwareSerial` (`115200`, `SERIAL_8N1`).
+- `GwI2cBus` usa `Wire` para barramento I2C.
+- `GwSpiBus` usa `SPI` para barramentos SPI.
+
+No GSA:
+
+- `Transport` atua como escravo I2C via `TwoWire`, recebendo/entregando buffers TLV.
+
+## Camada de protocolo e parsing
+
+No Gateway:
+
+- `SggwParser` decodifica frames COBS e valida CRC8.
+- `SggwLink` gerencia estado de link, handshake por banner, ACK/ERR, retransmissão de resposta e emissão de eventos.
+
+No GSA:
+
+- `Link` valida `[T][L][V...][CRC]`, mantém `errCode` interno e encaminha para `Service`.
+- `Tlv` encapsula a estrutura dos TLVs (`t`, `l`, `v`).
+
+## Camada de roteamento e serviços
+
+- `GwRouter` é responsável por `CMD = [ADDR:4][OP:4]`, consulta `GwDeviceTable` e despacha para I2C/SPI.
+- `GatewayApp` é o ponto único de decisão do gateway para cada comando (`onCommand`).
+- `Service` (GSA) implementa operação de `SET/GET` de LED e coordena erros (`GET_ERR`, `CLR_ERR`) via `LedService`.
+
+## Fluxo resumido de execução
+
+1. ESP32 recebe frame SGGW.
+2. `SggwLink` valida e entrega para `GatewayApp`.
+3. Para `addr != 0x0`, o gateway consulta `GwDeviceTable` e roteia para o barramento.
+4. `GwI2cBus`/`GwSpiBus` fazem transação com a baby board.
+5. Resposta TLV retorna ao gateway.
+6. `GatewayApp` envia evento SGGW para a API com o TLV da resposta.
+
+No GSA:
+
+1. `Transport` recebe frame TLV completo.
+2. `Link` valida estrutura e CRC.
+3. `Service` executa ação de domínio (`LedService`) e monta resposta.
+4. `Transport` publica resposta para o próximo `requestFrom()`.
+
+## Observações de integridade
+
+- Existe separação explícita de responsabilidades por camada.
+- O fluxo atual é funcional para o caminho Gateway ↔ GSA e já inclui watchdog e handshake no caminho ESP32.
+- A expansão para novos módulos passa pela expansão do `GwDeviceTable` e dos serviços no nível de app.
+
+## Fontes internas usadas
+
+- `hardware/firmware/esp32-api-bridge/src/main.cpp`
+- `hardware/firmware/esp32-api-bridge/lib/*`
+- `hardware/firmware/gerador-sinais-analogicos-GSA/src/main.cpp`
+- `hardware/firmware/gerador-sinais-analogicos-GSA/lib/*`
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\04-firmware\02-drivers.md
+===================================================
+
+# Drivers de Firmware
+
+## Objetivo dos drivers
+
+Este documento descreve os drivers concretos usados hoje para I/O físico e controle de barramento.
+
+## Drivers no gateway (ESP32)
+
+### Serial
+- **Arquivo:** `SggwTransport`
+- **Implementação:** `HardwareSerial` (serial USB do ESP32)
+- **Funções reais:** `begin()`, `available()`, `readByte()`, `writeBytes()`, `flushTx()`
+- **Configuração:** `SGGW_UART_BAUDRATE` definido em `Sggw.defs.h` (`115200`).
+
+### I2C
+- **Arquivo:** `GwI2cBus`
+- **Driver:** `TwoWire` (`Wire` por padrão)
+- **Uso:** transação síncrona: escrita do frame TLV, leitura em uma única janela e corte por campo `L`.
+- **Observação:** o próprio firmware de teste do link de handshake pode emitir texto no boot; por isso a camada de link trata janelas de sincronização.
+
+### SPI
+- **Arquivo:** `GwSpiBus`
+- **Driver:** `SPI`
+- **Uso:** `beginTransaction` com CS por dispositivo, escrita + aguardar IRQ opcional + leitura do retorno.
+
+## Drivers no GSA
+
+### I2C (modo escravo)
+- **Arquivo:** `Transport` do GSA
+- **Eventos:** `onReceiveThunk` e `onRequestThunk`.
+- `Wire.begin(i2cAddr)` inicia endereço fixo (macro `I2C_GSA_ADDR`).
+
+### GPIO
+- **Arquivo:** `LedService`
+- **Uso:** controle de pino de LED (`LED_PIN`) com nível digital.
+
+## Drivers de software (camada de aplicação)
+
+- `SerialPort` em `local-api` para transporte físico.
+- Timers de handshake e heartbeat na camada BLL.
+
+## Lacunas e controle de dependência
+
+- Não há camada de abstração dedicada para CAN/LIN neste repositório atual.
+- `HAL` de rede/cloud está reservado, sem implementação ativa.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\04-firmware\03-gerenciamento-recursos.md
+===================================================
+
+# Gerenciamento de Recursos em Firmware
+
+## Objetivos
+
+O firmware atual prioriza determinismo de comunicação. O gerenciamento de recursos cobre:
+
+- limites de frame e buffers;
+- controle de timeout;
+- watchdog de link;
+- cache de última resposta para deduplicação.
+
+## Limites estruturais (Gateway)
+
+Constantes em `hardware/firmware/esp32-api-bridge/include/Sggw.defs.h`:
+
+- `SGGW_MAX_LOGICAL_FRAME = 250`
+- `SGGW_MAX_PAYLOAD = 247`
+- `SGGW_MAX_ENCODED_FRAME = 384`
+- `SGGW_MAX_LAST_RESPONSE = 64`
+
+Esses valores limitam frame bruto, payload e buffer de retransmissão.
+
+## Controle de tempo
+
+- `SggwLink` mantém estado de watchdog (`checkPingWatchdog`) para encerrar link em ausência prolongada de ping.
+- Handshake e heartbeat são controlados via máquina de estados no PC.
+- `SdGwHealthService` e `SdGwLinkEngine` mantêm timers para ping/ACK/retry.
+
+## Tolerância a erro e deduplicação
+
+- CRC de integridade:
+  - COBS no fluxo serial;
+  - `CRC8` com `poly 0x07`.
+- Deduplicação de retransmissão:
+  - `Gw`: resposta reenviada por sequência quando necessário.
+  - `GSA`: `errCode` mantido até consulta de erro.
+
+## Recursos de observabilidade
+
+Eventos existentes:
+
+- `Serial_ConnectionChanged`, `LinkStateChanged`, erros de transporte;
+- `ProtocolError` no parser/link engine;
+- status de saúde (`LinkHealthChanged`) no cliente local.
+
+## Pontos ainda não implementados (dependente de validação)
+
+- Métricas formais persistidas por sessão (contadores detalhados, histórico de falhas, latência média).
+- Gerenciamento de memória por telemetria contínua no firmware.
+- Estratégia de atualização OTA não documentada como recurso ativo.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\05-software-dashboard\01-arquitetura-software.md
+===================================================
+
+# Arquitetura do Software Dashboard (Local API)
+
+## Estrutura de camadas da aplicação WinForms
+
+A aplicação em `local-api/` segue o fluxo:
+
+`UI (Forms) → BLL → DAL → Transporte serial`
+
+Onde:
+
+- **UI:** `DashBoard`, `frmPortaSerial_UI`, `frmLedGw`.
+- **BLL:** `SerialLinkService`, `SerialLink`, `SdGwLinkEngine`, `SdGgwClient`, `SdGwHealthService`, `LedGwTest_BLL`.
+- **DAL:** `SerialTransport`, `IByteTransport`.
+
+## Núcleo de orquestração
+
+- `SerialLink` é um ponto de entrada único com propriedade estática do serviço de link.
+- `SerialLinkService` mantém estado (`Disconnected`, `SerialConnected`, `Draining`, `BannerSent`, `Linked`, `LinkFailed`) e dispara eventos para a UI.
+
+## Fluxo de execução
+
+1. UI solicita conexão.
+2. `SerialTransport` abre COM (ou mantém fechado).
+3. Em estado serial ok, inicia handshake textual.
+4. Após banner válido, ativa transporte de frames SGGW.
+5. Comandos de negócio (`LED`) passam por `SdGgwClient`.
+
+## Responsabilidades por camada
+
+- UI trata interação e atualização visual.
+- BLL cuida de protocolo e estado.
+- DAL trata apenas bytes e conexão física.
+
+## Pontos de estabilidade já observados
+
+- Eventos são inscritos/unsubscritos com cuidado para atualização thread-safe.
+- Fechamento da conexão não depende do fechamento de janelas auxiliares (`frmPortaSerial_UI`).
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\05-software-dashboard\02-interface-usuario.md
+===================================================
+
+# Interface de Usuário
+
+## Estado atual
+
+A interface de usuário presente no repositório é uma aplicação WinForms orientada à operação de bancada. Ela não é um dashboard analítico amplo; ela é um conjunto de telas de apoio à conexão serial, ao diagnóstico do link e ao teste de funcionalidades expostas pelo gateway.
+
+As telas diretamente observadas no código são:
+
+- `DashBoard`: ponto central de inicialização e navegação;
+- `frmPortaSerial_UI`: abertura e controle da porta serial;
+- `frmLedGw`: teste de LED via gateway.
+
+## Funcionamento técnico
+
+### Fluxo principal de uso
+
+```text
+Operador abre a aplicação
+  -> seleciona porta serial
+  -> inicia o link com o gateway
+  -> monitora saúde da conexão
+  -> executa ações de teste
+```
+
+### Responsabilidades por tela
+
+- `DashBoard`: organiza o acesso às funcionalidades de bancada e concentra o contexto da aplicação.
+- `frmPortaSerial_UI`: aciona serviços de comunicação, normalmente ligados a `SerialLinkService` e ao cliente do gateway.
+- `frmLedGw`: fornece um caso de uso controlado para enviar comandos e observar resposta do gateway ou do periférico.
+
+### Relação com as camadas inferiores
+
+A interface não conversa diretamente com byte streams nem com barramentos. Ela delega para classes de negócio e infraestrutura:
+
+- a UI solicita uma ação;
+- a `BLL` monta a intenção funcional;
+- o cliente de gateway transforma a intenção em frame;
+- a `DAL` transporta bytes pela serial.
+
+Essa separação reduz o acoplamento com o hardware e permite evoluir a interface sem reescrever o protocolo.
+
+## Limitações
+
+O conjunto atual de telas é focado em operação técnica e não em experiência de uso ampla. Não há evidência no código de painéis completos para múltiplos módulos, histórico persistente de sessões, editor de payloads arbitrários ou visualizações avançadas de telemetria. A interface atual cumpre papel de instrumento de validação e bancada.
+
+## Evolução prevista
+
+A base atual favorece a expansão da UI em três direções:
+
+- adicionar novos casos de teste consumindo `SdGgwClient` sem alterar o transporte;
+- expor estado do link, erros e eventos com maior clareza operacional;
+- incorporar novas telas à medida que novos serviços roteáveis forem adicionados ao gateway.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\05-software-dashboard\03-camada-hardware.md
+===================================================
+
+# Camada Hardware do Software
+
+## Estado atual
+
+A camada de hardware do software local é a porção da aplicação que faz a ponte entre a UI e o gateway físico. No repositório, ela está distribuída principalmente entre `DAL` e `BLL`, com interfaces e serviços que isolam a serial, o handshake e o protocolo binário da interface de usuário.
+
+Os componentes centrais são:
+
+- `IByteTransport`
+- `SerialTransport`
+- `SerialLinkService`
+- `SdGwLinkEngine`
+- `SdGgwClient`
+- `SdGwHealthService`
+
+## Funcionamento técnico
+
+### Responsabilidades por classe
+
+- `IByteTransport`: contrato mínimo para leitura, escrita e ciclo de vida do transporte.
+- `SerialTransport`: implementação concreta do acesso à porta serial.
+- `SerialLinkService`: sincronização inicial com o firmware, controle de estados e detecção de banner.
+- `SdGwLinkEngine`: empacotamento de frames, confirmação por `ACK`, cache de respostas e timeout/retry.
+- `SdGgwClient`: API orientada a comando para a camada superior.
+- `SdGwHealthService`: monitoramento periódico por `ping`, com notificação de mudança de estado do link.
+
+### Fluxo técnico interno
+
+```text
+UI
+  -> SdGgwClient.SendAsync(...)
+  -> SdGwLinkEngine monta frame
+  -> SerialTransport envia bytes
+  -> resposta retorna pela serial
+  -> engine valida, correlaciona SEQ e libera a resposta
+```
+
+Esse desenho é importante porque a UI não precisa conhecer `COBS`, `CRC8`, sequência ou retransmissão. A aplicação local concentra a complexidade de hardware em serviços especializados.
+
+### Exemplo conceitual de payload
+
+Para uma operação de teste no gateway:
+
+```text
+CMD   = 0x01   ; gateway/ping ou echo conforme opcode
+FLAGS = 0x01   ; requer ACK
+SEQ   = 0x2A
+DATA  = payload opcional
+```
+
+O payload só chega ao nível de UI já convertido em objetos ou eventos compreensíveis pela camada superior.
+
+## Limitações
+
+A camada atual está claramente otimizada para um transporte por serial e para uma sessão por vez. O repositório não mostra suporte a múltiplos gateways concorrentes, seleção dinâmica de outros meios físicos ou fila complexa de comandos paralelos. A cobertura funcional também é maior no enlace do que nos serviços de negócio consumidos pela UI.
+
+## Evolução prevista
+
+Os pontos mais prováveis de evolução são:
+
+- encapsular novos casos de uso em clientes de mais alto nível sobre `SdGgwClient`;
+- ampliar telemetria de saúde e diagnóstico do enlace;
+- formalizar contratos de resposta e eventos para reduzir lógica ad hoc na interface.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\06-protocolos\01-sdh-command-model.md
+===================================================
+
+# SDH Command Model (SGGW)
+
+## Contexto
+
+Este documento descreve o modelo de comando efetivamente implementado para a comunicação entre `local-api` e `ESP32 Gateway`.
+
+## Estrutura de frame
+
+Formato lógico:
+
+`CMD | FLAGS | SEQ | PAYLOAD | CRC8`
+
+- Delimitação de transporte: COBS + byte `0x00`.
+- CRC: `CRC8` em `CMD+FLAGS+SEQ+PAYLOAD`.
+
+## Flags e semântica de transporte
+
+- `ACK_REQ (0x01)`
+- `IS_EVT (0x02)`
+
+`ACK` e `ERR` do transporte existem e são tratados pelo engine.
+
+## Comandos implementados (enum `SggwCmd`)
+
+- `Ping = 0x55`
+- `GetVersion = 0x01` (não é foco central da implementação atual)
+- `Echo = 0x02`
+- `LED = 0x03`
+- `LOGOUT = 0x04`
+
+## Restrições e observações
+
+- `CMD_ACK = 0xF1` e `CMD_ERR = 0xF2` são tratados como controle interno do transporte.
+- O gateway ignora frames ACK/ERR na camada app e trata como sinais de confiabilidade.
+
+## Contrato com GSA
+
+- `CMD = [ADDR:4][OP:4]`.
+- `ADDR` é interpretado apenas no gateway localmente.
+- `OP` é repassado para `TLV T` no caminho interno.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\06-protocolos\02-can.md
+===================================================
+
+# CAN
+
+## Estado atual
+
+O protocolo `CAN` aparece no SimulDIESEL como tema arquitetural relevante para o domínio automotivo, mas não como transporte operacional implementado no código analisado. Não foram encontrados drivers, frames, controladores, contratos ativos nem classes de protocolo CAN exercidas pelo software local, pelo gateway ESP32 ou pelo firmware GSA.
+
+O estado atual, portanto, é de preparação conceitual e não de implementação concluída.
+
+## Funcionamento técnico
+
+O que o repositório já oferece e pode sustentar uma futura camada CAN é a infraestrutura de abstração:
+
+- no host, separação entre transporte físico e protocolo lógico;
+- no gateway, separação entre link do host, roteamento e barramentos internos;
+- em `legacy-docs`, contratos e diretrizes históricas de comunicação.
+
+Em outras palavras, o sistema já possui um padrão para incorporar novos transportes:
+
+```text
+Comando lógico
+  -> camada de enlace
+  -> roteamento
+  -> barramento específico
+```
+
+Hoje esse padrão está implementado para serial, `I2C` e `SPI`. Para CAN, ainda faltam no repositório:
+
+- definição de frames e identificadores;
+- driver ou HAL dedicado;
+- política de timeout e retransmissão específica do meio;
+- mapeamento entre comandos lógicos do SimulDIESEL e mensagens CAN.
+
+## Limitações
+
+Não é seguro documentar IDs CAN, layout de payload, taxa de bits ou estratégia de arbitragem como se fossem parte do produto atual, porque isso não está implementado nem especificado de forma operacional no repositório. O máximo que pode ser afirmado é que a arquitetura existente comporta esse tipo de expansão.
+
+## Evolução prevista
+
+Quando CAN entrar no código de fato, a documentação oficial deve passar a registrar:
+
+- controlador e interface física utilizada;
+- tabela de mensagens aceitas e emitidas;
+- relação entre serviços do gateway e frames CAN;
+- critérios de teste de bancada e captura de tráfego.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\06-protocolos\03-j1939.md
+===================================================
+
+# J1939
+
+## Estado atual
+
+`J1939` é pertinente ao contexto diesel do projeto, mas ainda não aparece como pilha implementada no estado atual do repositório. Não foram encontrados no código analisado parser de `PGN`, banco de `SPN`, gerenciamento de endereço `J1939` ou transporte de mensagens desse protocolo no gateway e no software local.
+
+Assim, a documentação oficial deve tratar J1939 como frente arquitetural ainda não materializada em código executável.
+
+## Funcionamento técnico
+
+A arquitetura existente já fornece blocos reutilizáveis para uma futura integração J1939:
+
+- abstração de sessão e confiabilidade no host;
+- gateway como ponto concentrador de transporte e roteamento;
+- separação clara entre protocolo do host e protocolo do dispositivo;
+- documentação legada com contratos e direcionadores de evolução.
+
+Se uma camada J1939 for incorporada, ela precisará resolver pelo menos quatro responsabilidades técnicas que hoje não estão implementadas:
+
+1. codificação e decodificação de `PGNs`;
+2. modelagem dos sinais de aplicação associados;
+3. integração com hardware CAN adequado;
+4. correlação entre comandos do SimulDIESEL e mensagens J1939.
+
+## Limitações
+
+Não há base factual no repositório para listar `PGNs`, `SPNs`, mensagens periódicas, endereços-fonte ou estratégias de diagnóstico J1939 como se já fossem suportados. Também não existe, no código presente, ponte funcional entre o protocolo host `SGGW` e uma camada J1939 ativa.
+
+## Evolução prevista
+
+A evolução coerente com o restante da arquitetura é que J1939 seja introduzido como uma camada especializada sobre o gateway, e não como acoplamento direto à UI. Quando isso ocorrer, a documentação deverá consolidar:
+
+- matriz de `PGNs` suportados;
+- payloads reais por caso de uso;
+- conversão entre sinais de módulo e comandos do software local;
+- estratégia de teste em bancada com captura de barramento.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\07-simulacoes\01-simulacao-modulos.md
+===================================================
+
+# Simulação de Módulos
+
+## Estado atual
+
+No estado atual do repositório, a simulação de módulos está apoiada principalmente na capacidade do gateway de tratar dispositivos como destinos lógicos independentes. O componente mais concreto dessa estratégia é o endereçamento por `CMD`, aliado à `GwDeviceTable`, que permite ao host acionar módulos sem conhecer diretamente o barramento físico.
+
+Essa é a base da simulação modular: cada módulo pode ser representado como um endpoint roteável com contrato próprio.
+
+## Funcionamento técnico
+
+### Modelo de endereçamento
+
+O host emite um comando com endereço lógico:
+
+```text
+CMD = [ADDR:4][OP:4]
+```
+
+O gateway interpreta o endereço:
+
+- `ADDR = gateway`: processa localmente;
+- `ADDR = periférico`: consulta a tabela de dispositivos e encaminha a transação.
+
+### Papel do gateway na simulação
+
+```text
+Host
+  -> comando lógico
+Gateway
+  -> resolve módulo
+  -> escolhe barramento
+  -> traduz para contrato interno
+Módulo
+  -> executa serviço
+  -> responde ao gateway
+```
+
+Esse padrão significa que a simulação de módulo é, antes de tudo, uma questão de contrato de dispositivo. O gateway não precisa saber a semântica profunda do módulo; ele precisa saber como encontrá-lo e transportar a requisição.
+
+### Exemplo concreto
+
+O `GSA` já ocupa esse papel de módulo remoto. Embora seu serviço atual seja simples, ele prova o modelo de integração:
+
+- endereço lógico definido no gateway;
+- barramento `I2C` mapeado;
+- contrato TLV curto no periférico;
+- resposta correlacionada ao `SEQ` do host.
+
+## Limitações
+
+O repositório ainda não contém um catálogo amplo de módulos simulados com comportamentos de domínio ricos. A infraestrutura de simulação modular está à frente da quantidade de serviços embarcados disponíveis. Por isso, a documentação oficial deve descrever a plataforma de simulação e não prometer um conjunto maior de módulos do que o código entrega hoje.
+
+## Evolução prevista
+
+O próximo ganho arquitetural é adicionar módulos novos sem quebrar o fluxo existente. Para isso, o padrão atual já oferece a base necessária:
+
+- nova entrada em `GwDeviceTable`;
+- driver de barramento compatível;
+- firmware de dispositivo com contrato bem definido;
+- tela ou caso de uso correspondente no software local.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\07-simulacoes\02-simulacao-sensores.md
+===================================================
+
+# Simulação de Sensores
+
+## Estado atual
+
+O nome do firmware `gerador-sinais-analogicos-GSA` sugere uma direção clara para simulação de sensores, mas o código atualmente versionado não expõe ainda uma superfície funcional correspondente a sinais analógicos variados. O serviço implementado e comprovado no firmware é o controle de LED, com leitura e escrita de estado por TLV.
+
+Portanto, a capacidade presente no repositório é de infraestrutura para simulação de sensores, não de um conjunto amplo de sensores já implementados.
+
+## Funcionamento técnico
+
+Mesmo sem um catálogo completo de sinais, a arquitetura já mostra como uma simulação de sensor deverá operar:
+
+```text
+UI / caso de uso
+  -> comando lógico no host
+  -> gateway roteia para dispositivo
+  -> dispositivo interpreta TLV
+  -> dispositivo atualiza saída física
+  -> resposta confirma aplicação do comando
+```
+
+No GSA, a pilha é curta e reaproveitável:
+
+- `Transport` recebe bytes do barramento;
+- `Link` valida `T/L/CRC` e trata erros;
+- `Service` decide o comando funcional;
+- o serviço específico altera o estado local da placa.
+
+Esse padrão é adequado para sensores simulados por DAC, PWM, chaveamento ou outros mecanismos, desde que o firmware efetivamente passe a expor esses serviços.
+
+## Limitações
+
+Não há, no código analisado, comandos de amplitude, frequência, offset, calibração ou seleção de canal analógico que justifiquem documentar uma simulação de sensor mais rica como funcionalidade pronta. Também não foram encontrados exemplos reais de payload nesse sentido. O documento, portanto, delimita a plataforma existente e registra a lacuna entre o nome do módulo e o estado atual do firmware.
+
+## Evolução prevista
+
+Quando a simulação de sensores for expandida no firmware, a documentação oficial deve incluir:
+
+- comandos e payloads reais por tipo de sinal;
+- estados internos do gerador;
+- limites físicos por canal;
+- estratégia de teste de resposta em bancada.
+
+Até esse ponto, o GSA deve ser lido como base de integração de periférico, não como simulador analógico plenamente documentado.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\07-simulacoes\03-simulacao-atuadores.md
+===================================================
+
+# Simulação de Atuadores
+
+## Estado atual
+
+A simulação de atuadores tem, no código atual, um exemplo concreto e verificável: o acionamento de LED por comando remoto. Embora seja um atuador simples, ele demonstra toda a cadeia técnica necessária para controlar um elemento físico a partir do host, passando pelo gateway.
+
+No software local, `LedGwTest_BLL` ainda adiciona um comportamento de alternância por timer, útil como teste contínuo de acionamento.
+
+## Funcionamento técnico
+
+### Fluxo real
+
+```text
+Operador aciona teste
+  -> aplicação monta comando
+  -> gateway roteia para o GSA
+  -> GSA executa Service::handle
+  -> LedService grava LED_PIN
+  -> resposta confirma o novo estado
+```
+
+### Comandos observados no GSA
+
+O firmware do GSA já trata, de forma inequívoca:
+
+- `CMD_SET_LED`
+- `CMD_GET_LED`
+
+O valor de escrita aceita ao menos três interpretações observáveis no código:
+
+- `0`: desligar;
+- `1`: ligar;
+- `2`: alternar.
+
+Exemplo conceitual de payload TLV interno:
+
+```text
+T = CMD_SET_LED
+L = 1
+V = 0x01
+CRC8
+```
+
+### Estado de máquina do serviço
+
+```text
+LED_OFF <-> LED_ON
+   ^         |
+   |---------|
+     toggle
+```
+
+Esse caso é pequeno, mas valida elementos importantes para atuadores futuros: comando remoto, aplicação local da mudança física, leitura de estado e resposta ao host.
+
+## Limitações
+
+O repositório ainda não contém outros atuadores com maior complexidade, como saídas analógicas elaboradas, relés múltiplos, drivers de carga ou perfis temporizados. Também não há uma camada de segurança operacional documentada para impedir comandos incompatíveis com o hardware final.
+
+## Evolução prevista
+
+O padrão já implementado é suficiente para expandir o conjunto de atuadores simulados. Cada novo caso deve explicitar:
+
+- contrato de payload;
+- estado interno do dispositivo;
+- confirmação de aplicação;
+- limites elétricos e temporais do hardware correspondente.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\08-casos-de-uso\01-manutencao-modulos.md
+===================================================
+
+# Manutenção de Módulos
+
+## Estado atual
+
+O repositório já permite documentar um fluxo de manutenção de módulos em bancada, mesmo que o conjunto de módulos seja pequeno. A manutenção, nesse contexto, significa validar comunicação, identificar o destino correto, executar comandos controlados e limpar ou consultar erros do periférico quando o contrato do firmware oferece essa função.
+
+O melhor caso concreto hoje envolve gateway + GSA.
+
+## Funcionamento técnico
+
+### Procedimento operacional
+
+1. Energizar gateway e periférico.
+2. Conectar o software local à serial correta.
+3. Aguardar o estado `Linked`.
+4. Executar `ping` para confirmar saúde do enlace.
+5. Enviar comando ao módulo desejado.
+6. Observar resposta funcional ou erro.
+
+### Consulta e limpeza de erro no periférico
+
+O `Link` do GSA já implementa comandos próprios para erro:
+
+- `GET_ERR`
+- `CLR_ERR`
+
+Isso permite um fluxo de manutenção simples:
+
+```text
+Falha percebida
+  -> consultar erro atual do módulo
+  -> corrigir condição de bancada
+  -> limpar erro registrado
+  -> repetir comando funcional
+```
+
+### Responsabilidades por camada
+
+- host: abrir sessão, correlacionar sequência e exibir resultado;
+- gateway: chegar ao módulo correto e devolver erro de roteamento quando necessário;
+- módulo: validar payload local e registrar erro específico.
+
+## Limitações
+
+O repositório não contém ainda procedimentos oficiais por família extensa de módulos, nem scripts automatizados de manutenção. A manutenção hoje depende de conhecimento técnico do operador e do uso cuidadoso das telas de bancada. Também não há catálogo textual completo de códigos de erro por dispositivo além da infraestrutura básica observada no GSA.
+
+## Evolução prevista
+
+Os próximos ganhos para manutenção de módulos são:
+
+- documentar procedimentos por dispositivo real da tabela;
+- ampliar o repertório de erros retornáveis pelo firmware;
+- registrar rastros de manutenção no software local;
+- padronizar testes de pós-manutenção com payloads conhecidos.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\08-casos-de-uso\02-diagnostico.md
+===================================================
+
+# Diagnóstico e Diagnóstico de Falhas
+
+## Telemetria disponível
+
+- Eventos de conexão (`ConnectionChanged`, `LinkStateChanged`).
+- Estados de link: `SerialConnected`, `Draining`, `BannerSent`, `Linked`, `LinkFailed`.
+- Eventos de frame e health no cliente SGGW.
+
+## Rotas de diagnóstico
+
+- UI: consulta visual dos ícones/labels de estado.
+- Logs do código (console/exception output) para eventos de conexão e handshake.
+- Tratamento de erro no firmware de transporte serial e no link engine.
+
+## Verificações recomendadas
+
+1. Confirmar banner do gateway (`SimulDIESEL ver`).
+2. Enviar ping (`0x55`) e validar ACK.
+3. Confirmar retorno do comando de aplicação (`LED`) e estado recebido.
+
+## Limitações atuais
+
+- Não há painel de logs central persistente estruturado no app.
+- Falhas de negócio podem depender de observação manual.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\08-casos-de-uso\03-testes-bancada.md
+===================================================
+
+# Testes de Bancada
+
+## Estado atual
+
+Os testes de bancada sustentados pelo repositório são majoritariamente manuais e guiados por software local. O foco atual é validar a cadeia completa de comunicação, do host ao periférico, e não executar uma suíte automatizada grande.
+
+Os elementos concretos disponíveis para bancada são:
+
+- abertura de porta serial;
+- handshake e monitoramento de link;
+- `ping` de saúde;
+- roteamento para dispositivo;
+- leitura e escrita de estado do GSA.
+
+## Funcionamento técnico
+
+### Roteiro mínimo de bancada
+
+```text
+1. Ligar a bancada
+2. Abrir a serial no software local
+3. Confirmar banner do gateway
+4. Verificar se o link entra em Linked
+5. Executar ping
+6. Acionar comando funcional no periférico
+7. Validar resposta e efeito físico
+```
+
+### Exemplo de teste ponta a ponta
+
+Caso de teste: acionamento de LED no GSA.
+
+1. Host envia comando com `ADDR_GSA`.
+2. Gateway traduz para TLV interno.
+3. GSA grava o estado do LED.
+4. GSA retorna confirmação.
+5. Host marca a requisição como concluída ao receber a resposta com o mesmo `SEQ`.
+
+### Evidências técnicas
+
+- o host possui timeout e retransmissão;
+- o gateway possui `ACK`, cache de resposta e watchdog;
+- o periférico possui validação de `CRC` e registro de erros de link.
+
+Esses pontos tornam o teste de bancada útil também para depurar se a falha está no host, no enlace, no gateway ou no módulo.
+
+## Limitações
+
+O repositório não traz, no estado atual, uma suíte formal de teste automatizado de bancada, fixtures documentados ou instrumentação de medição elétrica integrada. O procedimento ainda depende de observação do operador e da montagem física correta do conjunto.
+
+## Evolução prevista
+
+Os testes de bancada podem evoluir para:
+
+- roteiros repetíveis por dispositivo;
+- captura estruturada de payloads e respostas;
+- relatórios automáticos de falha por camada;
+- integração com futuras funcionalidades de sensores e protocolos automotivos.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\09-desenvolvimento\01-organizacao-repositorio.md
+===================================================
+
+# Organização do Repositório
+
+## Estrutura de referência
+
+- `local-api/`: aplicação desktop (.NET WinForms), transporte e protocolo cliente.
+- `hardware/`: firmwares e boards.
+- `cloud/`: API/cloud scaffold atual com contratos de openapi.
+- `docs/`: documentação oficial moderna atual.
+- `docs/legacy-docs/`: acervo legado para consulta histórica.
+- `infra/`, `tools/`, `tests/`: suporte operacional.
+
+## Convenções de pasta
+
+- Pastas de firmware organizadas por domínio (`esp32-api-bridge`, `gerador-sinais-analogicos-GSA`).
+- `.gitkeep` marca áreas aguardando evolução sem remover intenção do diretório.
+
+## Locais de documentação consolidada
+
+- `docs/README.md` e `docs/00-INDICE.md` como hub.
+- Subpastas temáticas de arquitetura, hardware, firmware, protocolos etc.
+
+## Gestão de mudanças
+
+A documentação foi escrita para refletir o estado real atual da árvore e registrar lacunas reais.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\09-desenvolvimento\02-padroes-codigo.md
+===================================================
+
+# Padrões de Código
+
+## Estado atual
+
+O repositório já exibe padrões claros de organização, ainda que nem todos estejam formalizados em um guia separado. Os padrões mais consistentes aparecem na separação de responsabilidades e no uso de classes pequenas com propósito definido.
+
+No `local-api`, a estrutura principal é:
+
+- `UI`: telas e interação com o operador;
+- `BLL`: regras de negócio, sessão e coordenação de comandos;
+- `DAL`: acesso ao transporte físico;
+- `DTL`: estruturas de dados trocadas entre camadas.
+
+Nos firmwares, a separação também é explícita:
+
+- gateway: parser, link, roteador, tabela de dispositivos e barramentos;
+- GSA: transporte, link, serviço e atuação física.
+
+## Funcionamento técnico
+
+### Padrões observáveis no C#
+
+- abstração por interface (`IByteTransport`);
+- máquina de estados explícita para o enlace;
+- serviços com responsabilidade única (`SdGwHealthService`, `SdGwLinkEngine`);
+- modelos de dados pequenos para frames e comandos.
+
+### Padrões observáveis no C++
+
+- separação entre protocolo e acesso ao barramento;
+- tratamento de erro próximo da camada onde ele ocorre;
+- constantes de protocolo centralizadas em headers dedicados;
+- encapsulamento de dispositivos por serviço.
+
+### Decisão arquitetural recorrente
+
+O repositório favorece protocolos pequenos, validação local e baixo acoplamento:
+
+```text
+Transporte físico != Sessão != Regra funcional
+```
+
+Esse padrão aparece no host, no gateway e no periférico, o que facilita manutenção e expansão incremental.
+
+## Limitações
+
+Nem todo o código segue convenções idênticas de nomenclatura ou acabamento. Há diferenças de estilo entre áreas do projeto e a documentação desses padrões ainda é posterior ao código existente, não anterior. Também não há evidência, no estado atual analisado, de um pipeline automatizado forte de lint, análise estática ou padronização contínua entre C# e C++.
+
+## Evolução prevista
+
+Os padrões que merecem consolidação formal são:
+
+- nomenclatura consistente de comandos, frames e serviços;
+- documentação de estados de máquina por componente;
+- política comum de códigos de erro;
+- critérios de teste para cada camada antes da integração.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\09-desenvolvimento\03-fluxo-git.md
+===================================================
+
+# Fluxo Git
+
+## Estado atual
+
+O repositório evidencia organização técnica por domínio, mas não traz uma política Git formal e completa versionada na documentação oficial atual. Não foram identificados, no material analisado, regras operacionais fechadas para branching, revisão, versionamento semântico ou promoção entre ambientes.
+
+Ainda assim, a estrutura do projeto permite inferir os pontos de rastreabilidade que cada alteração precisa respeitar.
+
+## Funcionamento técnico
+
+### Acoplamentos que devem permanecer rastreáveis
+
+Uma mudança coerente no SimulDIESEL normalmente afeta pelo menos um destes grupos:
+
+- `docs/`: descrição oficial do comportamento;
+- `local-api/`: comportamento do software local;
+- `hardware/firmware/`: protocolo, roteamento ou serviço embarcado;
+- `hardware/boards/`: artefatos físicos;
+- `docs/legacy-docs/adr/`: contexto histórico de decisões já registradas.
+
+### Fluxo de alteração observado como necessidade técnica
+
+```text
+Mudança de protocolo
+  -> atualizar firmware do gateway
+  -> revisar cliente local
+  -> ajustar documentação oficial
+
+Mudança de dispositivo
+  -> atualizar tabela do gateway
+  -> revisar firmware do módulo
+  -> atualizar casos de uso e testes
+```
+
+Esse é o fluxo mínimo que o código atual impõe, independentemente de uma política de branch específica.
+
+## Limitações
+
+Sem uma política Git normativa no próprio repositório, não é seguro documentar nomes de branch, regras de merge ou obrigatoriedade de revisão como se fossem práticas institucionais já adotadas. O que existe hoje é uma necessidade clara de versionar em conjunto código, firmware e documentação, mas não uma convenção formal fechada.
+
+## Evolução prevista
+
+Quando o fluxo Git for formalizado, a documentação oficial deve registrar:
+
+- estratégia de branch por release ou por feature;
+- regra para mudanças de protocolo entre host e firmware;
+- critério de atualização obrigatória da documentação oficial;
+- relação entre ADRs, roadmap e entregas incrementais.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\10-testes\01-testes-hardware.md
+===================================================
+
+# Testes de Hardware
+
+## Estado atual
+
+Os testes de hardware sustentados pelo repositório são voltados à verificação funcional da bancada e da comunicação entre placas. Não há, no estado atual, uma suíte automatizada abrangente de validação elétrica, mas o conjunto de firmware e software local já permite executar testes estruturados de presença, resposta e atuação.
+
+Os principais alvos de teste de hardware observáveis são:
+
+- gateway ESP32;
+- backplane e interconexões;
+- barramentos `I2C` e `SPI`;
+- periférico `GSA`.
+
+## Funcionamento técnico
+
+### Sequência mínima de validação
+
+```text
+Energia aplicada
+  -> gateway inicializa
+  -> host reconhece banner
+  -> ping confirma sessão
+  -> requisição roteada confirma barramento
+  -> resposta do periférico confirma hardware remoto
+```
+
+### O que cada teste comprova
+
+- handshake serial: gateway energizado e firmware em execução;
+- `ping`: enlace host/gateway operante;
+- comando roteado: `GwRouter` e `GwDeviceTable` coerentes com o hardware presente;
+- resposta de periférico: integridade do barramento físico e do firmware remoto;
+- atuação local, como LED: efeito elétrico visível ou mensurável na placa.
+
+### Falhas típicas separáveis pelo fluxo
+
+```text
+Sem banner          -> problema no gateway ou na alimentação
+Banner sem link     -> problema de sessão serial
+Link sem resposta   -> problema de protocolo ou roteamento
+Roteamento sem efeito físico -> problema no periférico ou na placa
+```
+
+## Limitações
+
+O repositório não contém critérios formais de aceitação elétrica, medições documentadas de forma de onda, checklist por revisão de placa ou automação de instrumentos. A documentação oficial consegue descrever o teste funcional fim a fim, mas não substitui um plano metrológico de hardware.
+
+## Evolução prevista
+
+Os testes de hardware devem evoluir para incluir:
+
+- checklists por placa e por revisão;
+- validação de alimentação e reset;
+- testes dedicados por barramento;
+- registros de bancada com resultados reproduzíveis.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\10-testes\02-testes-firmware.md
+===================================================
+
+# Testes de Firmware
+
+## Estado atual
+
+O firmware do SimulDIESEL já permite testes objetivos de três blocos distintos:
+
+- sessão e protocolo do gateway;
+- roteamento por tabela de dispositivos;
+- tratamento de serviço no periférico GSA.
+
+Esses testes podem ser executados a partir do software local ou por meio de ferramentas seriais equivalentes, desde que respeitem o protocolo implementado.
+
+## Funcionamento técnico
+
+### Testes do gateway ESP32
+
+Itens validáveis no código:
+
+- reconhecimento do banner e transição para `Linked`;
+- parser de `COBS` e `CRC8`;
+- `ACK` e cache por `SEQ`;
+- resposta local a comandos do endereço do gateway;
+- erro de roteamento quando o destino não é resolvido.
+
+### Testes do GSA
+
+Itens validáveis no código:
+
+- recepção `I2C` do request;
+- validação `T/L/CRC`;
+- leitura de erro (`GET_ERR`);
+- limpeza de erro (`CLR_ERR`);
+- `CMD_SET_LED` e `CMD_GET_LED`.
+
+### Exemplo de estratégia de teste
+
+```text
+1. Enviar quadro válido com ACK requerido
+2. Confirmar resposta com mesmo SEQ
+3. Repetir quadro para validar deduplicação
+4. Enviar payload inválido para observar erro
+5. Limpar erro e repetir cenário válido
+```
+
+Essa sequência cobre o núcleo do firmware: robustez de enlace, roteamento e tratamento funcional.
+
+## Limitações
+
+Não há no repositório atual uma suíte automatizada formal de testes unitários e de integração de firmware com relatórios publicados. O diagnóstico depende da observação do comportamento em execução e de payloads cuidadosamente construídos. Também não foram identificados mocks formais de barramento para execução contínua fora da bancada.
+
+## Evolução prevista
+
+Os testes de firmware podem amadurecer por meio de:
+
+- vetores de teste documentados para cada comando;
+- harness de regressão para parser e `CRC`;
+- testes por dispositivo da tabela do gateway;
+- registros automáticos de falha por timeout, `ACK` e erro de payload.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\10-testes\03-testes-integracao.md
+===================================================
+
+# Testes de Integração
+
+## Estado atual
+
+Os testes de integração mais importantes do SimulDIESEL são os que atravessam toda a cadeia host -> gateway -> periférico. O repositório já possui todos os blocos necessários para esse teste no caso do GSA, tornando possível validar o desenho arquitetural completo sem depender de uma camada de nuvem.
+
+## Funcionamento técnico
+
+### Caminho integrado
+
+```text
+WinForms
+  -> SdGgwClient
+  -> SdGwLinkEngine
+  -> SerialTransport
+  -> ESP32 SggwLink / GatewayApp
+  -> GwRouter / GwDeviceTable
+  -> I2C ou SPI
+  -> dispositivo remoto
+```
+
+### Cenário de integração mais representativo
+
+Caso de teste: alterar e ler o estado do LED no GSA.
+
+1. A UI dispara o comando.
+2. O cliente local cria o frame lógico.
+3. O gateway valida `COBS` e `CRC8`.
+4. O roteador seleciona o barramento correto.
+5. O GSA aplica o comando e monta a resposta TLV.
+6. O gateway devolve a resposta ao host.
+7. O host correlaciona a resposta ao `SEQ` enviado.
+
+### Evidência de robustez do fluxo
+
+- estados de link explícitos no host e no gateway;
+- tolerância a retransmissão por `SEQ`;
+- erro local por camada;
+- diferenciação entre erro de transporte e erro de serviço.
+
+## Limitações
+
+O conjunto de testes de integração ainda é pequeno em diversidade funcional, porque o repertório de serviços de dispositivo também é pequeno. O repositório também não mostra integração fim a fim com `cloud`, nem com protocolos automotivos ativos como `CAN` e `J1939`.
+
+## Evolução prevista
+
+Os testes de integração devem crescer junto com os dispositivos suportados e com os contratos funcionais. Os próximos ganhos naturais são:
+
+- mais cenários além do LED;
+- validação de eventos assíncronos;
+- testes cruzando múltiplos dispositivos da tabela;
+- integração com contratos remotos quando a camada `cloud` estiver operacional.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\11-planejamento\01-planejamento.md
+===================================================
+
+# Planejamento
+
+## Estado atual
+
+O principal artefato de planejamento identificado no repositório está em `docs/legacy-docs/04_desenvolvimento/technical-roadmap.md`. Ele descreve uma evolução por fases, começando pela base serial e avançando para protocolo, roteamento e expansão funcional. O estado atual do código confirma que a fundação de comunicação local e o primeiro periférico já saíram do nível conceitual e entraram em implementação.
+
+Em termos práticos, o planejamento realizado até aqui materializou:
+
+- enlace serial funcional com handshake;
+- protocolo host/gateway com `COBS + CRC8`;
+- gateway com roteamento por tabela;
+- primeiro dispositivo remoto com contrato real.
+
+## Funcionamento técnico
+
+### Linha de evolução observável
+
+```text
+Fase 1: transporte serial confiável
+Fase 2: protocolo de gateway e ACK
+Fase 3: roteamento para periféricos
+Fase 4: ampliação de serviços e dispositivos
+```
+
+O planejamento técnico do projeto faz sentido porque cada fase depende da anterior:
+
+- sem serial estável, o dashboard não opera;
+- sem protocolo, não há confiabilidade de bancada;
+- sem roteamento, não há modularidade;
+- sem serviços de dispositivo, não há simulação útil.
+
+### Decisões já consolidadas
+
+- host e gateway falam um protocolo próprio leve;
+- o gateway é o ponto central de integração;
+- dispositivos remotos recebem contratos internos mais simples que o protocolo do host;
+- a documentação histórica é preservada, mas a documentação oficial deve refletir o código atual.
+
+## Limitações
+
+O roadmap técnico existente não é um plano executivo detalhado com datas, donos e marcos de entrega atuais. Ele funciona melhor como direção arquitetural do que como cronograma operacional. Também há frentes planejadas que ainda não aparecem no código, como expansão mais rica de protocolos e serviços.
+
+## Evolução prevista
+
+Com base no que já está implementado, as prioridades técnicas mais coerentes são:
+
+- ampliar os serviços embarcados além do caso de LED;
+- documentar de forma mais rígida cada dispositivo da tabela;
+- consolidar testes repetíveis de integração;
+- transformar os contratos externos e a camada `cloud` em componentes realmente executáveis.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\11-planejamento\02-proximas-funcionalidades.md
+===================================================
+
+# Próximas Funcionalidades
+
+## Estado atual
+
+As próximas funcionalidades mais sustentadas pelo repositório não são especulações amplas; elas surgem diretamente dos espaços já preparados pela arquitetura e ainda pouco ocupados pelo código. O projeto já possui transporte, link, roteamento e um primeiro dispositivo. O passo seguinte natural é aumentar densidade funcional sobre essa base.
+
+## Funcionamento técnico
+
+### Frentes que o código já prepara
+
+1. Mais serviços no GSA ou em dispositivos equivalentes.
+2. Ampliação de `GwDeviceTable` com módulos adicionais.
+3. Casos de uso novos no software local sobre `SdGgwClient`.
+4. Formalização dos contratos externos de software.
+
+### Sinais concretos de evolução possível
+
+- `cloud/api-contracts/openapi.yaml` existe, mas ainda sem rotas operacionais;
+- a tabela de dispositivos do gateway já comporta múltiplos destinos;
+- o padrão `Transport -> Link -> Service` é replicável;
+- os documentos legados já discutem protocolo e roadmap em mais de uma etapa.
+
+### Prioridade arquitetural sugerida pelo estado atual
+
+```text
+Mais serviços reais
+  -> mais testes integrados
+  -> mais documentação por dispositivo
+  -> mais valor de bancada
+```
+
+Esse encadeamento é coerente porque o sistema já superou a fase de transporte básico; agora o gargalo é a riqueza funcional dos módulos.
+
+## Limitações
+
+Não há, no repositório analisado, um backlog versionado e detalhado por issue ou sprint que permita afirmar ordem fechada de implementação. Também não é possível prometer funcionalidades automotivas específicas sem código correspondente. As próximas funcionalidades listadas aqui são as mais compatíveis com a arquitetura e com os artefatos já presentes.
+
+## Evolução prevista
+
+As evoluções mais prováveis e tecnicamente justificadas são:
+
+- expansão do conjunto de comandos roteáveis;
+- documentação formal de payloads e contratos por dispositivo;
+- amadurecimento do software local para diagnóstico e operação;
+- introdução futura de protocolos adicionais quando houver implementação real no repositório.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\12-documentacao-tecnica\01-especificacoes.md
+===================================================
+
+# Especificações
+
+## Estado atual
+
+As especificações mais sólidas do SimulDIESEL, no estado atual do repositório, estão concentradas no protocolo do gateway e no contrato interno do GSA. Esses dois blocos já permitem registrar limites, estruturas de payload e decisões técnicas sem extrapolar o que não está implementado.
+
+## Funcionamento técnico
+
+### Especificação do frame host/gateway
+
+Fonte principal: `Sggw.defs.h`, `SggwLink`, `SdGwLinkEngine`.
+
+Estrutura lógica:
+
+```text
+CMD | FLAGS | SEQ | PAYLOAD... | CRC8
+```
+
+Regras observadas:
+
+- delimitação externa por `0x00`;
+- codificação `COBS`;
+- verificação com `CRC8 ATM`;
+- `CMD` dividido em endereço e operação;
+- `FLAGS` contendo, entre outros, pedido de `ACK` e marcação de evento.
+
+Limites:
+
+- `SGGW_LOGICAL_MTU = 250`;
+- `payload` máximo lógico de `247` bytes, considerando cabeçalho e `CRC`.
+
+### Especificação do enlace
+
+Estados do host:
+
+```text
+Disconnected -> SerialConnected -> Draining -> BannerSent -> Linked/LinkFailed
+```
+
+Estados do gateway:
+
+```text
+WaitingBanner -> Linked
+```
+
+Há timeout e repetição no host, além de deduplicação por `SEQ` em ambos os lados.
+
+### Especificação do contrato interno do GSA
+
+Estrutura:
+
+```text
+T | L | V... | CRC8
+```
+
+Comandos comprovados:
+
+- leitura de erro;
+- limpeza de erro;
+- leitura do LED;
+- escrita do LED.
+
+Exemplo de escrita:
+
+```text
+T = CMD_SET_LED
+L = 1
+V = 0x00 | 0x01 | 0x02
+CRC8
+```
+
+## Limitações
+
+As especificações atualmente consolidadas são fortes na camada de transporte e ainda enxutas na camada funcional. Não há catálogo amplo de comandos de domínio, nem especificação formal ativa para `CAN`, `J1939` ou serviços `cloud`. Também faltam especificações textuais completas das placas físicas.
+
+## Evolução prevista
+
+As próximas especificações que merecem formalização são:
+
+- contratos por dispositivo além do GSA;
+- matriz oficial de erros e eventos do gateway;
+- contratos `cloud` quando os endpoints deixarem de estar vazios;
+- critérios de compatibilidade entre revisões de firmware e software local.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\12-documentacao-tecnica\02-diagramas.md
+===================================================
+
+# Diagramas
+
+## Estado atual
+
+Os diagramas abaixo sintetizam a arquitetura comprovada pelo código. Eles não substituem esquemas elétricos nem diagramas mecânicos do hardware, mas representam com fidelidade o fluxo lógico hoje implementado.
+
+## Funcionamento técnico
+
+### Diagrama de camadas
+
+```text
++------------------------------+
+| Software local (WinForms)    |
+| UI / BLL / DAL / DTL         |
++--------------+---------------+
+               |
+               v
++------------------------------+
+| Link host/gateway            |
+| Serial + Banner + SGGW       |
+| COBS + CRC8 + ACK + SEQ      |
++--------------+---------------+
+               |
+               v
++------------------------------+
+| Gateway ESP32                |
+| GatewayApp / GwRouter        |
+| GwDeviceTable / Buses        |
++---------+--------------+-----+
+          |              |
+          v              v
+     +---------+    +---------+
+     | I2C Bus |    | SPI Bus |
+     +----+----+    +----+----+
+          |              |
+          v              v
+     +---------+    +---------+
+     |  GSA    |    | outros  |
+     | TLV     |    | módulos |
+     +---------+    +---------+
+```
+
+### Diagrama de sequência do enlace
+
+```text
+Host                Gateway                GSA
+ |                     |                    |
+ |-- banner ---------->|                    |
+ |<-- "SimulDIESEL..."-|                    |
+ |-- frame SGGW ------>|                    |
+ |                     |-- TLV ----------->|
+ |                     |<-- TLV -----------|
+ |<-- resposta SGGW ---|                    |
+```
+
+### Diagrama de estados do host
+
+```text
+[Disconnected]
+      |
+      v
+[SerialConnected]
+      |
+      v
+[Draining]
+      |
+      v
+[BannerSent] ---> [LinkFailed]
+      |
+      v
+[Linked]
+```
+
+### Diagrama de serviço do GSA
+
+```text
+I2C IRQ/Callback
+  -> Transport
+  -> Link
+  -> Service
+  -> LedService
+  -> resposta TLV
+```
+
+## Limitações
+
+Os diagramas aqui descritos representam o que o código confirma hoje. Eles não trazem pinagem detalhada, topologia física final do backplane nem uma matriz completa de todos os dispositivos possíveis, porque essa informação não está consolidada textualmente no repositório atual.
+
+## Evolução prevista
+
+Conforme o projeto crescer, esta seção deve incorporar:
+
+- diagramas por dispositivo da tabela do gateway;
+- sequência de erro e recuperação do enlace;
+- diagramas de energia e interconexão física do backplane;
+- fluxos de protocolos adicionais quando houver implementação real.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\12-documentacao-tecnica\03-contratos-software.md
+===================================================
+
+# Contratos de Software
+
+## Contratos de integração
+
+- `docs/legacy-docs/01_arquitetura/00_contratos/CONTRATO_CENTRAL.md`
+- `docs/legacy-docs/01_arquitetura/00_contratos/CONTRATO_GATEWAY.md`
+- `docs/legacy-docs/01_arquitetura/00_contratos/CONTRATO_GSA.md`
+
+Esses documentos são a base de rastreabilidade para:
+
+- endereçamento `CMD` (ADDR/OP);
+- roteamento de barramento;
+- semântica TLV e tratamento de erros.
+
+## Contratos de protocolo binário
+
+- `docs/legacy-docs/01_arquitetura/01_protocolos/sggw/spec.pt-BR.md`
+- `docs/legacy-docs/01_arquitetura/01_protocolos/sggw/interface.pt-BR.md`
+
+## Contratos de implementação na API local
+
+- `local-api` usa `SggwCmd` e `SdGwLinkEngine` como contrato lógico do lado cliente.
+- Estados de transporte e eventos são modelados por `SerialLinkService.LinkState`.
+
+## Regra de manutenção
+
+- Qualquer mudança de comando/endereço deve atualizar simultaneamente:
+  1) implementação;
+  2) contratos;
+  3) documentação oficial.
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\archive\hardware-source-of-truth\01_arquitetura\05_babyboards\README.md
+===================================================
+
+
+
+[Retornar ao README principal](../../../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\archive\hardware-source-of-truth\01_arquitetura\05_babyboards\gsa\ESTRUTURA_INTERNA.md
+===================================================
+
+# GSA – Estrutura interna (Firmware)
+**Status:** Rascunho inicial
+
+## Pastas/Componentes
+- Transport: I2C slave, buffer RX/TX
+- Link: valida TLV+CRC, mantém buffer de erro
+- Service: dispatcher (SET/GET/CONFIG) + subcomandos (LED/ERR/PORT/CONFIG...)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\archive\hardware-source-of-truth\01_arquitetura\05_babyboards\gsa\README.md
+===================================================
+
+
+
+[Retornar ao README principal](../../../../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\archive\hardware-source-of-truth\05_hardware\README.md
+===================================================
+
+
+
+[Retornar ao README principal](../../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\archive\hardware-source-of-truth\05_hardware\gerador-sinais-analogicos-GSA\README.md
+===================================================
+
+
+
+[Retornar ao README principal](../../../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\00-INDICE-LEGACY.md
+===================================================
+
+# SimulDIESEL — Índice da Documentação Legada
+
+Este índice reúne os documentos movidos para legacy-docs durante a reorganização da documentação.
+
+---
+
+## 00_visao-geral
+
+- [Master Spec](00_visao-geral/MASTER_SPEC.md)
+- [Readme](00_visao-geral/README.md)
+
+## 01_arquitetura
+
+- [Contrato Central](01_arquitetura/00_contratos/CONTRATO_CENTRAL.md)
+- [Contrato Gateway](01_arquitetura/00_contratos/CONTRATO_GATEWAY.md)
+- [Contrato Gsa](01_arquitetura/00_contratos/CONTRATO_GSA.md)
+- [Readme](01_arquitetura/00_contratos/README.md)
+- [Readme](01_arquitetura/01_protocolos/README.md)
+- [Readme](01_arquitetura/01_protocolos/sggw/examples/README.md)
+- [Interface.Pt Br](01_arquitetura/01_protocolos/sggw/interface.pt-BR.md)
+- [Readme](01_arquitetura/01_protocolos/sggw/README.md)
+- [Spec.Pt Br](01_arquitetura/01_protocolos/sggw/spec.pt-BR.md)
+- [Esp32 To Due](01_arquitetura/02_integracoes/esp32_to_due.md)
+- [Esp32 To Mega](01_arquitetura/02_integracoes/esp32_to_mega.md)
+- [Local Api To Esp32](01_arquitetura/02_integracoes/local-api_to_esp32.md)
+- [Readme](01_arquitetura/02_integracoes/README.md)
+- [Device Table](01_arquitetura/03_gateway/DEVICE_TABLE.md)
+- [I2c Tlv Crc](01_arquitetura/03_gateway/I2C_TLV_CRC.md)
+- [Readme](01_arquitetura/03_gateway/README.md)
+- [Router](01_arquitetura/03_gateway/ROUTER.md)
+- [Architecture Overview](01_arquitetura/04_pc/architecture-overview.md)
+- [Health Service](01_arquitetura/04_pc/health-service.md)
+- [Link Engine](01_arquitetura/04_pc/link-engine.md)
+- [Link Handshake](01_arquitetura/04_pc/link-handshake.md)
+- [Readme](01_arquitetura/04_pc/README.md)
+- [Serial Connection](01_arquitetura/04_pc/serial-connection.md)
+- [Serial Transport](01_arquitetura/04_pc/serial-transport.md)
+- [Sggw Client](01_arquitetura/04_pc/sggw-client.md)
+- [Arquitetura](01_arquitetura/05_babyboards/gsa/ARQUITETURA.md)
+- [Configuracao](01_arquitetura/05_babyboards/gsa/CONFIGURACAO.md)
+- [Estrutura Interna](01_arquitetura/05_babyboards/gsa/ESTRUTURA_INTERNA.md)
+- [Fluxo Execucao](01_arquitetura/05_babyboards/gsa/FLUXO_EXECUCAO.md)
+- [Pinout](01_arquitetura/05_babyboards/gsa/PINOUT.md)
+- [Protocolo](01_arquitetura/05_babyboards/gsa/PROTOCOLO.md)
+- [Readme](01_arquitetura/05_babyboards/gsa/README.md)
+- [Readme](01_arquitetura/05_babyboards/README.md)
+- [Readme](01_arquitetura/README.md)
+
+## 04_desenvolvimento
+
+- [Adr 0007 Cobs Crc8.Pt Br](04_desenvolvimento/adr/ADR-0007-cobs-crc8.pt-BR.md)
+- [Readme](04_desenvolvimento/adr/README.md)
+- [Readme](04_desenvolvimento/README.md)
+- [Technical Roadmap](04_desenvolvimento/technical-roadmap.md)
+
+## 05_hardware
+
+- [Arquitetura](05_hardware/gerador-sinais-analogicos-GSA/ARQUITETURA.md)
+- [Configuracao](05_hardware/gerador-sinais-analogicos-GSA/CONFIGURACAO.md)
+- [Fluxo Execucao](05_hardware/gerador-sinais-analogicos-GSA/FLUXO_EXECUCAO.md)
+- [Pinout](05_hardware/gerador-sinais-analogicos-GSA/PINOUT.md)
+- [Protocolo](05_hardware/gerador-sinais-analogicos-GSA/PROTOCOLO.md)
+- [Readme](05_hardware/gerador-sinais-analogicos-GSA/README.md)
+- [Readme](05_hardware/README.md)
+
+---
+
+_Arquivo gerado automaticamente em 2026-03-14 15:44:28_
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\00_visao-geral\MASTER_SPEC.md
+===================================================
+
+
+
+[Retornar ao README principal](../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\00_visao-geral\README.md
+===================================================
+
+
+
+[Retornar ao README principal](../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\README.md
+===================================================
+
+
+
+[Retornar ao README principal](../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\00_contratos\CONTRATO_CENTRAL.md
+===================================================
+
+# 📘 CONTRATO CENTRAL – GATEWAY ↔ BABY BOARDS (SimulDIESEL)
+**Versão:** 1.0  
+**Status:** Ativo  
+**Escopo:** Este documento é a *fonte da verdade* para endereçamento, roteamento e formato de mensagens entre PC → Gateway → Baby Boards.
+
+---
+
+## 1) Visão Geral
+
+O sistema possui duas fronteiras principais:
+
+1. **PC ↔ Gateway** via **SGGW** (UART + framing/CRC do SGGW).  
+2. **Gateway ↔ Baby Board** via **I2C** usando **TLV + CRC8/ATM**.
+
+Este contrato define regras imutáveis para evitar divergência entre documentação e firmware.
+
+---
+
+## 2) Endereçamento no SGGW (PC → Gateway)
+
+O campo `cmd` (1 byte) do SGGW é sempre:
+
+`CMD = [ADDR:4][OP:4]`
+
+- **ADDR (bits 7..4)**: endereço lógico do destino.
+- **OP (bits 3..0)**: operação direta (0..15).
+
+Endereços reservados:
+
+- `ADDR=0x0` → Gateway (local)
+- `ADDR=0xF` → Broadcast (reservado)
+
+Cada baby board recebe um `ADDR` próprio (ex: `0x1 = GSA`).
+
+---
+
+## 3) Roteamento no Gateway
+
+O Gateway **interpreta ADDR/OP em um único ponto**: `GatewayApp::onCommand()`.
+
+Fluxo obrigatório:
+
+1. Extrair `addr = cmd >> 4` e `op = cmd & 0x0F`
+2. Se `addr == 0x0` → tratar local
+3. Se `addr != 0x0` → consultar **DeviceTable**: `ADDR lógico → BUS → endereço físico`
+4. Encaminhar para o bus correspondente (I2C/SPI)
+
+> `ADDR lógico` **não é** endereço físico (ex: não é endereço I2C).
+
+---
+
+## 4) Protocolo Gateway ↔ Baby Board (I2C)
+
+Formato único no barramento (TX e RX):
+
+`[T][L][V...][CRC]`
+
+- `T = OP` (0..15)
+- `L = tamanho de V`
+- `CRC = CRC-8/ATM` calculado sobre `[T][L][V...]`
+
+A baby board **não conhece ADDR** e **não gerencia link**.
+
+---
+
+## 5) Subcomandos (expansão)
+
+Quando OP for genérico (ex: SET/GET/CONFIG), o payload define o alvo:
+
+- `V[0] = SUBCMD`
+- `V[1..] = parâmetros`
+
+---
+
+## 6) Erros
+
+- CRC inválido na baby board: comando **não é executado**; erro é armazenado internamente.
+- Consulta/controle de erro é feito via **subcomando** (ex.: `GET + SUBCMD_ERR`, `SET + SUBCMD_ERR + CLEAR`).
+
+---
+
+## 7) Resposta do Gateway ao PC
+
+Padrão recomendado e consistente com o firmware atual do GatewayApp:
+
+- `cmd` do evento SGGW = o mesmo `cmd` recebido do PC.
+- `payload` do evento SGGW = **TLV sem CRC** no formato do app:
+
+`[T = cmd][L][V...]`
+
+---
+
+## 8) Regra de Versionamento
+
+- Alterações neste contrato exigem incremento de versão.
+- `CONTRATO_GATEWAY.md` e contratos de baby boards devem declarar compatibilidade com esta versão.
+
+---
+
+**CONTRATO_CENTRAL v1.0**
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\00_contratos\CONTRATO_GATEWAY.md
+===================================================
+
+# 📘 CONTRATO OFICIAL – GATEWAY ↔ BABY BOARDS
+**Versão:** 1.2  
+**Status:** Ativo  
+**Compatível com:** CONTRATO_CENTRAL v1.0
+
+---
+
+## 1) Objetivo
+
+Padronizar o comportamento do Gateway para endereçamento, roteamento e conversão de mensagens entre:
+
+PC (SGGW) → Gateway → Baby Boards (I2C TLV+CRC)
+
+---
+
+## 2) Endereçamento (SGGW CMD)
+
+`CMD = [ADDR:4][OP:4]`
+
+- `ADDR=0x0` → Gateway local
+- `ADDR=0x1` → GSA (exemplo)
+- `ADDR=0xF` → Broadcast (reservado)
+
+---
+
+## 3) Ponto Único de Interpretação
+
+O Gateway interpreta `ADDR/OP` apenas em:
+
+**`GatewayApp::onCommand(cmd, flags, seq, data, dataLen)`**
+
+---
+
+## 4) Roteamento por DeviceTable
+
+O roteamento é definido por uma tabela:
+
+`ADDR lógico → BUS → endereço físico`
+
+Exemplo:
+
+| ADDR | Board | BUS | Endereço físico |
+|------|-------|-----|-----------------|
+| 0x1  | GSA   | I2C | 0x23            |
+
+---
+
+## 5) Encaminhamento no barramento (I2C)
+
+O Gateway monta e envia para a baby board:
+
+`[T=OP][L=dataLen][V=data...][CRC8]`
+
+CRC: CRC-8/ATM sobre `[T L V]`.
+
+A resposta da baby board também é TLV+CRC.
+
+---
+
+## 6) Exemplo – Ligar LED da GSA
+
+### PC → Gateway (SGGW)
+- Destino: `ADDR=0x1 (GSA)`
+- Operação: `OP=0x1 (SET)`
+
+Logo: `cmd = 0x11`.
+
+Payload (subcomandos do GSA):
+- `V[0] = 0x01` (SUBCMD_LED)
+- `V[1] = 0x01` (state ON)
+
+SGGW:
+- `cmd = 0x11`
+- `data = [0x01, 0x01]`
+
+### Gateway → GSA (I2C)
+Monta TLV do device:
+- `T = OP = 0x01 (SET)`
+- `L = 0x02`
+- `V = [0x01, 0x01]`
+- `CRC = crc8([T L V])`
+
+TX I2C:
+- `[0x01][0x02][0x01][0x01][CRC]`
+
+### GSA → Gateway (I2C)
+Exemplo de ACK simples:
+- `[0x01][0x00][CRC]`
+
+### Gateway → PC (SGGW EVENT)
+- `cmd` do evento = `0x11`
+- `payload` = TLV sem CRC no formato do app:
+  - `[T=0x11][L=0x00]`
+
+---
+
+## 7) Erros vindos de baby boards
+
+- CRC inválido no device: o device armazena erro.
+- O Gateway consulta via `GET + SUBCMD_ERR`.
+- Erros internos do Gateway continuam podendo ser enviados como TLV `T=0xFE` no payload do evento.
+
+---
+
+**CONTRATO_GATEWAY v1.2**
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\00_contratos\CONTRATO_GSA.md
+===================================================
+
+# 📘 CONTRATO OFICIAL – GSA (Gerador de Sinais Analógicos)
+**Versão:** 1.2  
+**Status:** Ativo  
+**Compatível com:** CONTRATO_CENTRAL v1.0
+
+---
+
+## 1) Responsabilidades do GSA
+
+O GSA:
+
+1. Não gerencia link.
+2. Não interpreta endereço lógico (ADDR).
+3. Processa apenas OP (0..15) e subcomandos no payload.
+
+---
+
+## 2) Camadas Internas
+
+- Transport (I2C slave)
+- Link (TLV + CRC + buffer de erro)
+- Service (dispatcher)
+  - Set
+  - Get
+  - Config
+
+---
+
+## 3) Protocolo I2C
+
+Formato único (TX e RX):
+
+`[T][L][V...][CRC]`
+
+- `T = OP`
+- `CRC = CRC-8/ATM` sobre `[T L V]`
+
+---
+
+## 4) OPs (0..15)
+
+| OP  | Função      |
+|-----|------------|
+| 0x0 | SOFT_RESET |
+| 0x1 | SET        |
+| 0x2 | GET        |
+| 0x3 | CONFIG     |
+
+---
+
+## 5) Subcomandos
+
+Formato:
+
+- `V[0] = SUBCMD`
+- `V[1..] = parâmetros`
+
+### SUBCMD_LED = 0x01
+
+**SET LED**
+- `T=0x01 (SET)`
+- `L=0x02`
+- `V=[0x01, state]` (state: 0/1)
+
+**GET LED**
+- `T=0x02 (GET)`
+- `L=0x01`
+- `V=[0x01]`
+
+### SUBCMD_ERR = 0x02
+
+**GET ERR**
+- `T=0x02 (GET)`
+- `L=0x01`
+- `V=[0x02]`
+- Resposta: `V=[errCode]` (ex: L=1)
+
+**SET ERR CLEAR**
+- `T=0x01 (SET)`
+- `L=0x02`
+- `V=[0x02, 0x00]`
+
+---
+
+## 6) Regras de erro (CRC)
+
+CRC inválido:
+- não executa o comando
+- registra o erro interno
+- retorna resposta normal apenas quando consultado (GET ERR)
+
+---
+
+**CONTRATO_GSA v1.2**
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\00_contratos\README.md
+===================================================
+
+
+
+[Retornar ao README principal](../../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\01_protocolos\README.md
+===================================================
+
+
+
+[Retornar ao README principal](../../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\01_protocolos\sggw\interface.pt-BR.md
+===================================================
+
+# SD-GW-LINK — Interface de Integração (DAL ↔ Protocolo ↔ Consumidor)
+
+**Projeto:** SimulDIESEL  
+**Protocolo:** SD-GW-LINK  
+**Versão:** 1.0.0  
+**Status:** Estável (Interface de Integração)
+
+---
+
+## 1. Objetivo
+
+Este documento define a **interface conceitual** (contratos) para integrar o motor do protocolo
+**SD-GW-LINK** com:
+
+- a **camada inferior (DAL / Transporte físico)**, responsável por enviar/receber bytes; e
+- a **camada superior (Consumidor / Aplicação)**, responsável por interpretar comandos e payloads de aplicação.
+
+> Este documento **não** define detalhes físicos (baudrate, RTS/DTR, IP, sockets, etc.).  
+> Tais detalhes pertencem à DAL específica (Serial, Wi‑Fi, Bluetooth).
+
+---
+
+## 2. Componentes e Responsabilidades
+
+### 2.1 DAL (Data Access Layer / Transporte Físico)
+
+A DAL é responsável por:
+
+- abrir/fechar a conexão física;
+- **enviar bytes** e **receber bytes** (stream 8-bit);
+- reportar falhas físicas (desconexão, timeouts de porta, erros do driver).
+
+A DAL **não** deve:
+
+- interpretar COBS, CRC, SEQ, ACK, comandos;
+- segmentar frames SD-GW-LINK.
+
+Exemplos de DAL:
+- `SerialTransport` (COM/USB-CDC)
+- `WifiTransport` (TCP/UDP/WebSocket, etc.)
+- `BtTransport` (SPP/Serial BT)
+
+---
+
+### 2.2 Motor do Protocolo (SD-GW-LINK Engine)
+
+O Engine é responsável por:
+
+- delimitação por `0x00` e framing via COBS;
+- validação do **CRC-8/ATM**;
+- parse e montagem de frames (`CMD|FLAGS|SEQ|PAYLOAD|CRC8`);
+- gerenciamento de **SEQ por direção**;
+- **ACK/NACK de transporte** (Stop-and-Wait opcional quando `ACK_REQ=1`);
+- deduplicação de retransmissões;
+- roteamento interno de `T_ACK`/`T_ERR` (não sobe como “frame de aplicação” por padrão).
+
+O Engine **não** deve:
+
+- interpretar semântica de comandos de aplicação (CAN, periféricos, firmware);
+- assumir meio físico (serial/wifi/bt).
+
+---
+
+### 2.3 Camada Superior (Consumidor / Aplicação)
+
+O Consumidor é responsável por:
+
+- definir e interpretar **comandos de aplicação** (tabela de CMDs);
+- decidir se um envio exige confiabilidade (`ACK_REQ`);
+- definir políticas de timeout e retries (por comando/caso de uso);
+- tratar respostas de aplicação (sucesso/erro lógico);
+- orquestrar casos de uso (ex.: “setar nível”, “enviar CAN”).
+
+---
+
+## 3. Contrato Inferior: Engine ↔ DAL
+
+### 3.1 Interface mínima da DAL (conceitual)
+
+A DAL deve fornecer ao Engine, no mínimo:
+
+- **Open() / Close()**
+- **Write(bytes)**: envia bytes no stream
+- **OnBytesReceived(bytesChunk)**: entrega ao Engine os bytes recebidos (em blocos arbitrários)
+- **OnTransportFault(fault)**: notifica erro físico (opcional, recomendado)
+- **IsOpen / State** (opcional)
+
+**Regras:**
+- `OnBytesReceived` pode entregar chunks de qualquer tamanho (inclusive 1 byte).
+- A DAL não deve reter bytes propositalmente; deve entregar o mais rápido possível.
+- O Engine é o único responsável por recompor frames a partir do stream.
+
+### 3.2 Requisitos de desempenho (não vinculados ao meio)
+
+- A DAL deve suportar throughput suficiente para frames até 250 bytes.
+- A DAL deve possuir buffer/loop de leitura que minimize perda de bytes em picos.
+- Em caso de backpressure, a DAL deve sinalizar falhas (ex.: `Write` falhou).
+
+---
+
+## 4. Contrato Superior: Engine ↔ Consumidor
+
+### 4.1 Modelo de dados (Frame de Aplicação)
+
+O Engine expõe ao Consumidor um **AppFrame** (frame de aplicação) com:
+
+- `Cmd` (byte)
+- `Flags` (byte)
+- `Seq` (byte)
+- `Payload` (byte[])
+- `TimestampRx` (opcional)
+- `Direction` (opcional)
+
+**Regra:** Por padrão, `T_ACK` e `T_ERR` são consumidos internamente pelo Engine
+e não são entregues como `AppFrame` (exceto em modo diagnóstico).
+
+---
+
+### 4.2 Envio (TX) — Operações do Engine
+
+O Engine deve oferecer uma operação conceitual equivalente a:
+
+- **Send(cmd, payload, options)**
+
+onde `options` inclui:
+
+- `RequireAck` (bool): se verdadeiro, o Engine seta `ACK_REQ=1` e aplica Stop-and-Wait
+- `TimeoutMs` (int): default 100 ms
+- `MaxRetries` (int): política definida pelo Consumidor
+- `IsEvent` (bool): se verdadeiro, o Engine seta `IS_EVT=1` (quando aplicável)
+- `AdditionalFlags` (byte): permitir flags adicionais quando necessário
+
+**Resultado do envio (contrato):**
+- Para `RequireAck=false`: entrega “aceite local” (enfileirado para TX) ou falha imediata (DAL indisponível).
+- Para `RequireAck=true`: entrega sucesso somente após `T_ACK`, ou falha após timeout/retries ou `T_ERR`.
+
+---
+
+### 4.3 Recepção (RX) — Eventos do Engine para o Consumidor
+
+O Engine deve notificar o Consumidor por eventos/callbacks (conceitual):
+
+- **OnAppFrameReceived(frame)**: frame válido de aplicação recebido
+- **OnSendCompleted(seq, outcome)**: envio confiável concluído (sucesso/falha) (recomendado)
+- **OnProtocolError(error)**: erro de protocolo (CRC fail, frame inválido, etc.) (opcional)
+
+**Nota:** Erros de CRC devem, por padrão, apenas atualizar contadores e descartar o frame.
+
+---
+
+## 5. Estados Lógicos do Engine (Stop-and-Wait)
+
+Quando `RequireAck=true`, o Engine opera em Stop-and-Wait para aquele envio.
+
+Estados mínimos:
+
+- **IDLE**: pronto para enviar
+- **WAIT_ACK(seq)**: aguarda `T_ACK` (ou `T_ERR`) para o `seq` em questão
+- **RETRY(seq, k)**: retransmissão após timeout (k = tentativa atual)
+- **FAIL(seq)**: falha definitiva (retries esgotados ou erro fatal)
+
+Regras:
+- Retransmissões devem usar o **mesmo SEQ**.
+- Recebimento duplicado do mesmo SEQ pelo outro lado deve resultar em reenvio do ACK correspondente,
+  sem reprocessar a aplicação (dedupe).
+
+---
+
+## 6. Fluxos de Dados (end-to-end)
+
+### 6.1 RX (bytes → AppFrame)
+
+1. DAL entrega bytes via `OnBytesReceived(chunk)`
+2. Engine acumula até encontrar delimitador `0x00`
+3. Engine aplica COBS decode
+4. Engine valida CRC-8/ATM
+5. Se válido:
+   - se `CMD` é `T_ACK`/`T_ERR`: tratar internamente (liberar WAIT_ACK, etc.)
+   - senão:
+     - se `ACK_REQ=1`: Engine envia `T_ACK` automaticamente
+     - Engine dispara `OnAppFrameReceived(frame)`
+
+### 6.2 TX (AppFrame → bytes)
+
+1. Consumidor chama `Send(cmd, payload, options)`
+2. Engine monta frame cru e calcula CRC
+3. Engine codifica em COBS e adiciona `0x00`
+4. Engine chama `DAL.Write(bytes)`
+5. Se `RequireAck=true`: aguarda `T_ACK` com `SEQ` correspondente
+
+---
+
+## 7. Erros e Propagação (quem vê o quê)
+
+### 7.1 Erros físicos (DAL)
+
+Exemplos:
+- porta fechada
+- desconexão
+- falha de escrita
+
+Devem subir como falha de envio (imediata) ou como evento `OnTransportFault`.
+
+### 7.2 Erros de protocolo (Engine)
+
+Exemplos:
+- COBS decode inválido
+- CRC inválido
+- frame curto/estruturalmente inválido
+
+Por padrão:
+- descartar frame e atualizar estatísticas
+- **não** gerar `T_ERR` para CRC inválido
+
+### 7.3 Erros de transporte (T_ERR)
+
+`T_ERR` é um **frame válido** recebido, indicando rejeição do outro lado (ex.: `ERR_BUSY`).
+
+Deve:
+- encerrar o envio confiável com falha para o Consumidor
+- permitir que o Consumidor decida retry no nível superior (se desejar)
+
+---
+
+## 8. Observabilidade e Diagnóstico (recomendado)
+
+O Engine deve expor contadores/estatísticas:
+
+- frames RX válidos
+- frames RX descartados por CRC
+- frames RX descartados por estrutura
+- ACKs enviados/recebidos
+- retries executados
+- timeouts
+- `T_ERR` recebidos por código
+
+---
+
+## 9. Conformidade
+
+Uma implementação é considerada conforme se:
+
+- delimita frames por `0x00` e usa COBS corretamente;
+- valida CRC-8/ATM conforme especificação;
+- respeita MTU (250 bytes no frame cru);
+- trata `T_ACK`/`T_ERR` conforme definido;
+- implementa dedupe para envios com `ACK_REQ=1`;
+- não mistura semântica de aplicação dentro do Engine.
+
+---
+
+## 10. Referências
+
+- Especificação do protocolo: `spec.pt-BR.md`
+- Vetores de teste: `examples/*.hex` e `examples/README.md`
+- ADR: `specs/adr/ADR-0007-cobs-crc8.pt-BR.md`
+
+---
+
+**Fim — Interface SD-GW-LINK v1.0.0**
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\01_protocolos\sggw\README.md
+===================================================
+
+
+
+[Retornar ao README principal](../../../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\01_protocolos\sggw\spec.pt-BR.md
+===================================================
+
+# SD-GW-LINK — Especificação do Protocolo de Transporte (Gateway ↔ API)
+
+**Projeto:** SimulDIESEL  
+**Protocolo:** SD-GW-LINK  
+**Versão:** 1.0.0  
+**Status:** Estável (Transport Layer)
+
+---
+
+## 0. Documentos Relacionados
+
+- **Especificação do Protocolo (este documento):** `spec.pt-BR.md`
+- **Interface de Integração (DAL ↔ Protocolo ↔ Consumidor):** `interface.pt-BR.md`
+- **Vetores de Teste (hex):** `examples/` (ver `examples/README.md`)
+- **Decisão Arquitetural:** `specs/adr/ADR-0007-cobs-crc8.pt-BR.md`
+
+## 1. Objetivo
+
+Este documento especifica a camada de transporte binária utilizada na comunicação entre:
+
+- **Gateway embarcado** (ex.: ESP32 Bridge)
+- **API Local / Host PC**
+
+A camada SD-GW-LINK é responsável exclusivamente por:
+
+- Delimitação e framing de mensagens
+- Integridade via CRC
+- Entrega opcional via ACK de transporte
+- Suporte a eventos assíncronos
+
+A camada **não interpreta comandos de aplicação** (CAN, periféricos, firmware).
+
+---
+
+## 2. Escopo
+
+### Inclui
+
+- Framing COBS
+- Estrutura de frame
+- CRC-8/ATM
+- Sequenciamento SEQ
+- ACK/NACK de transporte
+- Eventos espontâneos Gateway → API
+
+### Não inclui
+
+- Definição de comandos de aplicação
+- Estruturas internas de payload (CAN, J1939)
+- Fragmentação de firmware (reservada)
+
+---
+
+## 3. Terminologia
+
+- **Frame cru:** mensagem antes do COBS
+- **Frame codificado:** mensagem após COBS + delimitador `0x00`
+- **Gateway:** dispositivo embarcado que interliga hardware ↔ API
+- **API:** software host responsável por controle e interface
+- **MTU:** tamanho máximo permitido do frame cru
+
+---
+
+## 4. Transporte e Delimitação
+
+O SD-GW-LINK opera sobre um **stream de bytes 8-bit**, independente do meio físico.
+
+### Delimitador
+
+Todo frame transmitido termina com:
+
+```
+0x00
+```
+
+### Encoding
+
+O conteúdo do frame cru é codificado com:
+
+- **COBS (Consistent Overhead Byte Stuffing)**
+
+---
+
+## 5. MTU
+
+O tamanho máximo do frame cru é fixado em:
+
+- **250 bytes**
+
+Portanto:
+
+- **PAYLOAD máximo = 246 bytes**
+
+---
+
+## 6. Estrutura do Frame
+
+Formato do frame cru:
+
+```
+CMD | FLAGS | SEQ | PAYLOAD | CRC8
+```
+
+| Offset | Campo    | Tamanho |
+|-------|----------|---------|
+| 0     | CMD      | 1 byte  |
+| 1     | FLAGS    | 1 byte  |
+| 2     | SEQ      | 1 byte  |
+| 3..n  | PAYLOAD  | 0..246  |
+| last  | CRC8     | 1 byte  |
+
+---
+
+## 7. SEQ (Sequência)
+
+O campo `SEQ` é um contador 8-bit:
+
+- Range: 0..255
+- Contadores independentes por direção
+
+---
+
+## 8. FLAGS
+
+| Bit | Nome      | Descrição |
+|-----|----------|-----------|
+| 0   | ACK_REQ  | Solicita ACK de transporte |
+| 1   | IS_ACK   | Frame é ACK de transporte |
+| 2   | IS_ERR   | Frame é erro/NACK transporte |
+| 3   | IS_EVT   | Evento assíncrono Gateway→API |
+| 4   | FRAG     | Reservado para fragmentação |
+| 5–7 | —        | Reservados |
+
+---
+
+## 9. Comandos Reservados de Transporte
+
+### `CMD=0x01` — T_ACK
+
+Confirma recepção correta de um frame.
+
+### `CMD=0x02` — T_ERR
+
+Indica falha de transporte.
+
+---
+
+## 10. Erros de Transporte
+
+| Código | Nome            |
+|-------|-----------------|
+| 0x01  | ERR_BAD_FRAME   |
+| 0x02  | ERR_BUSY        |
+| 0x03  | ERR_UNSUPPORTED |
+| 0x04  | ERR_SEQ         |
+| 0x05  | ERR_INTERNAL    |
+
+---
+
+## 11. ACK e Retransmissão
+
+Frames críticos usam `ACK_REQ=1`.
+
+Timeout padrão: **100 ms** (configurável).
+
+---
+
+## 12. Deduplicação
+
+Reenvio do mesmo SEQ não reprocessa aplicação, apenas reenviar ACK.
+
+---
+
+## 13. Eventos Assíncronos
+
+Gateway pode transmitir frames espontâneos com `IS_EVT=1`.
+
+---
+
+## 14. CRC Oficial
+
+### CRC-8/ATM
+
+- Poly: `0x07`
+- Init: `0x00`
+- RefIn/RefOut: `false`
+- XorOut: `0x00`
+
+CRC cobre:
+
+```
+CMD + FLAGS + SEQ + PAYLOAD
+```
+
+---
+
+## 16. Exemplos em Hex
+
+### 16.1 PING
+
+```hex
+05 10 01 05 AC 00
+```
+
+### 16.2 ACK
+
+```hex
+05 01 02 05 5A 00
+```
+
+### 16.3 Evento
+
+```hex
+08 22 08 33 02 03 E8 9C 00
+```
+
+### 16.4 Payload com zero
+
+```hex
+05 30 01 10 12 03 34 58 00
+```
+
+---
+
+**Fim da Especificação SD-GW-LINK v1.0.0**
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\01_protocolos\sggw\examples\README.md
+===================================================
+
+
+
+[Retornar ao README principal](../../../../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\02_integracoes\esp32_to_due.md
+===================================================
+
+# Protocolo: ESP32 - DUE 
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\02_integracoes\esp32_to_mega.md
+===================================================
+
+# Protocolo: ESP32 - MEGA 
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\02_integracoes\local-api_to_esp32.md
+===================================================
+
+# Protocolo: Local API -
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\02_integracoes\README.md
+===================================================
+
+
+
+[Retornar ao README principal](../../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\03_gateway\DEVICE_TABLE.md
+===================================================
+
+# GwDeviceTable – Tabela de Dispositivos (Gateway)
+**Status:** Rascunho inicial (alinhado ao CONTRATO_CENTRAL v1.0)
+
+## Objetivo
+Padronizar como o Gateway mapeia `ADDR lógico` → (BUS, endereço físico).
+
+Exemplo:
+- ADDR=0x1 → GSA → BUS=I2C → i2cAddr=0x23
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\03_gateway\I2C_TLV_CRC.md
+===================================================
+
+# I2C Bus – TLV+CRC (Gateway)
+**Status:** Rascunho inicial (alinhado ao CONTRATO_CENTRAL v1.0)
+
+## Regra do barramento
+No barramento I2C, o Gateway sempre envia/recebe:
+
+`[T=OP][L][V...][CRC]`
+
+CRC-8/ATM em `[T L V]`.
+
+## Leitura recomendada
+Para evitar problemas de resposta fragmentada em múltiplos `requestFrom()`, recomenda-se:
+- ler a resposta em uma única chamada `requestFrom(rxMax)`
+- recortar pelo campo L (2+L+1)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\03_gateway\README.md
+===================================================
+
+
+
+[Retornar ao README principal](../../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\03_gateway\ROUTER.md
+===================================================
+
+# GwRouter – Roteamento (Gateway)
+**Status:** Rascunho inicial (alinhado ao CONTRATO_CENTRAL v1.0)
+
+## Objetivo
+Documentar o roteamento do Gateway a partir do `cmd` SGGW:
+
+- extrair ADDR/OP
+- consultar DeviceTable
+- selecionar BUS (I2C/SPI)
+- enviar TLV+CRC para a baby board
+
+> Este arquivo descreve *o conceito*. A implementação deve seguir `GatewayApp::onCommand()` como ponto único de decisão.
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\04_pc\architecture-overview.md
+===================================================
+
+# SimulDIESEL – Architecture Overview
+
+**Projeto:** SimulDIESEL  
+**Documento:** Visão Geral Arquitetural  
+**Status Atual:** Conexão Serial Estável + Camada de Link em Desenvolvimento
+
+---
+
+# 1. Visão Geral
+
+O SimulDIESEL é estruturado em camadas bem definidas para garantir:
+
+- Separação de responsabilidades
+- Manutenção simplificada
+- Escalabilidade futura
+- Testabilidade isolada
+
+A arquitetura segue o modelo:
+
+```
+UI → BLL → DAL → Hardware
+```
+
+---
+
+# 2. Camadas do Sistema
+
+## 2.1 UI (Interface do Usuário)
+
+Responsável por:
+
+- Interação com o usuário
+- Atualização visual de estado
+- Abertura de formulários
+- Exibição de status de conexão
+
+Não contém lógica de protocolo.
+
+---
+
+## 2.2 BLL (Business Logic Layer)
+
+Responsável por:
+
+- Orquestrar a comunicação
+- Gerenciar estados do link
+- Controlar transições de estado
+- Implementar handshake
+- Futuramente implementar protocolo SGGW
+
+Classe central:
+
+```
+SerialLinkService
+```
+
+---
+
+## 2.3 DAL (Data Access Layer / Transporte)
+
+Responsável exclusivamente por:
+
+- Comunicação serial crua
+- Abrir e fechar porta
+- Enviar e receber bytes
+- Disparar eventos
+
+Classe principal:
+
+```
+SerialTransport
+```
+
+Não possui lógica de protocolo.
+
+---
+
+## 2.4 Hardware
+
+- ESP-32
+- Comunicação via USB (Serial)
+- Futuramente CAN / LIN / outros barramentos
+
+---
+
+# 3. Estado Atual do Projeto
+
+## Versão Base (main)
+
+- Conexão serial funcional
+- Eventos propagando corretamente
+- UI sincronizada
+- Sem handshake
+- Sem protocolo SGGW
+
+Documentado em:
+
+```
+serial-connection.md
+```
+
+---
+
+## Feature Atual (feature/link-handshake)
+
+Implementação de:
+
+- Máquina de estados do LINK
+- Validação textual do dispositivo
+- Timeout de sincronização
+- Preparação para SGGW
+
+Documentado em:
+
+```
+link-handshake.md
+```
+
+---
+
+# 4. Próximas Evoluções Planejadas
+
+1. Implementação do protocolo SGGW
+2. Framing binário
+3. CRC / Validação de integridade
+4. Heartbeat / Watchdog
+5. Reconexão automática
+6. Expansão para múltiplos transportes (WiFi / Bluetooth)
+
+---
+
+# 5. Princípios Arquiteturais
+
+- Transporte não conhece protocolo.
+- Protocolo não conhece UI.
+- UI não acessa DAL diretamente.
+- Estados são explícitos.
+- Eventos propagam mudanças de estado.
+- Cada camada pode ser testada isoladamente.
+
+---
+
+# 6. Estrutura Recomendada de Documentação
+
+```
+/docs
+    /architecture
+        architecture-overview.md
+        serial-connection.md
+        link-handshake.md
+```
+
+---
+
+# 7. Versionamento
+
+Modelo adotado:
+
+```
+MAJOR.MINOR.PATCH
+```
+
+Exemplo:
+
+- v0.1.0 → Serial estável
+- v0.2.0 → Link implementado
+- v0.3.0 → SGGW implementado
+
+---
+
+# 8. Direção de Longo Prazo
+
+Evoluir para:
+
+- Arquitetura preparada para múltiplos transportes
+- Camada de protocolo independente de meio físico
+- Expansão para nuvem
+- Sincronização remota
+- Sistema modular de simulação de ECUs
+
+---
+
+**Documento de referência arquitetural do projeto SimulDIESEL.**
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\04_pc\health-service.md
+===================================================
+
+
+
+[Retornar ao README principal](../../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\04_pc\link-engine.md
+===================================================
+
+
+
+[Retornar ao README principal](../../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\04_pc\link-handshake.md
+===================================================
+
+# Link Layer – Handshake (Feature)
+
+**Projeto:** SimulDIESEL  
+**Branch:** feature/link-handshake  
+**Escopo:** Implementação da camada de LINK entre API e ESP-32  
+**Dependência:** v0.1.0-serial-ok (conexão serial estável)
+
+---
+
+# 1. Objetivo
+
+Adicionar uma camada intermediária entre a conexão serial e o protocolo SGGW,
+garantindo que:
+
+- O dispositivo conectado seja validado.
+- Lixo de boot seja descartado.
+- Haja sincronização explícita antes do início do tráfego binário.
+- A API e o hardware entrem em estado confiável.
+
+---
+
+# 2. Conceito da Camada de Link
+
+A conexão serial aberta não significa que o dispositivo está pronto para uso.
+
+O LINK adiciona:
+
+- Validação textual inicial (banner)
+- Máquina de estados
+- Timeout de sincronização
+- Transição controlada para SGGW
+
+---
+
+# 3. Máquina de Estados
+
+Estados definidos:
+
+```
+DISCONNECTED
+SERIAL_CONNECTED
+DRAINING
+BANNER_SENT
+LINKED
+LINK_FAILED
+```
+
+---
+
+# 4. Fluxo do Handshake
+
+## 4.1 Abertura da Serial
+
+Quando `ConnectionChanged(true)` ocorre:
+
+1. Estado → SERIAL_CONNECTED
+2. Inicia handshake
+3. Entra em DRAINING
+
+---
+
+## 4.2 DRAINING
+
+Janela de aproximadamente 300 ms:
+
+- Todos os bytes recebidos são descartados.
+- Remove lixo de boot do ESP-32.
+
+Transição automática após o tempo expirar.
+
+---
+
+## 4.3 Envio do Banner
+
+A API envia:
+
+```
+\nSIMULDIESELAPI\n
+```
+
+Estado → BANNER_SENT
+
+A partir deste momento a API aguarda resposta do ESP.
+
+---
+
+## 4.4 Resposta Esperada
+
+O ESP-32 deve responder com:
+
+```
+\nSimulDIESEL ver 1.0\n
+```
+
+A validação ocorre por prefixo:
+
+```
+"SimulDIESEL ver"
+```
+
+Se recebido corretamente:
+
+Estado → LINKED
+
+---
+
+## 4.5 Timeout
+
+Se a resposta não for recebida em até 2000 ms:
+
+Estado → LINK_FAILED
+
+Política recomendada:
+
+- Fechar a serial
+- Retornar para DISCONNECTED
+
+---
+
+# 5. Após LINKED
+
+Somente após entrar em LINKED:
+
+- Protocolo SGGW é permitido
+- Parser binário pode ser ativado
+- Heartbeat pode ser implementado
+
+---
+
+# 6. Responsabilidades por Camada
+
+## DAL (SerialTransport)
+
+Continua responsável apenas por transporte cru.
+
+Não implementa handshake.
+
+---
+
+## BLL (SerialLinkService)
+
+Responsável por:
+
+- Máquina de estados do LINK
+- Timer de handshake
+- Parser textual temporário
+- Transição para LINKED
+
+---
+
+## UI
+
+Pode reagir a:
+
+```
+event Action<LinkState> LinkStateChanged;
+```
+
+Permitindo exibir:
+
+- Serial Conectada
+- Link em andamento
+- Link OK
+- Link falhou
+
+---
+
+# 7. Benefícios Arquiteturais
+
+- Isola protocolo de transporte
+- Garante sincronização determinística
+- Prepara base sólida para SGGW
+- Permite futura implementação de watchdog
+
+---
+
+# 8. Próximo Passo Após Esta Feature
+
+- Implementar framing SGGW
+- Implementar controle de timeout de sessão
+- Implementar heartbeat periódico
+- Implementar reconexão automática opcional
+
+---
+
+# 9. Status da Feature
+
+Em desenvolvimento na branch:
+
+```
+feature/link-handshake
+```
+
+Ainda não mesclada à main.
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\04_pc\README.md
+===================================================
+
+
+
+[Retornar ao README principal](../../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\04_pc\serial-connection.md
+===================================================
+
+# Serial Connection – Versão Base (Main)
+
+**Projeto:** SimulDIESEL  
+**Status:** Estável e funcional  
+**Baseline:** v0.1.0-serial-ok  
+**Escopo:** Conexão serial USB (sem protocolo SGGW)
+
+---
+
+# 1. Objetivo
+
+Implementar uma conexão serial estável entre a API (WinForms) e o hardware (ESP-32), garantindo:
+
+- A porta permanece aberta independentemente de Forms.
+- A UI é atualizada automaticamente quando a conexão muda.
+- A arquitetura segue o modelo em camadas (UI → BLL → DAL).
+- Nenhum protocolo de aplicação (SGGW) é implementado neste estágio.
+
+---
+
+# 2. Arquitetura Vertical Atual
+
+```
+UI (DashBoard / frmPortaSerial_UI)
+        ↓
+BLL (SerialLinkService)
+        ↓
+DAL (SerialTransport)
+        ↓
+System.IO.Ports.SerialPort
+```
+
+---
+
+# 3. Responsabilidades por Camada
+
+## 3.1 DAL – SerialTransport
+
+Responsável exclusivamente por:
+
+- Listar portas
+- Abrir conexão
+- Fechar conexão
+- Enviar bytes crus
+- Receber bytes crus
+- Disparar eventos de erro
+- Disparar evento de mudança de conexão
+
+### Eventos expostos
+
+```csharp
+event Action<byte[]> BytesReceived;
+event Action<bool> ConnectionChanged;
+event Action<string[]> Error;
+```
+
+### Observações importantes
+
+- Não há framing.
+- Não há checksum.
+- Não há protocolo.
+- Apenas transporte cru.
+
+---
+
+## 3.2 BLL – SerialLinkService
+
+Responsável por:
+
+- Ser o intermediário entre UI e DAL.
+- Repassar eventos do DAL.
+- Expor `Connect()`, `Disconnect()`.
+- Expor propriedade `IsConnected`.
+
+### Eventos expostos
+
+```csharp
+event Action<bool> ConnectionChanged;
+event Action<string[]> Error;
+event Action<byte[]> BytesReceived;
+```
+
+### Comportamento
+
+- Assina eventos do `SerialTransport`.
+- Repassa para UI.
+- Não mantém estado de protocolo.
+- Não executa handshake.
+
+---
+
+## 3.3 Facade – SerialLink
+
+Classe estática que fornece:
+
+```csharp
+public static SerialLinkService Service { get; }
+public static bool IsConnected { get; }
+public static void Close();
+```
+
+Função:
+
+- Ponto único de acesso ao link.
+- Mantém a conexão viva independentemente de Forms.
+- Evita múltiplas instâncias.
+
+---
+
+## 3.4 UI – DashBoard
+
+Responsável por:
+
+- Abrir form de conexão.
+- Fechar conexão se já estiver aberta.
+- Atualizar botão e ícone dinamicamente.
+- Assinar evento `ConnectionChanged`.
+
+### Atualização segura de thread
+
+O evento utiliza:
+
+```csharp
+if (InvokeRequired)
+{
+    BeginInvoke(...);
+}
+```
+
+Garantindo atualização segura da UI.
+
+---
+
+# 4. Fluxo de Conexão
+
+### Conectar
+
+1. Usuário clica em "Conectar".
+2. Form de conexão abre.
+3. `SerialLinkService.Connect()` é chamado.
+4. DAL abre a porta.
+5. DAL dispara `ConnectionChanged(true)`.
+6. BLL repassa evento.
+7. UI atualiza botão e ícone.
+
+### Desconectar
+
+1. Usuário clica em "Desconectar".
+2. `SerialLink.Close()` é chamado.
+3. DAL fecha a porta.
+4. DAL dispara `ConnectionChanged(false)`.
+5. UI atualiza estado.
+
+---
+
+# 5. Características Técnicas Atuais
+
+- Comunicação USB (porta COM).
+- Controle manual de DTR/RTS configurável.
+- Timeout configurável.
+- Eventos propagados corretamente entre camadas.
+- Conexão permanece ativa após fechamento do Form de conexão.
+- Atualização visual do botão com ícone dinâmico.
+
+---
+
+# 6. Limitações da Versão Atual
+
+- Não detecta remoção física do cabo USB automaticamente.
+- Não possui handshake.
+- Não valida identidade do dispositivo conectado.
+- Não implementa protocolo SGGW.
+- Não possui heartbeat/watchdog.
+
+---
+
+# 7. Próximo Passo Planejado
+
+Implementação da **Camada de Link (Handshake)**:
+
+Estados planejados:
+
+```
+DISCONNECTED
+SERIAL_CONNECTED
+DRAINING
+BANNER_SENT
+LINKED
+LINK_FAILED
+```
+
+Objetivo:
+
+- Validar dispositivo via banner textual.
+- Descartar lixo de boot.
+- Garantir sincronização antes de iniciar SGGW.
+
+---
+
+# 8. Tag de Referência
+
+Esta documentação corresponde à tag:
+
+```
+v0.1.0-serial-ok
+```
+
+Representa a versão estável da conexão serial antes da introdução da camada de LINK.
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\04_pc\serial-transport.md
+===================================================
+
+
+
+[Retornar ao README principal](../../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\04_pc\sggw-client.md
+===================================================
+
+
+
+[Retornar ao README principal](../../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\05_babyboards\README.md
+===================================================
+
+
+
+[Retornar ao README principal](../../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\05_babyboards\gsa\ARQUITETURA.md
+===================================================
+
+
+
+[Retornar ao README principal](../../../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\05_babyboards\gsa\CONFIGURACAO.md
+===================================================
+
+
+
+[Retornar ao README principal](../../../../README.md)
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\05_babyboards\gsa\ESTRUTURA_INTERNA.md
+===================================================
+
+# GSA – Estrutura interna (Firmware)
+**Status:** Rascunho inicial
+
+## Pastas/Componentes
+- Transport: I2C slave, buffer RX/TX
+- Link: valida TLV+CRC, mantém buffer de erro
+- Service: dispatcher (SET/GET/CONFIG) + subcomandos (LED/ERR/PORT/CONFIG...)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\05_babyboards\gsa\FLUXO_EXECUCAO.md
+===================================================
+
+# GSA — Estrutura interna
+
+**Status:** Rascunho técnico
+
+## Estrutura esperada
+
+- Transport
+- Link
+- Service
+
+## Papéis
+
+- **Transport:** interface com o barramento
+- **Link:** valida TLV + CRC
+- **Service:** interpreta operações e subcomandos
+
+[Retornar ao README principal](..\..\..\..\README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\05_babyboards\gsa\PINOUT.md
+===================================================
+
+# GSA — Estrutura interna
+
+**Status:** Rascunho técnico
+
+## Estrutura esperada
+
+- Transport
+- Link
+- Service
+
+## Papéis
+
+- **Transport:** interface com o barramento
+- **Link:** valida TLV + CRC
+- **Service:** interpreta operações e subcomandos
+
+[Retornar ao README principal](..\..\..\..\README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\05_babyboards\gsa\PROTOCOLO.md
+===================================================
+
+# GSA — Estrutura interna
+
+**Status:** Rascunho técnico
+
+## Estrutura esperada
+
+- Transport
+- Link
+- Service
+
+## Papéis
+
+- **Transport:** interface com o barramento
+- **Link:** valida TLV + CRC
+- **Service:** interpreta operações e subcomandos
+
+[Retornar ao README principal](..\..\..\..\README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\01_arquitetura\05_babyboards\gsa\README.md
+===================================================
+
+# GSA — Estrutura interna
+
+**Status:** Rascunho técnico
+
+## Estrutura esperada
+
+- Transport
+- Link
+- Service
+
+## Papéis
+
+- **Transport:** interface com o barramento
+- **Link:** valida TLV + CRC
+- **Service:** interpreta operações e subcomandos
+
+[Retornar ao README principal](..\..\..\..\README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\04_desenvolvimento\README.md
+===================================================
+
+# GSA — Estrutura interna
+
+**Status:** Rascunho técnico
+
+## Estrutura esperada
+
+- Transport
+- Link
+- Service
+
+## Papéis
+
+- **Transport:** interface com o barramento
+- **Link:** valida TLV + CRC
+- **Service:** interpreta operações e subcomandos
+
+[Retornar ao README principal](..\..\README.md)
+
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\04_desenvolvimento\technical-roadmap.md
+===================================================
+
+# SimulDIESEL – Technical Roadmap
+
+**Projeto:** SimulDIESEL  
+**Tipo:** Roadmap Técnico  
+**Objetivo:** Planejamento evolutivo do sistema por versões
+
+---
+
+# 1. Fase Atual
+
+## v0.1.0 – Serial Base (Concluído)
+
+✔ Conexão serial estável  
+✔ Arquitetura UI → BLL → DAL consolidada  
+✔ Eventos propagando corretamente  
+✔ Facade SerialLink implementada  
+✔ Atualização automática da UI  
+
+---
+
+# 2. Próxima Fase
+
+## v0.2.0 – Camada de Link (Em desenvolvimento)
+
+Objetivos:
+
+- Implementar máquina de estados do LINK
+- Descartar lixo de boot (DRAINING)
+- Implementar banner textual de validação
+- Implementar timeout de handshake
+- Garantir estado LINKED antes do SGGW
+
+Resultado esperado:
+
+- Comunicação determinística
+- Base sólida para protocolo binário
+
+---
+
+# 3. Evolução de Protocolo
+
+## v0.3.0 – SGGW Framing
+
+Objetivos:
+
+- Definir framing binário
+- Implementar delimitadores
+- Implementar CRC
+- Validar integridade de pacotes
+
+---
+
+## v0.4.0 – Dispatcher & Command Layer
+
+Objetivos:
+
+- Interpretador de comandos
+- Tabela de mensagens
+- Identificação de módulos simulados
+- Respostas estruturadas
+
+---
+
+# 4. Confiabilidade
+
+## v0.5.0 – Heartbeat & Watchdog
+
+Objetivos:
+
+- Ping periódico
+- Timeout de sessão
+- Detecção automática de cabo removido
+- Reconexão controlada
+
+---
+
+# 5. Expansão de Transporte
+
+## v0.6.0 – Multi-Transport Support
+
+Objetivos:
+
+- Separar transporte do protocolo
+- Adicionar WiFi
+- Adicionar Bluetooth
+- Abstração de transporte comum
+
+---
+
+# 6. Camada de Simulação
+
+## v0.7.0 – Simulação de Módulos
+
+Objetivos:
+
+- Implementar gerador CAN
+- Simular sensores
+- Simular estados de ECU
+- Integração com hardware modular
+
+---
+
+# 7. Camada Cloud
+
+## v1.0.0 – Infraestrutura Completa
+
+Objetivos:
+
+- Integração com backend em nuvem
+- Autenticação por assinatura
+- Sincronização remota
+- Atualização OTA
+- Banco de dados de testes
+
+---
+
+# 8. Princípios do Roadmap
+
+- Cada versão deve ser estável antes da próxima.
+- Features grandes devem ser divididas em branches específicas.
+- Cada marco deve possuir documentação própria.
+- Nenhuma camada deve violar responsabilidade arquitetural.
+
+---
+
+# 9. Direção Estratégica
+
+Evoluir o SimulDIESEL para:
+
+- Plataforma modular de diagnóstico
+- Sistema escalável
+- Suporte multi-ECU
+- Integração com IA futura
+
+---
+
+**Roadmap técnico oficial do projeto SimulDIESEL.**
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\04_desenvolvimento\adr\ADR-0007-cobs-crc8.pt-BR.md
+===================================================
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\04_desenvolvimento\adr\README.md
+===================================================
+
+# GSA — Estrutura interna
+
+**Status:** Rascunho técnico
+
+## Estrutura esperada
+
+- Transport
+- Link
+- Service
+
+## Papéis
+
+- **Transport:** interface com o barramento
+- **Link:** valida TLV + CRC
+- **Service:** interpreta operações e subcomandos
+
+[Retornar ao README principal](..\..\..\..\README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\05_hardware\README.md
+===================================================
+
+# GSA — Estrutura interna
+
+**Status:** Rascunho técnico
+
+## Estrutura esperada
+
+- Transport
+- Link
+- Service
+
+## Papéis
+
+- **Transport:** interface com o barramento
+- **Link:** valida TLV + CRC
+- **Service:** interpreta operações e subcomandos
+
+[Retornar ao README principal](..\..\README.md)
+
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\05_hardware\gerador-sinais-analogicos-GSA\ARQUITETURA.md
+===================================================
+
+# GSA — Arquitetura do Firmware
+
+## Objetivo
+
+Documentar a organização interna do firmware do módulo GSA.
+
+## Organização de alto nível
+
+- `Transport`
+- `Link`
+- `Service`
+- `Tlv`
+- `Crc8`
+
+## Observação
+
+Este documento permanece como visão de alto nível. Detalhes finos dependem do firmware efetivamente versionado do GSA.
+
+[Retornar ao README principal](..\..\..\README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\05_hardware\gerador-sinais-analogicos-GSA\CONFIGURACAO.md
+===================================================
+
+# GSA — Configuração do Firmware
+
+## Itens identificados
+
+- endereço I2C do dispositivo
+- tamanho máximo do frame TLV
+- comandos TLV
+- definição do LED de status
+
+## Observação
+
+Este documento descreve itens identificados documentalmente e pode ser refinado conforme o firmware do GSA for auditado em detalhe.
+
+[Retornar ao README principal](..\..\..\README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\05_hardware\gerador-sinais-analogicos-GSA\FLUXO_EXECUCAO.md
+===================================================
+
+# GSA — Fluxo de Execução
+
+## Sequência geral
+
+### setup
+- inicializa LED
+- inicializa transporte I2C
+- inicializa componentes de link
+
+### loop
+- recebe frame TLV
+- valida comprimento e CRC
+- processa comando
+- atualiza estado interno
+
+## Observação
+
+Detalhes exatos dependem da versão do firmware do GSA auditada.
+
+[Retornar ao README principal](..\..\..\README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\05_hardware\gerador-sinais-analogicos-GSA\PINOUT.md
+===================================================
+
+# GSA — Pinout
+
+## Pinos documentados
+
+| Nome lógico | Função |
+|------------|--------|
+| `LED_PIN`  | LED de status |
+
+## Barramento
+
+- I2C slave
+- endereço lógico documentado: `0x23`
+
+## Observação
+
+A pinagem física depende da placa-alvo utilizada no firmware.
+
+[Retornar ao README principal](..\..\..\README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\05_hardware\gerador-sinais-analogicos-GSA\PROTOCOLO.md
+===================================================
+
+# GSA — Protocolo (TLV + CRC-8)
+
+## Visão geral
+
+O firmware do GSA é documentado como utilizando protocolo de barramento baseado em:
+
+`[T][L][V...][CRC]`
+
+Onde:
+
+- `T` = tipo/operação
+- `L` = comprimento do payload
+- `V` = payload
+- `CRC` = CRC-8
+
+## Objetivo
+
+Permitir comunicação simples e validada entre Gateway e GSA.
+
+## Observação
+
+A semântica detalhada dos comandos deve ser alinhada ao contrato atual da GSA e ao firmware efetivamente versionado.
+
+[Retornar ao README principal](..\..\..\README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\legacy-docs\05_hardware\gerador-sinais-analogicos-GSA\README.md
+===================================================
+
+# Gerador de Sinais Analógicos (GSA) — Firmware
+
+Este diretório documenta o firmware do módulo GSA do projeto SimulDIESEL.
+
+## Visão geral
+
+O firmware implementa um dispositivo I2C slave que recebe e responde comandos em formato TLV com validação por CRC-8.
+
+## Funções identificadas
+
+- comunicação I2C via `Wire.h`
+- processamento de frames TLV
+- controle de LED
+- gerenciamento de erros e estado interno
+
+## Referências internas
+
+- `PROTOCOLO.md`
+- `PINOUT.md`
+- `ARQUITETURA.md`
+- `CONFIGURACAO.md`
+- `FLUXO_EXECUCAO.md`
+
+[Retornar ao README principal](..\..\..\README.md)
+
+
+

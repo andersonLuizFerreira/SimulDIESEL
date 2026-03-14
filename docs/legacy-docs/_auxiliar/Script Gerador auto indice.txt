@@ -1,0 +1,64 @@
+$docsRoot = "C:\PROJETOS\SimulDIESEL\docs"
+$indexPath = Join-Path $docsRoot "00-INDICE.md"
+
+if (-not (Test-Path $docsRoot)) {
+    Write-Host "Pasta não encontrada: $docsRoot"
+    exit
+}
+
+$files = Get-ChildItem -Path $docsRoot -Recurse -File |
+    Where-Object { $_.Name -ne "00-INDICE.md" } |
+    Sort-Object FullName
+
+$lines = @()
+$lines += "# SimulDIESEL — Índice da Documentação"
+$lines += ""
+$lines += "Índice gerado automaticamente a partir da árvore atual da pasta \`docs\`."
+$lines += ""
+$lines += "---"
+$lines += ""
+
+$currentSection = $null
+
+foreach ($file in $files) {
+    $relativePath = $file.FullName.Substring($docsRoot.Length).TrimStart('\')
+    $relativeMd = $relativePath -replace '\\','/'
+
+    $parts = $relativePath.Split('\')
+    $section = if ($parts.Length -gt 1) { $parts[0] } else { "raiz" }
+
+    if ($section -ne $currentSection) {
+        if ($currentSection -ne $null) {
+            $lines += ""
+        }
+
+        if ($section -eq "raiz") {
+            $lines += "## Arquivos na raiz"
+        }
+        else {
+            $title = $section -replace '^\d{2}-', ''
+            $title = $title -replace '-', ' '
+            $title = (Get-Culture).TextInfo.ToTitleCase($title)
+            $lines += "## $section"
+        }
+
+        $lines += ""
+        $currentSection = $section
+    }
+
+    $fileName = [System.IO.Path]::GetFileNameWithoutExtension($file.Name)
+    $displayName = $fileName -replace '^\d{2}-', ''
+    $displayName = $displayName -replace '-', ' '
+    $displayName = (Get-Culture).TextInfo.ToTitleCase($displayName)
+
+    $lines += "- [$displayName]($relativeMd)"
+}
+
+$lines += ""
+$lines += "---"
+$lines += ""
+$lines += "_Arquivo gerado automaticamente em $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")_"
+
+Set-Content -Path $indexPath -Value $lines -Encoding UTF8
+
+Write-Host "Índice gerado com sucesso em: $indexPath"

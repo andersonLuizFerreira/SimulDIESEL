@@ -1,0 +1,16 @@
+RECONSTRUCAO DE DOCS - RESUMO
+
+Docs atual:      C:\PROJETOS\SimulDIESEL\docs
+Backup usado:    C:\temp\docs_backup_simuldiesel
+Saida gerada:    C:\PROJETOS\SimulDIESEL\docs_reconstruida
+
+Arquivos do backup processados: 104
+
+Conteudo trazido do docs atual por caminho exato: 2
+Conteudo trazido do docs atual por nome unico:   22
+Arquivos mantidos do backup:                     61
+Casos ambiguos mantidos do backup:              19
+
+Logs:
+- C:\PROJETOS\SimulDIESEL\_rebuild_logs\01-comparacao-docs.csv
+- C:\PROJETOS\SimulDIESEL\_rebuild_logs\02-merge-docs.csv
