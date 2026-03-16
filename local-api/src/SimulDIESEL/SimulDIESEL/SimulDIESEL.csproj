@@ -46,7 +46,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BLL\Boards\GsaClient.cs" />
+    <Compile Include="BLL\GsaLedService.cs" />
     <Compile Include="BLL\LedGwTest_BLL.cs" />
+    <Compile Include="BLL\SDH\SdhClient.cs" />
+    <Compile Include="BLL\SDH\SdhTextParser.cs" />
+    <Compile Include="BLL\SDH\SdhTextSerializer.cs" />
+    <Compile Include="BLL\SDH\SdhToSggwMapper.cs" />
+    <Compile Include="BLL\SDH\SdhValidator.cs" />
     <Compile Include="BLL\SdGgwClient.cs" />
     <Compile Include="BLL\SdGwHealthService.cs" />
     <Compile Include="BLL\SdGwLinkEngine.cs" />
@@ -55,8 +62,18 @@
     <Compile Include="DAL\IByteTransport.cs" />
     <Compile Include="DAL\SerialTransport.cs" />
     <Compile Include="DTL\DeviceInfo.cs" />
+    <Compile Include="DTL\GwProtocol.cs" />
+    <Compile Include="DTL\SdhCommand.cs" />
+    <Compile Include="DTL\SdhResponse.cs" />
+    <Compile Include="DTL\SdhTarget.cs" />
     <Compile Include="DTL\SggwCmd.cs" />
     <Compile Include="DTL\SggwFrame.cs" />
+    <Compile Include="UI\frmGSA_UI.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\frmGSA_UI.Designer.cs">
+      <DependentUpon>frmGSA_UI.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\frmLedGw.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -77,6 +94,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="UI\frmGSA_UI.resx">
+      <DependentUpon>frmGSA_UI.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\frmLedGw.resx">
       <DependentUpon>frmLedGw.cs</DependentUpon>
     </EmbeddedResource>
@@ -108,6 +128,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="SDH_HOST_OVERVIEW.md" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="RESOURCES\Conectado.png" />

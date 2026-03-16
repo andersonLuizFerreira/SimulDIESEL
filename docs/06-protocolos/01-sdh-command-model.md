@@ -1,42 +1,101 @@
-# SDH Command Model (SGGW)
+# SDH Command Model
 
-## Contexto
+## Visão Geral
 
-Este documento descreve o modelo de comando efetivamente implementado para a comunicação entre `local-api` e `ESP32 Gateway`.
+O protocolo SDH define um envelope semântico único para comandos da camada Hardware do SimulDIESEL.
 
-## Estrutura de frame
+Todo comando é composto por:
 
-Formato lógico:
+    version
+    target
+    op
+    args
+    meta
 
-`CMD | FLAGS | SEQ | PAYLOAD | CRC8`
+Esse modelo permite:
 
-- Delimitação de transporte: COBS + byte `0x00`.
-- CRC: `CRC8` em `CMD+FLAGS+SEQ+PAYLOAD`.
+- roteamento simples no firmware;
+- API estável no software local;
+- integração futura com API web;
+- operação manual via terminal/UHM.
 
-## Flags e semântica de transporte
+## Forma textual canônica
 
-- `ACK_REQ (0x01)`
-- `IS_EVT (0x02)`
+Sintaxe:
 
-`ACK` e `ERR` do transporte existem e são tratados pelo engine.
+    sdh/1 <target> <op> chave=valor ...
 
-## Comandos implementados (enum `SggwCmd`)
+Exemplos:
 
-- `Ping = 0x55`
-- `GetVersion = 0x01` (não é foco central da implementação atual)
-- `Echo = 0x02`
-- `LED = 0x03`
-- `LOGOUT = 0x04`
+    sdh/1 BPM.gateway cfg mode=serial
+    sdh/1 PSU.power.main set state=on
+    sdh/1 GSA.ch1 set value=2.50 unit=V
+    sdh/1 BPM.xconn read
 
-## Restrições e observações
+## Forma JSON equivalente
 
-- `CMD_ACK = 0xF1` e `CMD_ERR = 0xF2` são tratados como controle interno do transporte.
-- O gateway ignora frames ACK/ERR na camada app e trata como sinais de confiabilidade.
+    {
+      "version": "sdh/1",
+      "target": "BPM.gateway.serial",
+      "op": "cfg",
+      "args": {
+        "baudrate": 115200
+      },
+      "meta": {}
+    }
 
-## Contrato com GSA
+## Estrutura de target
 
-- `CMD = [ADDR:4][OP:4]`.
-- `ADDR` é interpretado apenas no gateway localmente.
-- `OP` é repassado para `TLV T` no caminho interno.
+Formato:
+
+    <BOARD>.<resource>.<subresource>
+
+Exemplos:
+
+    BPM.gateway
+    BPM.gateway.serial
+    PSU.power.main
+    GSA.ch1
+    URL.relay3
+    UCO.can1
+    UIOD.do5
+
+## Verbos padronizados
+
+    read
+    set
+    cfg
+    run
+    status
+    reset
+
+Formas qualificadas:
+
+    read.id
+    read.cfg
+    set.state
+    run.scan
+    run.apply
+
+## Regras de projeto
+
+- evitar argumentos posicionais;
+- usar nomes explícitos;
+- manter target lógico (não físico);
+- separar set (estado) de cfg (estrutura).
+
+## Evolução
+
+Versões futuras:
+
+    sdh/2
+    sdh/3
+
+Devem manter compatibilidade controlada.
+
+## Referências
+
+- `docs/06-protocolos/02-sdh-response-model.md`
+- `docs/06-protocolos/03-sdh-examples.md`
 
 [Retornar ao README principal](../README.md)

@@ -1,71 +1,256 @@
-# Arquitetura de Firmware do SimulDIESEL
+# Arquitetura de Firmware
 
-## Visão geral
+## Visão Geral
 
-O repositório possui dois firmwares principais:
+O firmware do SimulDIESEL é responsável por:
 
-- Gateway de integração: `hardware/firmware/esp32-api-bridge`
-- Módulo de borda (GSA): `hardware/firmware/gerador-sinais-analogicos-GSA`
+- gerenciar o hardware das baby boards;
+- implementar o transporte físico e lógico de comunicação;
+- interpretar comandos da camada Hardware;
+- executar operações sobre recursos internos;
+- gerar respostas e eventos padronizados.
 
-Os dois firmwares compartilham uma ideia comum de arquitetura em camadas, com separação entre transporte, protocolo/encaminhamento e serviços de aplicação.
+A arquitetura foi projetada para ser modular, previsível e escalável, permitindo a inclusão de novas boards, novos recursos e novos tipos de operação sem impacto estrutural no restante do sistema.
 
-## Camada de transporte
+No estado atual do projeto, a sessão host/gateway continua baseada em `SGGW`, mas a evolução aprovada prevê a introdução do SDH como camada lógica de comando acima do transporte atual.
 
-No ESP32 Gateway:
+## Camadas internas do firmware
 
-- `SggwTransport` encapsula `HardwareSerial` (`115200`, `SERIAL_8N1`).
-- `GwI2cBus` usa `Wire` para barramento I2C.
-- `GwSpiBus` usa `SPI` para barramentos SPI.
+A arquitetura lógica pode ser dividida em cinco camadas principais:
 
-No GSA:
+    Transporte físico
+    Motor de frames
+    Parser de protocolo
+    Router de recursos
+    Lógica funcional
 
-- `Transport` atua como escravo I2C via `TwoWire`, recebendo/entregando buffers TLV.
+Cada camada possui responsabilidades bem definidas.
 
-## Camada de protocolo e parsing
+### Transporte físico
 
-No Gateway:
+Responsável por:
 
-- `SggwParser` decodifica frames COBS e valida CRC8.
-- `SggwLink` gerencia estado de link, handshake por banner, ACK/ERR, retransmissão de resposta e emissão de eventos.
+- UART
+- I2C
+- SPI
+- CAN
+- GPIO
+- timers e periféricos auxiliares
 
-No GSA:
+Essa camada não conhece comandos de alto nível. Ela apenas envia e recebe bytes.
 
-- `Link` valida `[T][L][V...][CRC]`, mantém `errCode` interno e encaminha para `Service`.
-- `Tlv` encapsula a estrutura dos TLVs (`t`, `l`, `v`).
+### Motor de frames
 
-## Camada de roteamento e serviços
+Responsável por:
 
-- `GwRouter` é responsável por `CMD = [ADDR:4][OP:4]`, consulta `GwDeviceTable` e despacha para I2C/SPI.
-- `GatewayApp` é o ponto único de decisão do gateway para cada comando (`onCommand`).
-- `Service` (GSA) implementa operação de `SET/GET` de LED e coordena erros (`GET_ERR`, `CLR_ERR`) via `LedService`.
+- delimitação de frames;
+- validação de CRC;
+- controle de sequência;
+- geração de ACK / RESP;
+- detecção de timeout;
+- retry quando aplicável.
 
-## Fluxo resumido de execução
+No estado atual, essa camada é representada pelo transporte host/gateway baseado em `SGGW`.
 
-1. ESP32 recebe frame SGGW.
-2. `SggwLink` valida e entrega para `GatewayApp`.
-3. Para `addr != 0x0`, o gateway consulta `GwDeviceTable` e roteia para o barramento.
-4. `GwI2cBus`/`GwSpiBus` fazem transação com a baby board.
-5. Resposta TLV retorna ao gateway.
-6. `GatewayApp` envia evento SGGW para a API com o TLV da resposta.
+O motor de frames transforma fluxo de bytes em unidades lógicas confiáveis.
 
-No GSA:
+### Parser de protocolo
 
-1. `Transport` recebe frame TLV completo.
-2. `Link` valida estrutura e CRC.
-3. `Service` executa ação de domínio (`LedService`) e monta resposta.
-4. `Transport` publica resposta para o próximo `requestFrom()`.
+Responsável por:
 
-## Observações de integridade
+- interpretar o comando lógico recebido;
+- validar a estrutura do protocolo ativo;
+- preparar a estrutura interna de execução.
 
-- Existe separação explícita de responsabilidades por camada.
-- O fluxo atual é funcional para o caminho Gateway ↔ GSA e já inclui watchdog e handshake no caminho ESP32.
-- A expansão para novos módulos passa pela expansão do `GwDeviceTable` e dos serviços no nível de app.
+No estado atual, o firmware já possui parsing do fluxo host/gateway e contratos internos de barramento.
+A evolução aprovada é introduzir o parser SDH acima do transporte atual, sem misturar semântica de comando com framing.
 
-## Fontes internas usadas
+### Router de recursos
 
-- `hardware/firmware/esp32-api-bridge/src/main.cpp`
-- `hardware/firmware/esp32-api-bridge/lib/*`
-- `hardware/firmware/gerador-sinais-analogicos-GSA/src/main.cpp`
-- `hardware/firmware/gerador-sinais-analogicos-GSA/lib/*`
+Responsável por:
+
+- resolver a baby board;
+- resolver o recurso interno;
+- encaminhar a operação para o módulo correto;
+- tratar indisponibilidade, busy e unsupported.
+
+Essa camada implementa o endereçamento lógico:
+
+    <BOARD>.<resource>.<subresource>
+
+Exemplos:
+
+    BPM.gateway
+    BPM.gateway.serial
+    PSU.power.main
+    GSA.led
+    UCO.can1
+
+### Lógica funcional
+
+Responsável por:
+
+- executar operações físicas reais;
+- configurar periféricos;
+- alterar estados;
+- ler sensores;
+- atualizar DAC / PWM / GPIO;
+- interagir com drivers específicos.
+
+Cada baby board possui sua própria implementação funcional.
+
+## Situação atual e evolução aprovada
+
+Hoje o gateway já resolve:
+
+- sessão host/gateway;
+- roteamento por endereço;
+- despacho por barramento;
+- contratos internos com devices.
+
+A evolução aprovada adiciona um novo passo no gateway:
+
+    transporte confiável
+        -> parser SDH
+        -> router lógico
+        -> binding lógico-físico
+        -> mapper para contrato interno
+        -> execução no barramento/device
+
+Isso permite que o gateway passe a ser o responsável por converter comandos semânticos em transações concretas sobre a infraestrutura física da bancada.
+
+## Modelo de comando SDH no firmware
+
+O modelo lógico aprovado para a camada Hardware é:
+
+    version
+    target
+    op
+    args
+    meta
+
+Fluxo interno pretendido:
+
+1. Receber frame válido do host
+2. Extrair o comando lógico
+3. Parser valida versão
+4. Router resolve target
+5. Binding lógico-físico define a rota real
+6. Mapper interno converte para o contrato legado atual
+7. Handler executa
+8. Response Builder monta a resposta
+
+## Primeiro caso de uso aprovado para o gateway
+
+O primeiro comando oficial a ser suportado nessa arquitetura é:
+
+    sdh/1 GSA.led set state=on
+    sdh/1 GSA.led set state=off
+
+Esse caso foi escolhido porque já existe caminho funcional entre host, gateway e GSA, permitindo validar a nova arquitetura sem romper o legado já estável.
+
+## Dispatcher de operações
+
+O dispatcher utiliza um conjunto pequeno e estável de verbos:
+
+    read
+    set
+    cfg
+    run
+    status
+    reset
+
+Formas qualificadas podem existir:
+
+    read.id
+    read.cfg
+    set.state
+    run.scan
+    run.apply
+
+Isso permite padronização entre boards diferentes.
+
+## Modelo de resposta
+
+Toda resposta gerada pelo firmware deve convergir para envelope comum:
+
+    version
+    ok
+    target
+    op
+    code
+    message
+    data
+    meta
+
+Tipos de resposta:
+
+- confirmação de escrita/configuração;
+- retorno de leitura;
+- resposta de status;
+- erro padronizado.
+
+Códigos de erro recomendados:
+
+    OK
+    INVALID_TARGET
+    INVALID_OP
+    INVALID_ARG
+    MISSING_ARG
+    OUT_OF_RANGE
+    UNSUPPORTED
+    BUSY
+    FAULT
+    TIMEOUT
+
+## Eventos assíncronos
+
+O firmware pode gerar eventos independentes de requisição:
+
+    sdh/1 evt <source> <name> chave=valor ...
+
+Exemplos:
+
+- inserção/remoção de X-CONN;
+- fault de PSU;
+- mudança de estado CAN;
+- watchdog;
+- alteração de entrada digital.
+
+## Persistência e perfis
+
+Configurações realizadas com `cfg` podem:
+
+- ser temporárias;
+- ser persistidas em NVS / EEPROM / Flash;
+- ser aplicadas via `run.apply`;
+- ser restauradas via `reset` ou `run.profile`.
+
+## Escalabilidade
+
+A arquitetura permite:
+
+- inclusão de novas baby boards sem alterar o transporte host/gateway;
+- inclusão de novos recursos apenas registrando handlers;
+- expansão do protocolo mantendo compatibilidade por versão (`sdh/1`, `sdh/2` etc.);
+- coexistência de múltiplos transportes.
+
+## Integração com o software host
+
+O firmware foi projetado para operar com:
+
+- Dashboard local em C#;
+- API web futura;
+- terminal humano (UHM);
+- scripts automatizados.
+
+A evolução SDH mantém essa flexibilidade, mas desloca para o gateway a responsabilidade de resolver o target lógico e convertê-lo para a rota física real.
+
+## Referências
+
+- `docs/04-firmware/04-sdh-gateway-architecture.md`
+- `docs/06-protocolos/01-sdh-command-model.md`
+- `docs/06-protocolos/02-sdh-response-model.md`
+- `docs/06-protocolos/03-sdh-examples.md`
 
 [Retornar ao README principal](../README.md)

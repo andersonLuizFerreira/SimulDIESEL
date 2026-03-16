@@ -36,15 +36,24 @@ O repositório mostra uma arquitetura de bancada composta por:
 - [Arquitetura de firmware](./04-firmware/01-arquitetura-firmware.md)
 - [Drivers](./04-firmware/02-drivers.md)
 - [Gerenciamento de recursos](./04-firmware/03-gerenciamento-recursos.md)
+- [Arquitetura SDH no gateway](./04-firmware/04-sdh-gateway-architecture.md)
+- [Catálogo de baby boards](./04-firmware/05-catalogo-baby-boards.md)
+- [Binding lógico-físico do gateway](./04-firmware/06-gateway-binding-logico-fisico.md)
+- [Resolver Engine do gateway](./04-firmware/07-resolver-engine-gateway.md)
+- [Boards de firmware](./04-firmware/boards/README.md)
 
 ### Software local e protocolos
 
 - [Arquitetura do software](./05-software-dashboard/01-arquitetura-software.md)
 - [Interface de usuário](./05-software-dashboard/02-interface-usuario.md)
 - [Camada de hardware do software](./05-software-dashboard/03-camada-hardware.md)
+- [Arquitetura SDH no host](./05-software-dashboard/04-sdh-host-architecture.md)
+- [Onboarding de comandos](./06-protocolos/00-onboarding-comandos.md)
 - [SDH Command Model](./06-protocolos/01-sdh-command-model.md)
-- [CAN](./06-protocolos/02-can.md)
-- [J1939](./06-protocolos/03-j1939.md)
+- [SDH Response Model](./06-protocolos/02-sdh-response-model.md)
+- [SDH Examples](./06-protocolos/03-sdh-examples.md)
+- [CAN](./06-protocolos/04-can.md)
+- [J1939](./06-protocolos/05-j1939.md)
 
 ### Simulações, uso e desenvolvimento
 

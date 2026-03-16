@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO.Ports;
 using System.Text;
+using SimulDIESEL.BLL.Boards;
+using SimulDIESEL.BLL.SDH;
 using SimulDIESEL.DAL;
 using SimulDIESEL.DTL;
 
@@ -43,6 +45,8 @@ namespace SimulDIESEL.BLL
         public string NomeDaInterface { get; private set; } = "Nenhum";
 
         public SdGgwClient Sggw { get; private set; }
+        public SdhClient Sdh { get; private set; }
+        public GsaClient Gsa { get; private set; }
 
         public bool IsLinked => State == LinkState.Linked;
         public bool IsConnected => _transport.IsOpen;
@@ -79,6 +83,8 @@ namespace SimulDIESEL.BLL
             _engine = new SdGwLinkEngine(cfg, WriteRaw);
 
             Sggw = new SdGgwClient(_engine);
+            Sdh = new SdhClient(Sggw);
+            Gsa = new GsaClient(Sdh, Sggw);
 
             var healthCfg = new SdGwHealthService.Config
             {
@@ -154,6 +160,8 @@ namespace SimulDIESEL.BLL
 
             if (_health != null) _health.Dispose();
             _health = null;
+            if (Gsa != null) Gsa.Dispose();
+            Gsa = null;
             _engine = null;
 
             _transport.Dispose();

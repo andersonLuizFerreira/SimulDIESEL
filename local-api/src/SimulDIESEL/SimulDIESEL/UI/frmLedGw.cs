@@ -30,6 +30,7 @@ namespace SimulDIESEL.UI
         private void frmLedGw_Load(object sender, EventArgs e)
         {
             _bll = new LedGwTest_BLL(
+                SerialLink.Service.Gsa,
                 SerialLink.Service.Sggw,
                 isLinked: () => SerialLink.IsLinked
             );

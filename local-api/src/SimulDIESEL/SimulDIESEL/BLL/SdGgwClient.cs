@@ -45,10 +45,11 @@ namespace SimulDIESEL.BLL
         }
 
         /// <summary>
-        /// Envia comando SGGW com payload arbitrário.
+        /// Envia comando SGGW bruto com payload arbitrario.
+        /// Usado quando o host ja resolveu o comando semantico para o byte compacto legado.
         /// </summary>
         public Task<SdGwLinkEngine.SendOutcome> SendAsync(
-            SggwCmd cmd,
+            byte cmd,
             byte[] payload,
             bool requireAck = true,
             int timeoutMs = 150,
@@ -65,9 +66,34 @@ namespace SimulDIESEL.BLL
             };
 
             return _engine.SendAsync(
-                cmd: (byte)cmd,
+                cmd: cmd,
                 payload: payload ?? Array.Empty<byte>(),
                 opt: opt);
+        }
+
+        /// <summary>
+        /// Envia comando SGGW com payload arbitrário.
+        /// </summary>
+        public Task<SdGwLinkEngine.SendOutcome> SendAsync(
+            SggwCmd cmd,
+            byte[] payload,
+            bool requireAck = true,
+            int timeoutMs = 150,
+            int retries = 2)
+        {
+            return SendAsync((byte)cmd, payload, requireAck, timeoutMs, retries);
+        }
+
+        /// <summary>
+        /// Envia comando SGGW bruto sem payload.
+        /// </summary>
+        public Task<SdGwLinkEngine.SendOutcome> SendAsync(
+            byte cmd,
+            bool requireAck = true,
+            int timeoutMs = 150,
+            int retries = 2)
+        {
+            return SendAsync(cmd, Array.Empty<byte>(), requireAck, timeoutMs, retries);
         }
 
         /// <summary>
@@ -83,10 +109,10 @@ namespace SimulDIESEL.BLL
         }
 
         /// <summary>
-        /// Envia comando e retorna o SEQ usado + Task que completa quando ACK/ERR/Timeout ocorrer.
+        /// Envia comando bruto e retorna o SEQ usado + Task que completa quando ACK/ERR/Timeout ocorrer.
         /// </summary>
         public SdGwLinkEngine.SendTicket SendWithSeq(
-            SggwCmd cmd,
+            byte cmd,
             byte[] payload,
             bool requireAck = true,
             int timeoutMs = 150,
@@ -103,9 +129,34 @@ namespace SimulDIESEL.BLL
             };
 
             return _engine.SendWithSeq(
-                cmd: (byte)cmd,
+                cmd: cmd,
                 payload: payload ?? Array.Empty<byte>(),
                 opt: opt);
+        }
+
+        /// <summary>
+        /// Envia comando e retorna o SEQ usado + Task que completa quando ACK/ERR/Timeout ocorrer.
+        /// </summary>
+        public SdGwLinkEngine.SendTicket SendWithSeq(
+            SggwCmd cmd,
+            byte[] payload,
+            bool requireAck = true,
+            int timeoutMs = 150,
+            int retries = 1)
+        {
+            return SendWithSeq((byte)cmd, payload, requireAck, timeoutMs, retries);
+        }
+
+        /// <summary>
+        /// Envia comando bruto sem payload e retorna o SEQ usado + Task que completa quando ACK/ERR/Timeout ocorrer.
+        /// </summary>
+        public SdGwLinkEngine.SendTicket SendWithSeq(
+            byte cmd,
+            bool requireAck = true,
+            int timeoutMs = 150,
+            int retries = 1)
+        {
+            return SendWithSeq(cmd, Array.Empty<byte>(), requireAck, timeoutMs, retries);
         }
 
         /// <summary>

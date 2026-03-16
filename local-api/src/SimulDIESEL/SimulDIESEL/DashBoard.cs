@@ -184,5 +184,21 @@ namespace SimulDIESEL
         {
 
         }
+
+        private void gSAGERADORDENIVEISANALOGICOSToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var frmGsa = frmGSA_UI.Instance;
+
+            if (frmGsa.Visible)
+            {
+                frmGsa.BringToFront();
+                frmGsa.Activate();
+                return;
+            }
+
+            frmGsa.MdiParent = this;
+            frmGsa.StartPosition = FormStartPosition.CenterParent;
+            frmGsa.Show();
+        }
     }
 }

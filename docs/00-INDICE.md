@@ -28,18 +28,37 @@
 - [01. Arquitetura de firmware](04-firmware/01-arquitetura-firmware.md)
 - [02. Drivers](04-firmware/02-drivers.md)
 - [03. Gerenciamento de recursos](04-firmware/03-gerenciamento-recursos.md)
+- [04. Arquitetura SDH no gateway](04-firmware/04-sdh-gateway-architecture.md)
+- [05. Catálogo de baby boards](04-firmware/05-catalogo-baby-boards.md)
+- [06. Binding lógico-físico do gateway](04-firmware/06-gateway-binding-logico-fisico.md)
+- [07. Resolver Engine do gateway](04-firmware/07-resolver-engine-gateway.md)
+- [Boards de firmware](04-firmware/boards/README.md)
+- [Board BPM](04-firmware/boards/01-bpm.md)
+- [Board PSU](04-firmware/boards/02-psu.md)
+- [Board GSA](04-firmware/boards/03-gsa.md)
+- [Board GSC](04-firmware/boards/04-gsc.md)
+- [Board URL](04-firmware/boards/05-url.md)
+- [Board SLU](04-firmware/boards/06-slu.md)
+- [Board UCO](04-firmware/boards/07-uco.md)
+- [Board UCS](04-firmware/boards/08-ucs.md)
+- [Board UIOD](04-firmware/boards/09-uiod.md)
+- [Board UHM](04-firmware/boards/10-uhm.md)
 
 ## 05-software-dashboard
 
 - [01. Arquitetura software](05-software-dashboard/01-arquitetura-software.md)
 - [02. Interface de usuário](05-software-dashboard/02-interface-usuario.md)
 - [03. Camada hardware](05-software-dashboard/03-camada-hardware.md)
+- [04. Arquitetura SDH no host](05-software-dashboard/04-sdh-host-architecture.md)
 
 ## 06-protocolos
 
-- [01. SDH/SGGW (modelo de comando)](06-protocolos/01-sdh-command-model.md)
-- [02. CAN](06-protocolos/02-can.md)
-- [03. J1939](06-protocolos/03-j1939.md)
+- [00. Onboarding de comandos](06-protocolos/00-onboarding-comandos.md)
+- [01. SDH Command Model](06-protocolos/01-sdh-command-model.md)
+- [02. SDH Response Model](06-protocolos/02-sdh-response-model.md)
+- [03. SDH Examples](06-protocolos/03-sdh-examples.md)
+- [04. CAN](06-protocolos/04-can.md)
+- [05. J1939](06-protocolos/05-j1939.md)
 
 ## 07-simulacoes
 

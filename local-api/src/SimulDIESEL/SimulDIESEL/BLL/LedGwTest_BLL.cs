@@ -1,4 +1,4 @@
-﻿using SimulDIESEL.DTL;
+using SimulDIESEL.BLL.Boards;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 namespace SimulDIESEL.BLL
 {
     /// <summary>
-    /// Serviço BLL para teste do comando LED via SGGW.
-    /// Envia toggle a cada 1s e recebe o estado real do ESP-32.
+    /// Serviço BLL para teste do LED do gateway.
+    /// Usa SDH como camada semântica e preserva SGGW como transporte atual.
     /// </summary>
     public sealed class LedGwTest_BLL : IDisposable
     {
-        private readonly SdGgwClient _sggw;
+        private readonly GsaClient _gsa;
         private readonly Func<bool> _isLinked;
 
         private Timer _timer;
@@ -22,12 +22,11 @@ namespace SimulDIESEL.BLL
 
         public event Action<bool> LedStatusChanged;
 
-        public LedGwTest_BLL(SdGgwClient sggw, Func<bool> isLinked)
+        public LedGwTest_BLL(GsaClient gsa, SdGgwClient sggw, Func<bool> isLinked)
         {
-            _sggw = sggw ?? throw new ArgumentNullException(nameof(sggw));
+            _gsa = gsa ?? throw new ArgumentNullException(nameof(gsa));
+            if (sggw == null) throw new ArgumentNullException(nameof(sggw));
             _isLinked = isLinked ?? throw new ArgumentNullException(nameof(isLinked));
-
-            _sggw.FrameReceived += OnFrameReceived;
 
             // Cria o timer no "load" da BLL, mas não o inicia (pausado).
             // O timer será reiniciado por Start() e pausado por Stop().
@@ -79,37 +78,15 @@ namespace SimulDIESEL.BLL
             if (!_isLinked())
                 return;
 
-            byte[] payload = { (byte)(on ? 1 : 0) };
-
-            await _sggw.SendAsync(
-                cmd: SggwCmd.LED,
-                payload: payload,
-                requireAck: false,
-                timeoutMs: 150,
-                retries: 0
-            ).ConfigureAwait(false);
-        }
-
-        private void OnFrameReceived(SggwFrame frame)
-        {
-            if (frame == null)
+            GsaLedResult result = await _gsa.SetBuiltinLedAsync(on).ConfigureAwait(false);
+            if (!result.Success)
                 return;
 
-            if (frame.Cmd != (byte)SggwCmd.LED)
-                return;
-
-            if (frame.Payload == null || frame.Payload.Length < 1)
-                return;
-
-            bool isOn = frame.Payload[0] != 0;
-
-            LedStatusChanged?.Invoke(isOn);
+            LedStatusChanged?.Invoke(result.AppliedState ?? on);
         }
 
         public void Dispose()
         {
-            _sggw.FrameReceived -= OnFrameReceived;
-
             // Descarta o timer ao destruir a BLL
             try { _timer?.Dispose(); } catch { }
             _timer = null;

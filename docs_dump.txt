@@ -42,9 +42,11 @@ ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\00-INDICE.md
 
 ## 06-protocolos
 
-- [01. SDH/SGGW (modelo de comando)](06-protocolos/01-sdh-command-model.md)
-- [02. CAN](06-protocolos/02-can.md)
-- [03. J1939](06-protocolos/03-j1939.md)
+- [01. SDH Command Model](06-protocolos/01-sdh-command-model.md)
+- [02. SDH Response Model](06-protocolos/02-sdh-response-model.md)
+- [03. SDH Examples](06-protocolos/03-sdh-examples.md)
+- [04. CAN](06-protocolos/04-can.md)
+- [05. J1939](06-protocolos/05-j1939.md)
 
 ## 07-simulacoes
 
@@ -137,8 +139,10 @@ O repositório mostra uma arquitetura de bancada composta por:
 - [Interface de usuário](./05-software-dashboard/02-interface-usuario.md)
 - [Camada de hardware do software](./05-software-dashboard/03-camada-hardware.md)
 - [SDH Command Model](./06-protocolos/01-sdh-command-model.md)
-- [CAN](./06-protocolos/02-can.md)
-- [J1939](./06-protocolos/03-j1939.md)
+- [SDH Response Model](./06-protocolos/02-sdh-response-model.md)
+- [SDH Examples](./06-protocolos/03-sdh-examples.md)
+- [CAN](./06-protocolos/04-can.md)
+- [J1939](./06-protocolos/05-j1939.md)
 
 ### Simulações, uso e desenvolvimento
 
@@ -478,22 +482,18 @@ O fluxo de comunicação implementado no repositório é híbrido: textual no bo
 
 Máquina de estados do host (`SerialLinkService`):
 
-```
-Disconnected
-  -> SerialConnected
-  -> Draining
-  -> BannerSent
-  -> Linked
-  -> LinkFailed
-```
+    Disconnected
+      -> SerialConnected
+      -> Draining
+      -> BannerSent
+      -> Linked
+      -> LinkFailed
 
 Máquina de estados do gateway (`SggwLink`):
 
-```
-WaitingBanner
-  -> Linked
-  -> WaitingBanner (se resetar ou expirar)
-```
+    WaitingBanner
+      -> Linked
+      -> WaitingBanner (se resetar ou expirar)
 
 O host drena a serial, envia o banner de ativação e aguarda uma linha iniciada por `SimulDIESEL ver`. Depois disso, ativa o motor de frames.
 
@@ -501,9 +501,7 @@ O host drena a serial, envia o banner de ativação e aguarda uma linha iniciada
 
 Estrutura lógica observada em `Sggw.defs.h`:
 
-```text
-CMD | FLAGS | SEQ | PAYLOAD... | CRC8
-```
+    CMD | FLAGS | SEQ | PAYLOAD... | CRC8
 
 - `CMD`: 4 bits de endereço e 4 bits de operação.
 - `FLAGS`: inclui pedido de `ACK` e marcação de evento.
@@ -516,31 +514,27 @@ Esse bloco é codificado em `COBS` e finalizado com delimitador `0x00`.
 
 Exemplo conceitual de `PING` para o endereço do gateway:
 
-```text
-Host
-  Frame lógico: CMD=0x01 FLAGS=0x01 SEQ=0x10 PAYLOAD=[]
-  -> COBS(...)
-  -> 00
+    Host
+      Frame lógico: CMD=0x01 FLAGS=0x01 SEQ=0x10 PAYLOAD=[]
+      -> COBS(...)
+      -> 00
 
-Gateway
-  valida frame
-  gera ACK/RESP
-  devolve frame com mesmo SEQ
-```
+    Gateway
+      valida frame
+      gera ACK/RESP
+      devolve frame com mesmo SEQ
 
 Exemplo de operação roteada para o GSA:
 
-```text
-Host -> Gateway:
-  CMD = [ADDR_GSA | OP_GSA_TLV]
-  PAYLOAD = TLV do dispositivo
+    Host -> Gateway:
+      CMD = [ADDR_GSA | OP_GSA_TLV]
+      PAYLOAD = TLV do dispositivo
 
-Gateway -> GSA (I2C):
-  T | L | V... | CRC8
+    Gateway -> GSA (I2C):
+      T | L | V... | CRC8
 
-GSA -> Gateway:
-  T | L | V... | CRC8
-```
+    GSA -> Gateway:
+      T | L | V... | CRC8
 
 ### Fase 3: roteamento interno
 
@@ -551,6 +545,36 @@ GSA -> Gateway:
 - parâmetros necessários para a transação.
 
 `GwI2cBus::transact` e `GwSpiBus::transact` usam a mesma ideia de request/resposta curta e validada, preservando um contrato uniforme para o restante do firmware.
+
+## Integração com o modelo SDH
+
+A arquitetura de evolução do SimulDIESEL deve convergir para o padrão SDH (SimulDiesel Hardware Command) como contrato oficial da camada Hardware.
+
+Nesse modelo, todo comando é composto por:
+
+- `version`
+- `target`
+- `op`
+- `args`
+- `meta`
+
+O fluxo lógico de processamento esperado passa a ser:
+
+1. recepção do comando;
+2. validação da versão;
+3. resolução do `target`;
+4. resolução da `op`;
+5. validação dos `args`;
+6. execução no recurso correspondente;
+7. montagem da resposta padronizada.
+
+Esse padrão permite desacoplamento entre:
+
+- transporte físico;
+- parser do protocolo;
+- roteamento por board;
+- lógica funcional do recurso;
+- representação textual e JSON.
 
 ## Limitações
 
@@ -563,7 +587,14 @@ O fluxo atual já suporta a ampliação natural do sistema:
 - novos `OP codes` por endereço;
 - novos dispositivos na tabela do gateway;
 - novos tipos de evento gerados do firmware para a UI;
-- maior densidade de payloads TLV, desde que respeitados os limites de tamanho do enlace.
+- maior densidade de payloads TLV, desde que respeitados os limites de tamanho do enlace;
+- convergência gradual para o envelope semântico SDH como contrato único da camada Hardware.
+
+## Referências
+
+- `docs/06-protocolos/01-sdh-command-model.md`
+- `docs/06-protocolos/02-sdh-response-model.md`
+- `docs/06-protocolos/03-sdh-examples.md`
 
 [Retornar ao README principal](../README.md)
 
@@ -798,75 +829,226 @@ Para que a documentação de alimentação fique madura, é necessário consolid
 ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\04-firmware\01-arquitetura-firmware.md
 ===================================================
 
-# Arquitetura de Firmware do SimulDIESEL
+# Arquitetura de Firmware
 
-## Visão geral
+## Visão Geral
 
-O repositório possui dois firmwares principais:
+O firmware do SimulDIESEL é responsável por:
 
-- Gateway de integração: `hardware/firmware/esp32-api-bridge`
-- Módulo de borda (GSA): `hardware/firmware/gerador-sinais-analogicos-GSA`
+- gerenciar o hardware das baby boards;
+- implementar o transporte físico e lógico de comunicação;
+- interpretar comandos da camada Hardware (SDH);
+- executar operações sobre recursos internos;
+- gerar respostas e eventos padronizados.
 
-Os dois firmwares compartilham uma ideia comum de arquitetura em camadas, com separação entre transporte, protocolo/encaminhamento e serviços de aplicação.
+A arquitetura foi projetada para ser modular, previsível e escalável, permitindo a inclusão de novas boards, novos recursos e novos tipos de operação sem impacto estrutural no restante do sistema.
 
-## Camada de transporte
+## Camadas internas do firmware
 
-No ESP32 Gateway:
+A arquitetura lógica pode ser dividida em cinco camadas principais:
 
-- `SggwTransport` encapsula `HardwareSerial` (`115200`, `SERIAL_8N1`).
-- `GwI2cBus` usa `Wire` para barramento I2C.
-- `GwSpiBus` usa `SPI` para barramentos SPI.
+    Transporte físico
+    Motor de frames
+    Parser de protocolo
+    Router de recursos
+    Lógica funcional
 
-No GSA:
+Cada camada possui responsabilidades bem definidas.
 
-- `Transport` atua como escravo I2C via `TwoWire`, recebendo/entregando buffers TLV.
+### Transporte físico
 
-## Camada de protocolo e parsing
+Responsável por:
 
-No Gateway:
+- UART
+- I2C
+- SPI
+- CAN
+- GPIO
+- timers e periféricos auxiliares
 
-- `SggwParser` decodifica frames COBS e valida CRC8.
-- `SggwLink` gerencia estado de link, handshake por banner, ACK/ERR, retransmissão de resposta e emissão de eventos.
+Essa camada não conhece comandos de alto nível. Ela apenas envia e recebe bytes.
 
-No GSA:
+### Motor de frames
 
-- `Link` valida `[T][L][V...][CRC]`, mantém `errCode` interno e encaminha para `Service`.
-- `Tlv` encapsula a estrutura dos TLVs (`t`, `l`, `v`).
+Responsável por:
 
-## Camada de roteamento e serviços
+- delimitação de frames (COBS + 0x00);
+- validação de CRC;
+- controle de sequência;
+- geração de ACK / RESP;
+- detecção de timeout;
+- retry quando aplicável.
 
-- `GwRouter` é responsável por `CMD = [ADDR:4][OP:4]`, consulta `GwDeviceTable` e despacha para I2C/SPI.
-- `GatewayApp` é o ponto único de decisão do gateway para cada comando (`onCommand`).
-- `Service` (GSA) implementa operação de `SET/GET` de LED e coordena erros (`GET_ERR`, `CLR_ERR`) via `LedService`.
+O motor de frames transforma fluxo de bytes em unidades lógicas confiáveis.
 
-## Fluxo resumido de execução
+### Parser de protocolo (SDH)
 
-1. ESP32 recebe frame SGGW.
-2. `SggwLink` valida e entrega para `GatewayApp`.
-3. Para `addr != 0x0`, o gateway consulta `GwDeviceTable` e roteia para o barramento.
-4. `GwI2cBus`/`GwSpiBus` fazem transação com a baby board.
-5. Resposta TLV retorna ao gateway.
-6. `GatewayApp` envia evento SGGW para a API com o TLV da resposta.
+Responsável por:
 
-No GSA:
+- interpretar o envelope do comando;
+- validar `version`;
+- extrair `target`;
+- extrair `op`;
+- validar e estruturar `args`;
+- preparar estrutura interna de execução.
 
-1. `Transport` recebe frame TLV completo.
-2. `Link` valida estrutura e CRC.
-3. `Service` executa ação de domínio (`LedService`) e monta resposta.
-4. `Transport` publica resposta para o próximo `requestFrom()`.
+O parser não executa hardware diretamente.
 
-## Observações de integridade
+### Router de recursos
 
-- Existe separação explícita de responsabilidades por camada.
-- O fluxo atual é funcional para o caminho Gateway ↔ GSA e já inclui watchdog e handshake no caminho ESP32.
-- A expansão para novos módulos passa pela expansão do `GwDeviceTable` e dos serviços no nível de app.
+Responsável por:
 
-## Fontes internas usadas
+- resolver a baby board;
+- resolver o recurso interno;
+- encaminhar a operação para o módulo correto;
+- tratar indisponibilidade, busy e unsupported.
 
-- `hardware/firmware/esp32-api-bridge/src/main.cpp`
-- `hardware/firmware/esp32-api-bridge/lib/*`
-- `hardware/firmware/gerador-sinais-analogicos-GSA/src/main.cpp`
-- `hardware/firmware/gerador-sinais-analogicos-GSA/lib/*`
+Essa camada implementa o endereçamento lógico:
+
+    <BOARD>.<resource>.<subresource>
+
+Exemplos:
+
+    BPM.gateway
+    BPM.gateway.serial
+    PSU.power.main
+    GSA.ch1
+    UCO.can1
+
+### Lógica funcional
+
+Responsável por:
+
+- executar operações físicas reais;
+- configurar periféricos;
+- alterar estados;
+- ler sensores;
+- atualizar DAC / PWM / GPIO;
+- interagir com drivers específicos.
+
+Cada baby board possui sua própria implementação funcional.
+
+## Modelo de comando SDH no firmware
+
+Todo comando recebido segue o envelope lógico:
+
+    version
+    target
+    op
+    args
+    meta
+
+Fluxo interno típico:
+
+1. Receber frame válido
+2. Parser valida versão
+3. Router resolve target
+4. Dispatcher resolve operação
+5. Handler executa
+6. Response Builder monta resposta
+
+## Dispatcher de operações
+
+O dispatcher utiliza um conjunto pequeno e estável de verbos:
+
+    read
+    set
+    cfg
+    run
+    status
+    reset
+
+Formas qualificadas podem existir:
+
+    read.id
+    read.cfg
+    set.state
+    run.scan
+    run.apply
+
+Isso permite padronização entre boards diferentes.
+
+## Modelo de resposta
+
+Toda resposta gerada pelo firmware deve seguir envelope comum:
+
+    version
+    ok
+    target
+    op
+    code
+    message
+    data
+    meta
+
+Tipos de resposta:
+
+- confirmação de escrita/configuração;
+- retorno de leitura;
+- resposta de status;
+- erro padronizado.
+
+Códigos de erro recomendados:
+
+    OK
+    INVALID_TARGET
+    INVALID_OP
+    INVALID_ARG
+    MISSING_ARG
+    OUT_OF_RANGE
+    UNSUPPORTED
+    BUSY
+    FAULT
+    TIMEOUT
+
+## Eventos assíncronos
+
+O firmware pode gerar eventos independentes de requisição:
+
+    sdh/1 evt <source> <name> chave=valor ...
+
+Exemplos:
+
+- inserção/remoção de X-CONN;
+- fault de PSU;
+- mudança de estado CAN;
+- watchdog;
+- alteração de entrada digital.
+
+## Persistência e perfis
+
+Configurações realizadas com `cfg` podem:
+
+- ser temporárias;
+- ser persistidas em NVS / EEPROM / Flash;
+- ser aplicadas via `run.apply`;
+- ser restauradas via `reset` ou `run.profile`.
+
+## Escalabilidade
+
+A arquitetura permite:
+
+- inclusão de novas baby boards sem alterar parser central;
+- inclusão de novos recursos apenas registrando handlers;
+- expansão do protocolo mantendo compatibilidade por versão (`sdh/1`, `sdh/2` etc.);
+- coexistência de múltiplos transportes.
+
+## Integração com o software host
+
+O firmware foi projetado para operar com:
+
+- Dashboard local em C#;
+- API web futura;
+- terminal humano (UHM);
+- scripts automatizados.
+
+A dupla representação textual e JSON do SDH garante flexibilidade de integração.
+
+## Referências
+
+- `docs/06-protocolos/01-sdh-command-model.md`
+- `docs/06-protocolos/02-sdh-response-model.md`
+- `docs/06-protocolos/03-sdh-examples.md`
 
 [Retornar ao README principal](../README.md)
 
@@ -1101,69 +1283,93 @@ A base atual favorece a expansão da UI em três direções:
 ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\05-software-dashboard\03-camada-hardware.md
 ===================================================
 
-# Camada Hardware do Software
+# Camada Hardware (Dashboard)
 
-## Estado atual
+## Visão Geral
 
-A camada de hardware do software local é a porção da aplicação que faz a ponte entre a UI e o gateway físico. No repositório, ela está distribuída principalmente entre `DAL` e `BLL`, com interfaces e serviços que isolam a serial, o handshake e o protocolo binário da interface de usuário.
+A camada Hardware do Dashboard é responsável por:
 
-Os componentes centrais são:
+- montar comandos SDH;
+- enviar comandos ao gateway;
+- aguardar respostas;
+- interpretar envelopes de resposta;
+- expor uma API interna estável para a UI e para a BLL.
 
-- `IByteTransport`
-- `SerialTransport`
-- `SerialLinkService`
-- `SdGwLinkEngine`
-- `SdGgwClient`
-- `SdGwHealthService`
+Essa camada abstrai completamente:
 
-## Funcionamento técnico
+- transporte serial;
+- framing binário;
+- parsing de baixo nível;
+- detalhes físicos das baby boards.
 
-### Responsabilidades por classe
+## Modelo de comando utilizado
 
-- `IByteTransport`: contrato mínimo para leitura, escrita e ciclo de vida do transporte.
-- `SerialTransport`: implementação concreta do acesso à porta serial.
-- `SerialLinkService`: sincronização inicial com o firmware, controle de estados e detecção de banner.
-- `SdGwLinkEngine`: empacotamento de frames, confirmação por `ACK`, cache de respostas e timeout/retry.
-- `SdGgwClient`: API orientada a comando para a camada superior.
-- `SdGwHealthService`: monitoramento periódico por `ping`, com notificação de mudança de estado do link.
+O Dashboard utiliza o envelope SDH:
 
-### Fluxo técnico interno
+    version
+    target
+    op
+    args
+    meta
 
-```text
-UI
-  -> SdGgwClient.SendAsync(...)
-  -> SdGwLinkEngine monta frame
-  -> SerialTransport envia bytes
-  -> resposta retorna pela serial
-  -> engine valida, correlaciona SEQ e libera a resposta
-```
+Exemplo lógico:
 
-Esse desenho é importante porque a UI não precisa conhecer `COBS`, `CRC8`, sequência ou retransmissão. A aplicação local concentra a complexidade de hardware em serviços especializados.
+    sdh/1 GSA.ch1 set value=2.50 unit=V
 
-### Exemplo conceitual de payload
+Forma JSON equivalente:
 
-Para uma operação de teste no gateway:
+    {
+      "version": "sdh/1",
+      "target": "GSA.ch1",
+      "op": "set",
+      "args": {
+        "value": 2.50,
+        "unit": "V"
+      },
+      "meta": {}
+    }
 
-```text
-CMD   = 0x01   ; gateway/ping ou echo conforme opcode
-FLAGS = 0x01   ; requer ACK
-SEQ   = 0x2A
-DATA  = payload opcional
-```
+## Responsabilidades principais
 
-O payload só chega ao nível de UI já convertido em objetos ou eventos compreensíveis pela camada superior.
+- Serializar comandos para forma textual ou binária;
+- Correlacionar respostas por requestId ou sequência;
+- Tratar timeout;
+- Tratar erros padronizados;
+- Converter dados para modelos internos de domínio.
 
-## Limitações
+## Serviços típicos
 
-A camada atual está claramente otimizada para um transporte por serial e para uma sessão por vez. O repositório não mostra suporte a múltiplos gateways concorrentes, seleção dinâmica de outros meios físicos ou fila complexa de comandos paralelos. A cobertura funcional também é maior no enlace do que nos serviços de negócio consumidos pela UI.
+- HardwareCommandService
+- SerialLinkService
+- ResponseDispatcher
+- EventListener
 
-## Evolução prevista
+## Eventos
 
-Os pontos mais prováveis de evolução são:
+A camada também deve suportar eventos SDH:
 
-- encapsular novos casos de uso em clientes de mais alto nível sobre `SdGgwClient`;
-- ampliar telemetria de saúde e diagnóstico do enlace;
-- formalizar contratos de resposta e eventos para reduzir lógica ad hoc na interface.
+    sdh/1 evt <source> <name> chave=valor ...
+
+Exemplos:
+
+- alteração de entrada digital;
+- fault de PSU;
+- mudança de estado CAN;
+- watchdog/reset de board.
+
+## Integração com UI
+
+A UI nunca envia comandos diretamente.
+
+Fluxo:
+
+    UI -> BLL -> HardwareCommandService -> Link -> Gateway
+
+## Referências
+
+- `docs/06-protocolos/01-sdh-command-model.md`
+- `docs/06-protocolos/02-sdh-response-model.md`
+- `docs/06-protocolos/03-sdh-examples.md`
 
 [Retornar ao README principal](../README.md)
 
@@ -1174,46 +1380,105 @@ Os pontos mais prováveis de evolução são:
 ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\06-protocolos\01-sdh-command-model.md
 ===================================================
 
-# SDH Command Model (SGGW)
+# SDH Command Model
 
-## Contexto
+## Visão Geral
 
-Este documento descreve o modelo de comando efetivamente implementado para a comunicação entre `local-api` e `ESP32 Gateway`.
+O protocolo SDH define um envelope semântico único para comandos da camada Hardware do SimulDIESEL.
 
-## Estrutura de frame
+Todo comando é composto por:
 
-Formato lógico:
+    version
+    target
+    op
+    args
+    meta
 
-`CMD | FLAGS | SEQ | PAYLOAD | CRC8`
+Esse modelo permite:
 
-- Delimitação de transporte: COBS + byte `0x00`.
-- CRC: `CRC8` em `CMD+FLAGS+SEQ+PAYLOAD`.
+- roteamento simples no firmware;
+- API estável no software local;
+- integração futura com API web;
+- operação manual via terminal/UHM.
 
-## Flags e semântica de transporte
+## Forma textual canônica
 
-- `ACK_REQ (0x01)`
-- `IS_EVT (0x02)`
+Sintaxe:
 
-`ACK` e `ERR` do transporte existem e são tratados pelo engine.
+    sdh/1 <target> <op> chave=valor ...
 
-## Comandos implementados (enum `SggwCmd`)
+Exemplos:
 
-- `Ping = 0x55`
-- `GetVersion = 0x01` (não é foco central da implementação atual)
-- `Echo = 0x02`
-- `LED = 0x03`
-- `LOGOUT = 0x04`
+    sdh/1 BPM.gateway cfg mode=serial
+    sdh/1 PSU.power.main set state=on
+    sdh/1 GSA.ch1 set value=2.50 unit=V
+    sdh/1 BPM.xconn read
 
-## Restrições e observações
+## Forma JSON equivalente
 
-- `CMD_ACK = 0xF1` e `CMD_ERR = 0xF2` são tratados como controle interno do transporte.
-- O gateway ignora frames ACK/ERR na camada app e trata como sinais de confiabilidade.
+    {
+      "version": "sdh/1",
+      "target": "BPM.gateway.serial",
+      "op": "cfg",
+      "args": {
+        "baudrate": 115200
+      },
+      "meta": {}
+    }
 
-## Contrato com GSA
+## Estrutura de target
 
-- `CMD = [ADDR:4][OP:4]`.
-- `ADDR` é interpretado apenas no gateway localmente.
-- `OP` é repassado para `TLV T` no caminho interno.
+Formato:
+
+    <BOARD>.<resource>.<subresource>
+
+Exemplos:
+
+    BPM.gateway
+    BPM.gateway.serial
+    PSU.power.main
+    GSA.ch1
+    URL.relay3
+    UCO.can1
+    UIOD.do5
+
+## Verbos padronizados
+
+    read
+    set
+    cfg
+    run
+    status
+    reset
+
+Formas qualificadas:
+
+    read.id
+    read.cfg
+    set.state
+    run.scan
+    run.apply
+
+## Regras de projeto
+
+- evitar argumentos posicionais;
+- usar nomes explícitos;
+- manter target lógico (não físico);
+- separar set (estado) de cfg (estrutura).
+
+## Evolução
+
+Versões futuras:
+
+    sdh/2
+    sdh/3
+
+Devem manter compatibilidade controlada.
+
+## Referências
+
+- `docs/06-protocolos/02-sdh-response-model.md`
+- `docs/06-protocolos/03-sdh-examples.md`
 
 [Retornar ao README principal](../README.md)
 
@@ -1221,7 +1486,151 @@ Formato lógico:
 
 
 ===================================================
-ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\06-protocolos\02-can.md
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\06-protocolos\02-sdh-response-model.md
+===================================================
+
+# SDH Response Model
+
+## Envelope de resposta
+
+Toda resposta segue:
+
+    version
+    ok
+    target
+    op
+    code
+    message
+    data
+    meta
+
+## Forma textual
+
+Sucesso:
+
+    sdh/1 ok <target> <op> code=OK message="..."
+
+Erro:
+
+    sdh/1 err <target> <op> code=INVALID_ARG message="..."
+
+## Forma JSON
+
+    {
+      "version": "sdh/1",
+      "ok": true,
+      "target": "GSA.ch1",
+      "op": "set",
+      "code": "OK",
+      "message": "Canal atualizado",
+      "data": {
+        "value": 2.50
+      },
+      "meta": {}
+    }
+
+## Códigos de erro
+
+    OK
+    INVALID_TARGET
+    INVALID_OP
+    INVALID_ARG
+    MISSING_ARG
+    OUT_OF_RANGE
+    UNSUPPORTED
+    BUSY
+    FAULT
+    TIMEOUT
+
+## Tipos
+
+- confirmação;
+- leitura;
+- status;
+- erro.
+
+## Referências
+
+- `docs/06-protocolos/01-sdh-command-model.md`
+- `docs/06-protocolos/03-sdh-examples.md`
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\06-protocolos\03-sdh-examples.md
+===================================================
+
+# SDH Examples
+
+## Configurar gateway serial
+
+Comando:
+
+    sdh/1 BPM.gateway.serial cfg baudrate=115200 databits=8 parity=none stopbits=1
+
+Resposta:
+
+    sdh/1 ok BPM.gateway.serial cfg code=OK message="Configuração aplicada"
+
+## Ler X-CONN
+
+Comando:
+
+    sdh/1 BPM.xconn read
+
+Resposta:
+
+    sdh/1 ok BPM.xconn read code=OK data.raw=37 message="X-CONN lida"
+
+## Ligar alimentação principal
+
+Comando:
+
+    sdh/1 PSU.power.main set state=on
+
+Resposta:
+
+    sdh/1 ok PSU.power.main set code=OK data.state=on
+
+## Definir tensão GSA
+
+Comando:
+
+    sdh/1 GSA.ch1 set value=2.50 unit=V
+
+Resposta:
+
+    sdh/1 ok GSA.ch1 set code=OK data.value=2.50 data.unit=V
+
+## Configurar CAN
+
+Comando:
+
+    sdh/1 UCO.can1 cfg bitrate=250000 mode=normal
+
+Resposta:
+
+    sdh/1 ok UCO.can1 cfg code=OK
+
+## Evento assíncrono
+
+    sdh/1 evt BPM.xconn changed value=37
+
+## Referências
+
+- `docs/06-protocolos/01-sdh-command-model.md`
+- `docs/06-protocolos/02-sdh-response-model.md`
+
+[Retornar ao README principal](../README.md)
+
+
+
+
+===================================================
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\06-protocolos\04-can.md
 ===================================================
 
 # CAN
@@ -1275,7 +1684,7 @@ Quando CAN entrar no código de fato, a documentação oficial deve passar a reg
 
 
 ===================================================
-ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\06-protocolos\03-j1939.md
+ARQUIVO: C:\PROJETOS\SimulDIESEL\docs\06-protocolos\05-j1939.md
 ===================================================
 
 # J1939

@@ -41,6 +41,7 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.mnuFerramentas = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuFerramentasLed = new System.Windows.Forms.ToolStripMenuItem();
+            this.gSAGERADORDENIVEISANALOGICOSToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripConectar = new System.Windows.Forms.ToolStripButton();
             this.statusStrip1.SuspendLayout();
@@ -130,7 +131,8 @@
             // mnuFerramentas
             // 
             this.mnuFerramentas.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.mnuFerramentasLed});
+            this.mnuFerramentasLed,
+            this.gSAGERADORDENIVEISANALOGICOSToolStripMenuItem});
             this.mnuFerramentas.Name = "mnuFerramentas";
             this.mnuFerramentas.Size = new System.Drawing.Size(104, 24);
             this.mnuFerramentas.Text = "&Ferramentas";
@@ -138,9 +140,16 @@
             // mnuFerramentasLed
             // 
             this.mnuFerramentasLed.Name = "mnuFerramentasLed";
-            this.mnuFerramentasLed.Size = new System.Drawing.Size(246, 26);
+            this.mnuFerramentasLed.Size = new System.Drawing.Size(368, 26);
             this.mnuFerramentasLed.Text = "Teste de LED GATEWAY";
             this.mnuFerramentasLed.Click += new System.EventHandler(this.mnuFerramentasLed_Click);
+            // 
+            // gSAGERADORDENIVEISANALOGICOSToolStripMenuItem
+            // 
+            this.gSAGERADORDENIVEISANALOGICOSToolStripMenuItem.Name = "gSAGERADORDENIVEISANALOGICOSToolStripMenuItem";
+            this.gSAGERADORDENIVEISANALOGICOSToolStripMenuItem.Size = new System.Drawing.Size(368, 26);
+            this.gSAGERADORDENIVEISANALOGICOSToolStripMenuItem.Text = "GSA - GERADOR DE SINAIS ANALOGICOS";
+            this.gSAGERADORDENIVEISANALOGICOSToolStripMenuItem.Click += new System.EventHandler(this.gSAGERADORDENIVEISANALOGICOSToolStripMenuItem_Click);
             // 
             // toolStrip1
             // 
@@ -207,6 +216,7 @@
         private System.Windows.Forms.ToolStripStatusLabel tsNomeInterface;
         private System.Windows.Forms.ToolStripMenuItem mnuFerramentas;
         private System.Windows.Forms.ToolStripMenuItem mnuFerramentasLed;
+        private System.Windows.Forms.ToolStripMenuItem gSAGERADORDENIVEISANALOGICOSToolStripMenuItem;
     }
 }
 
