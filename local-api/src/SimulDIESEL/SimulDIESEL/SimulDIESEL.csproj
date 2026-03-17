@@ -46,39 +46,52 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BLL\Boards\GsaClient.cs" />
-    <Compile Include="BLL\GsaLedService.cs" />
-    <Compile Include="BLL\LedGwTest_BLL.cs" />
-    <Compile Include="BLL\SDH\SdhClient.cs" />
-    <Compile Include="BLL\SDH\SdhTextParser.cs" />
-    <Compile Include="BLL\SDH\SdhTextSerializer.cs" />
-    <Compile Include="BLL\SDH\SdhToSggwMapper.cs" />
-    <Compile Include="BLL\SDH\SdhValidator.cs" />
-    <Compile Include="BLL\SdGgwClient.cs" />
-    <Compile Include="BLL\SdGwHealthService.cs" />
-    <Compile Include="BLL\SdGwLinkEngine.cs" />
+    <Compile Include="BLL\Boards\BPM\BpmClient.cs" />
+    <Compile Include="BLL\Boards\BPM\BpmCommandResult.cs" />
+    <Compile Include="BLL\Boards\BPM\BpmParsers.cs" />
+    <Compile Include="BLL\Boards\BPM\Backplane\BackplaneService.cs" />
+    <Compile Include="BLL\Boards\BPM\Comm\Bluetooth\BpmBluetoothService.cs" />
+    <Compile Include="BLL\Boards\BPM\Comm\Network\BpmNetworkService.cs" />
+    <Compile Include="BLL\Boards\BPM\Comm\Serial\BpmSerialService.cs" />
+    <Compile Include="BLL\Boards\BPM\XConn\XConnService.cs" />
+    <Compile Include="BLL\Boards\GSA\GsaClient.cs" />
+    <Compile Include="BLL\Boards\GSA\GsaCommandResult.cs" />
+    <Compile Include="BLL\Boards\GSA\GsaParsers.cs" />
+    <Compile Include="BLL\FormsLogic\BPM\FrmBpmLogic.cs" />
+    <Compile Include="BLL\FormsLogic\GSA\FrmGsaLogic.cs" />
     <Compile Include="BLL\SerialLink.cs" />
     <Compile Include="BLL\SerialLinkService.cs" />
-    <Compile Include="DAL\IByteTransport.cs" />
-    <Compile Include="DAL\SerialTransport.cs" />
-    <Compile Include="DTL\DeviceInfo.cs" />
-    <Compile Include="DTL\GwProtocol.cs" />
-    <Compile Include="DTL\SdhCommand.cs" />
-    <Compile Include="DTL\SdhResponse.cs" />
-    <Compile Include="DTL\SdhTarget.cs" />
-    <Compile Include="DTL\SggwCmd.cs" />
-    <Compile Include="DTL\SggwFrame.cs" />
+    <Compile Include="DAL\Protocols\SDGW\SdhClient.cs" />
+    <Compile Include="DAL\Protocols\SDGW\SdhTextParser.cs" />
+    <Compile Include="DAL\Protocols\SDGW\SdhTextSerializer.cs" />
+    <Compile Include="DAL\Protocols\SDGW\SdhToSdgwMapper.cs" />
+    <Compile Include="DAL\Protocols\SDGW\SdhValidator.cs" />
+    <Compile Include="DAL\Protocols\SDGW\SdgwFrameCodec.cs" />
+    <Compile Include="DAL\Protocols\SDGW\SdgwFrameReader.cs" />
+    <Compile Include="DAL\Protocols\SDGW\SdgwFrameWriter.cs" />
+    <Compile Include="DAL\Protocols\SDGW\SdgwHealthService.cs" />
+    <Compile Include="DAL\Protocols\SDGW\SdgwLinkEngine.cs" />
+    <Compile Include="DAL\Protocols\SDGW\SdgwSession.cs" />
+    <Compile Include="DAL\Transport\Serial\IByteTransport.cs" />
+    <Compile Include="DAL\Transport\Serial\SerialConnectionSettings.cs" />
+    <Compile Include="DAL\Transport\Serial\SerialPortAdapter.cs" />
+    <Compile Include="DAL\Transport\Serial\SerialTransport.cs" />
+    <Compile Include="DTL\Boards\BPM\BpmStatusDto.cs" />
+    <Compile Include="DTL\Boards\GSA\GsaLedRequest.cs" />
+    <Compile Include="DTL\Boards\GSA\GsaLedResponse.cs" />
+    <Compile Include="DTL\Common\DeviceInfo.cs" />
+    <Compile Include="DTL\Common\OperationStatusDto.cs" />
+    <Compile Include="DTL\Protocols\SDGW\GwProtocol.cs" />
+    <Compile Include="DTL\Protocols\SDGW\SdhCommand.cs" />
+    <Compile Include="DTL\Protocols\SDGW\SdhResponse.cs" />
+    <Compile Include="DTL\Protocols\SDGW\SdhTarget.cs" />
+    <Compile Include="DTL\Protocols\SDGW\SggwCmd.cs" />
+    <Compile Include="DTL\Protocols\SDGW\SggwFrame.cs" />
     <Compile Include="UI\frmGSA_UI.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\frmGSA_UI.Designer.cs">
       <DependentUpon>frmGSA_UI.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\frmLedGw.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\frmLedGw.Designer.cs">
-      <DependentUpon>frmLedGw.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\frmPortaSerial_UI.cs">
       <SubType>Form</SubType>
@@ -96,9 +109,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="UI\frmGSA_UI.resx">
       <DependentUpon>frmGSA_UI.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\frmLedGw.resx">
-      <DependentUpon>frmLedGw.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\frmPortaSerial_UI.resx">
       <DependentUpon>frmPortaSerial_UI.cs</DependentUpon>

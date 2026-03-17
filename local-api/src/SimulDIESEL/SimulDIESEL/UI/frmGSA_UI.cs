@@ -1,14 +1,15 @@
 using System;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using SimulDIESEL.BLL;
+using SimulDIESEL.BLL.Boards.GSA;
+using SimulDIESEL.BLL.FormsLogic.GSA;
 
 namespace SimulDIESEL.UI
 {
     public partial class frmGSA_UI : Form
     {
         private static frmGSA_UI _instance;
-        private GsaLedService _ledService;
+        private FrmGsaLogic _logic;
         private bool _syncingSelection;
         private bool _lastKnownLedOn;
 
@@ -25,9 +26,7 @@ namespace SimulDIESEL.UI
             get
             {
                 if (_instance == null || _instance.IsDisposed)
-                {
                     _instance = new frmGSA_UI();
-                }
 
                 return _instance;
             }
@@ -37,12 +36,8 @@ namespace SimulDIESEL.UI
         {
             base.OnLoad(e);
 
-            if (_ledService == null)
-            {
-                _ledService = new GsaLedService(
-                    SerialLink.Service.Gsa,
-                    isLinked: () => SerialLink.IsLinked);
-            }
+            if (_logic == null)
+                _logic = FrmGsaLogic.CreateFromLegacyAdapter();
 
             SyncLedSelection(false);
         }
@@ -50,9 +45,7 @@ namespace SimulDIESEL.UI
         private async Task HandleLedSelectionChangedAsync(RadioButton radio, bool ligado)
         {
             if (_syncingSelection || !radio.Checked)
-            {
                 return;
-            }
 
             await ApplyLedStateAsync(ligado);
         }
@@ -61,7 +54,7 @@ namespace SimulDIESEL.UI
         {
             SetLedControlsEnabled(false);
 
-            GsaLedCommandResult result = await _ledService.SetBuiltinLedAsync(ligado);
+            GsaCommandResult result = await _logic.SetBuiltinLedAsync(ligado);
             if (result.Success)
             {
                 _lastKnownLedOn = result.AppliedState ?? ligado;
@@ -102,10 +95,10 @@ namespace SimulDIESEL.UI
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
-            if (_ledService != null)
+            if (_logic != null)
             {
-                _ledService.Dispose();
-                _ledService = null;
+                _logic.Dispose();
+                _logic = null;
             }
 
             base.OnFormClosed(e);

@@ -1,22 +1,22 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.Windows.Forms;
-using SimulDIESEL.BLL;
+using SimulDIESEL.BLL.FormsLogic.BPM;
+using SimulDIESEL.DTL.Boards.BPM;
 
 namespace SimulDIESEL.UI
 {
     public partial class frmPortaSerial_UI : Form
     {
-        // Criando os labels do StatusStrip
-        ToolStripStatusLabel sslabel1 = new ToolStripStatusLabel("Porta:");
-        ToolStripStatusLabel ssPorta = new ToolStripStatusLabel("");
-        ToolStripStatusLabel sslabel2 = new ToolStripStatusLabel("Velocidade:");
-        ToolStripStatusLabel ssVel = new ToolStripStatusLabel("");
-        ToolStripStatusLabel sslabel3 = new ToolStripStatusLabel("Status:");
-        ToolStripStatusLabel ssStatus = new ToolStripStatusLabel("");
+        private readonly ToolStripStatusLabel sslabel1 = new ToolStripStatusLabel("Porta:");
+        private readonly ToolStripStatusLabel ssPorta = new ToolStripStatusLabel("");
+        private readonly ToolStripStatusLabel sslabel2 = new ToolStripStatusLabel("Velocidade:");
+        private readonly ToolStripStatusLabel ssVel = new ToolStripStatusLabel("");
+        private readonly ToolStripStatusLabel sslabel3 = new ToolStripStatusLabel("Status:");
+        private readonly ToolStripStatusLabel ssStatus = new ToolStripStatusLabel("");
 
         public static frmPortaSerial_UI _instance;
-        
+        private FrmBpmLogic _logic;
 
         public static frmPortaSerial_UI Instance
         {
@@ -28,21 +28,18 @@ namespace SimulDIESEL.UI
             }
         }
 
-        private SerialLinkService _serial;
-
         private frmPortaSerial_UI()
         {
             InitializeComponent();
 
-            this.Load += frmConexaoSerial_Load;
-            this.FormClosing += frmPortaSerial_UI_FormClosing;
+            Load += frmConexaoSerial_Load;
+            FormClosing += frmPortaSerial_UI_FormClosing;
 
             ConfiguraStatusStrip();
 
-            // BLL (conexão apenas)
-            _serial = SerialLink.Service;
-            _serial.ConnectionChanged += Serial_ConnectionChanged;
-            _serial.Error += Serial_Error;
+            _logic = FrmBpmLogic.CreateFromLegacyAdapter();
+            _logic.StatusChanged += Logic_StatusChanged;
+            _logic.Error += Logic_Error;
         }
 
         private void frmConexaoSerial_Load(object sender, EventArgs e)
@@ -72,22 +69,28 @@ namespace SimulDIESEL.UI
         private void CarregarPortas()
         {
             cboPortas.Items.Clear();
-            cboPortas.Items.AddRange(SerialLinkService.ListarPortas());
+            cboPortas.Items.AddRange(_logic.ListarPortas());
 
             if (cboPortas.Items.Count > 0)
                 cboPortas.SelectedIndex = 0;
         }
 
-        private void cboPortas_SelectedIndexChanged(object sender, EventArgs e) => AtualizarEstadoFormulario();
-        private void cboVelocidade_SelectedIndexChanged(object sender, EventArgs e) => AtualizarEstadoFormulario();
+        private void cboPortas_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            AtualizarEstadoFormulario();
+        }
+
+        private void cboVelocidade_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            AtualizarEstadoFormulario();
+        }
 
         private void AtualizarEstadoFormulario()
         {
-            bool conectado = _serial != null && _serial.IsConnected;
+            BpmStatusDto status = _logic.GetStatus();
 
-            if (conectado)
+            if (status.IsConnected)
             {
-                // Travar seleção enquanto conectado
                 cboPortas.Enabled = false;
                 cboVelocidade.Enabled = false;
 
@@ -102,18 +105,15 @@ namespace SimulDIESEL.UI
             }
             else
             {
-                // Desconectado: permitir selecionar
                 cboPortas.Enabled = true;
                 cboVelocidade.Enabled = true;
 
-                // Se não carregou portas ainda, tenta carregar
                 if (cboPortas.Items.Count == 0)
                     CarregarPortas();
 
                 ssPorta.Text = "";
                 ssVel.Text = cboVelocidade.Text;
 
-                // Só habilita conectar se tiver porta e baud válidos
                 bool temPorta = !string.IsNullOrWhiteSpace(cboPortas.Text);
                 bool baudOk = int.TryParse(cboVelocidade.Text, out _);
 
@@ -127,9 +127,9 @@ namespace SimulDIESEL.UI
 
         private void btnConectar_Click(object sender, EventArgs e)
         {
-            if (_serial == null) return;
+            BpmStatusDto status = _logic.GetStatus();
 
-            if (!_serial.IsConnected)
+            if (!status.IsConnected)
             {
                 if (string.IsNullOrWhiteSpace(cboPortas.Text))
                 {
@@ -143,10 +143,7 @@ namespace SimulDIESEL.UI
                     return;
                 }
 
-                // Conexão (sem tráfego). Para Arduino, você pode depois ativar dtrEnable=true.
-                bool ok = _serial.Connect(cboPortas.Text, baud, dtrEnable: false, rtsEnable: false);
-
-                // Atualiza UI mesmo se falhar (o erro vem por evento também)
+                bool ok = _logic.Connect(cboPortas.Text, baud);
                 AtualizarEstadoFormulario();
 
                 if (!ok)
@@ -154,27 +151,27 @@ namespace SimulDIESEL.UI
             }
             else
             {
-                _serial.Disconnect();
+                _logic.Disconnect();
                 AtualizarEstadoFormulario();
             }
         }
 
-        private void Serial_ConnectionChanged(bool connected)
+        private void Logic_StatusChanged()
         {
             if (InvokeRequired)
             {
-                BeginInvoke(new Action(() => Serial_ConnectionChanged(connected)));
+                BeginInvoke(new Action(Logic_StatusChanged));
                 return;
             }
 
             AtualizarEstadoFormulario();
         }
 
-        private void Serial_Error(string[] msg)
+        private void Logic_Error(string[] msg)
         {
             if (InvokeRequired)
             {
-                BeginInvoke(new Action(() => Serial_Error(msg)));
+                BeginInvoke(new Action(() => Logic_Error(msg)));
                 return;
             }
 
@@ -183,17 +180,13 @@ namespace SimulDIESEL.UI
 
         private void frmPortaSerial_UI_FormClosing(object sender, FormClosingEventArgs e)
         {
-            // NÃO fecha a conexão automaticamente ao fechar o form.
-            // O form é só um "controle" da conexão.
-
-            if (_serial != null)
+            if (_logic != null)
             {
-                _serial.ConnectionChanged -= Serial_ConnectionChanged;
-                _serial.Error -= Serial_Error;
-                // _serial.Dispose();  // <-- REMOVER
-                _serial = null;
+                _logic.StatusChanged -= Logic_StatusChanged;
+                _logic.Error -= Logic_Error;
+                _logic.Dispose();
+                _logic = null;
             }
         }
-
     }
 }

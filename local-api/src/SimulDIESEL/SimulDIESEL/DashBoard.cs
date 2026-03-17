@@ -1,4 +1,5 @@
-﻿using SimulDIESEL.BLL;
+using SimulDIESEL.BLL.FormsLogic.BPM;
+using SimulDIESEL.DTL.Boards.BPM;
 using SimulDIESEL.UI;
 using System;
 using System.Windows.Forms;
@@ -7,35 +8,30 @@ namespace SimulDIESEL
 {
     public partial class DashBoard : Form
     {
+        private readonly FrmBpmLogic _bpmLogic;
+
         public DashBoard()
         {
             InitializeComponent();
 
-            SerialLink.Service.ConnectionChanged -= Serial_ConnectionChanged;
-            SerialLink.Service.ConnectionChanged += Serial_ConnectionChanged;
-
-            SerialLink.Service.LinkStateChanged -= Link_StateChanged;
-            SerialLink.Service.LinkStateChanged += Link_StateChanged;
-
-            SerialLink.Service.Error -= Link_Error;
-            SerialLink.Service.Error += Link_Error;
-
-            SerialLink.Service.NomeDaInterfaceChanged -= NomeDaInterfaceChanged_Handler;
-            SerialLink.Service.NomeDaInterfaceChanged += NomeDaInterfaceChanged_Handler;
+            _bpmLogic = FrmBpmLogic.CreateFromLegacyAdapter();
+            _bpmLogic.StatusChanged += BpmLogic_StatusChanged;
+            _bpmLogic.Error += BpmLogic_Error;
 
             AtualizarBotaoConectar();
-            AtualizarIndicadores(); // (7) garante estado inicial coerente
-            NomeDaInterfaceChanged_Handler(); // (7) força refletir "Nenhum" na partida
+            AtualizarIndicadores();
+            AtualizarNomeDaInterface();
         }
 
         private void toolStripConectar_Click(object sender, EventArgs e)
         {
-            if (SerialLink.IsConnected)
+            BpmStatusDto status = _bpmLogic.GetStatus();
+            if (status.IsConnected)
             {
-                SerialLink.Close();
+                _bpmLogic.Disconnect();
                 AtualizarBotaoConectar();
-                AtualizarIndicadores(); // (7)
-                NomeDaInterfaceChanged_Handler(); // (7)
+                AtualizarIndicadores();
+                AtualizarNomeDaInterface();
                 return;
             }
 
@@ -55,99 +51,73 @@ namespace SimulDIESEL
 
         private void AtualizarBotaoConectar()
         {
-            toolStripConectar.Text = SerialLink.IsConnected ? "Desconectar" : "Conectar";
+            BpmStatusDto status = _bpmLogic.GetStatus();
 
-            toolStripConectar.Image = SerialLink.IsConnected
+            toolStripConectar.Text = status.IsConnected ? "Desconectar" : "Conectar";
+            toolStripConectar.Image = status.IsConnected
                 ? Properties.Resources.Conectado
                 : Properties.Resources.Desconectado;
         }
 
         private void AtualizarIndicadores()
         {
-            bool serialOk = SerialLink.IsConnected;
-            var state = SerialLink.Service.State;
+            BpmStatusDto status = _bpmLogic.GetStatus();
 
-            // SERIAL
-            tsLedSerial.Image = serialOk
+            tsLedSerial.Image = status.IsConnected
                 ? Properties.Resources.LedGreenBright_18x18
                 : Properties.Resources.LedRedDark_18x18;
 
-            tsLabelSerial.Text = "Status da Serial: " + (serialOk ? "Conectado" : "Desconectado");
+            tsLabelSerial.Text = "Status da Serial: " + (status.IsConnected ? "Conectado" : "Desconectado");
 
-            // LINK
-            if (!serialOk)
+            if (!status.IsConnected)
             {
-                // (7) quando a serial cai, garante link em cinza e nome coerente
                 tsLedLink.Image = Properties.Resources.LedGrayOff_18x18;
                 tsNomeInterface.Text = "Nenhum";
                 return;
             }
 
-            switch (state)
+            switch (status.LinkState)
             {
-                case SerialLinkService.LinkState.Linked:
+                case "Linked":
                     tsLedLink.Image = Properties.Resources.LedGreenBright_18x18;
                     break;
-
-                case SerialLinkService.LinkState.LinkFailed:
+                case "LinkFailed":
                     tsLedLink.Image = Properties.Resources.LedRedBright_18x18;
                     break;
-
-                case SerialLinkService.LinkState.Draining:
-                case SerialLinkService.LinkState.BannerSent:
-                case SerialLinkService.LinkState.SerialConnected:
+                case "Draining":
+                case "BannerSent":
+                case "SerialConnected":
                     tsLedLink.Image = Properties.Resources.LedYellowBright_18x18;
                     break;
-
                 default:
                     tsLedLink.Image = Properties.Resources.LedGrayOff_18x18;
                     break;
             }
         }
 
-        private void Serial_ConnectionChanged(bool connected)
+        private void AtualizarNomeDaInterface()
+        {
+            tsNomeInterface.Text = _bpmLogic.GetInterfaceDisplayName();
+        }
+
+        private void BpmLogic_StatusChanged()
         {
             if (InvokeRequired)
             {
-                BeginInvoke(new Action(() => Serial_ConnectionChanged(connected)));
+                BeginInvoke(new Action(BpmLogic_StatusChanged));
                 return;
             }
 
             AtualizarBotaoConectar();
             AtualizarIndicadores();
-            NomeDaInterfaceChanged_Handler(); // (7) reforça UI em queda/subida
+            AtualizarNomeDaInterface();
         }
 
-        private void NomeDaInterfaceChanged_Handler()
+        private void BpmLogic_Error(string[] msg)
         {
             if (InvokeRequired)
             {
-                BeginInvoke(new Action(NomeDaInterfaceChanged_Handler));
-                return;
-            }
-
-            tsNomeInterface.Text = SerialLink.Service.IsLinked
-                ? SerialLink.Service.NomeDaInterface
-                : "Nenhum";
-        }
-
-        private void Link_StateChanged(SerialLinkService.LinkState state)
-        {
-            if (InvokeRequired)
-            {
-                BeginInvoke(new Action(() => Link_StateChanged(state)));
-                return;
-            }
-
-            AtualizarIndicadores();
-            NomeDaInterfaceChanged_Handler(); // (7) se cair de Linked -> atualiza nome
-        }
-
-        private void Link_Error(string[] msg)
-        {
-            if (InvokeRequired)
-            {
-                BeginInvoke(new Action(() => Link_Error(msg)));
+                BeginInvoke(new Action(() => BpmLogic_Error(msg)));
                 return;
             }
 
@@ -156,33 +126,15 @@ namespace SimulDIESEL
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            SerialLink.Service.ConnectionChanged -= Serial_ConnectionChanged;
-            SerialLink.Service.LinkStateChanged -= Link_StateChanged;
-            SerialLink.Service.NomeDaInterfaceChanged -= NomeDaInterfaceChanged_Handler;
-            SerialLink.Service.Error -= Link_Error;
+            _bpmLogic.StatusChanged -= BpmLogic_StatusChanged;
+            _bpmLogic.Error -= BpmLogic_Error;
+            _bpmLogic.Dispose();
 
             base.OnFormClosing(e);
         }
 
-        private void mnuFerramentasLed_Click(object sender, EventArgs e)
-        {
-            var frmLED = frmLedGw.Instance;
-
-            if (frmLED.Visible)
-            {
-                frmLED.BringToFront();
-                frmLED.Activate();
-                return;
-            }
-
-            frmLED.MdiParent = this;
-            frmLED.StartPosition = FormStartPosition.CenterParent;
-            frmLED.Show();
-        }
-
         private void DashBoard_Load(object sender, EventArgs e)
         {
-
         }
 
         private void gSAGERADORDENIVEISANALOGICOSToolStripMenuItem_Click(object sender, EventArgs e)
