@@ -1,7 +1,21 @@
 # Normalize line endings in repo
 * text=auto
 
-# Text formats
+# ===== C# / Visual Studio =====
+*.cs text eol=crlf
+*.Designer.cs text eol=crlf
+*.sln text eol=crlf
+*.csproj text eol=crlf
+*.resx text eol=crlf
+
+# ===== Firmware / C / C++ / Arduino =====
+*.h   text eol=lf
+*.hpp text eol=lf
+*.c   text eol=lf
+*.cpp text eol=lf
+*.ino text eol=lf
+
+# ===== Docs / Config / Infra =====
 *.md text eol=lf
 *.txt text eol=lf
 *.ini text eol=lf
@@ -9,12 +23,3 @@
 *.yaml text eol=lf
 *.json text eol=lf
 *.xml text eol=lf
-*.h   text eol=lf
-*.hpp text eol=lf
-*.c   text eol=lf
-*.cpp text eol=lf
-*.ino text eol=lf
-
-# Windows-specific
-*.sln text eol=crlf
-*.csproj text eol=crlf
