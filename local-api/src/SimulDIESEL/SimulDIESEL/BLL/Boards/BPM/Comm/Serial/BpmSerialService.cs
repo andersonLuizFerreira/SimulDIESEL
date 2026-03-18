@@ -1,6 +1,7 @@
 using System;
 using System.IO.Ports;
 using System.Text;
+using System.Threading.Tasks;
 using SimulDIESEL.BLL.Boards.BPM.Backplane;
 using SimulDIESEL.BLL.Boards.BPM.XConn;
 using SimulDIESEL.BLL.Boards.GSA;
@@ -18,6 +19,8 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
     /// </summary>
     public class BpmSerialService : IDisposable
     {
+        private static readonly Lazy<BpmSerialService> SharedInstance = new Lazy<BpmSerialService>(() => new BpmSerialService());
+
         private readonly SerialTransport _transport;
         private readonly object _linkSync = new object();
         private readonly StringBuilder _rxBuffer = new StringBuilder();
@@ -25,13 +28,15 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
         private bool _disposed;
         private volatile bool _isDisconnecting;
         private SdGwLinkEngine _engine;
-        private SdGwHealthService _health;
+        private SdGwTxScheduler _txScheduler;
+        private SdGwLinkSupervisor _linkSupervisor;
         private System.Threading.Timer _linkTimer;
         private DateTime _drainUntil;
         private bool _draining;
         private bool _attemptActive;
         private DateTime _attemptDeadlineUtc;
         private DateTime _nextAttemptAtUtc;
+        private volatile bool _sdgwSessionEstablished;
 
         private static readonly TimeSpan DrainWindow = TimeSpan.FromMilliseconds(300);
         private static readonly TimeSpan HandshakeTimeout = TimeSpan.FromMilliseconds(2000);
@@ -70,6 +75,8 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
         public Comm.Bluetooth.BpmBluetoothService Bluetooth { get; private set; }
         public Comm.Network.BpmNetworkService Network { get; private set; }
 
+        public static BpmSerialService Shared => SharedInstance.Value;
+
         public bool IsLinked => State == LinkState.Linked;
         public bool IsConnected => _transport.IsOpen;
         public bool IsSerialOpen => _transport.IsOpen;
@@ -96,7 +103,8 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
             };
 
             _engine = new SdGwLinkEngine(cfg, WriteRaw);
-            Sdgw = new SdgwSession(_engine);
+            _txScheduler = new SdGwTxScheduler(_engine);
+            Sdgw = new SdgwSession(_engine, _txScheduler);
             Sdh = new SdhClient(Sdgw);
             Backplane = new BackplaneService();
             XConn = new XConnService();
@@ -105,20 +113,25 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
             Gsa = new GsaClient(Sdh, Sdgw);
             Bpm = new BpmClient(Sdh, this, Backplane, XConn);
 
-            var healthCfg = new SdGwHealthService.Config
+            var linkSupervisorCfg = new SdGwLinkSupervisor.Config
             {
                 PingCmd = 0x55,
-                PingIntervalMs = 1000,
+                IdleBeforePingMs = 1500,
+                LinkTimeoutMs = 3000,
                 PingTimeoutMs = 150,
-                PingRetries = 2
+                PingRetries = 2,
+                TickPeriodMs = 50
             };
 
-            _health = new SdGwHealthService(_engine, healthCfg);
-            _health.LinkHealthChanged -= Health_LinkHealthChanged;
-            _health.LinkHealthChanged += Health_LinkHealthChanged;
+            _linkSupervisor = new SdGwLinkSupervisor(linkSupervisorCfg, SendSupervisorPingAsync);
+            _linkSupervisor.LinkHealthChanged -= LinkSupervisor_LinkHealthChanged;
+            _linkSupervisor.LinkHealthChanged += LinkSupervisor_LinkHealthChanged;
 
-            LinkStateChanged -= OnLinkStateChanged_ForHealth;
-            LinkStateChanged += OnLinkStateChanged_ForHealth;
+            _engine.ValidFrameReceived -= Engine_ValidFrameReceived;
+            _engine.ValidFrameReceived += Engine_ValidFrameReceived;
+
+            LinkStateChanged -= OnLinkStateChanged_ForLinkSupervisor;
+            LinkStateChanged += OnLinkStateChanged_ForLinkSupervisor;
         }
 
         public static string[] ListarPortas()
@@ -162,7 +175,8 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
 
                 lock (_linkSync)
                 {
-                    _health?.SetEnabled(false);
+                    _linkSupervisor?.SetEnabled(false);
+                    _sdgwSessionEstablished = false;
                     shouldSendLogout = _transport.IsOpen && Sdgw != null && State == LinkState.Linked;
                     _attemptActive = false;
                     _draining = false;
@@ -176,13 +190,20 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
                 {
                     try
                     {
-                        Sdgw.SendWithSeq(SggwCmd.LOGOUT, requireAck: true, timeoutMs: 150, retries: 1).Task.Wait(500);
+                        Sdgw.SendAsync(
+                            SggwCmd.LOGOUT,
+                            requireAck: true,
+                            timeoutMs: 150,
+                            retries: 1,
+                            priority: SdGwTxPriority.High,
+                            origin: "SGGW logout").Wait(500);
                     }
                     catch
                     {
                     }
                 }
 
+                _txScheduler?.SetTransportAvailable(false);
                 _engine?.OnTransportDown("Disconnect requested");
                 _transport.Disconnect();
                 NomeDaInterfaceChanged?.Invoke();
@@ -201,6 +222,25 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
             return _transport.Write(data);
         }
 
+        private Task<SdGwLinkEngine.SendOutcome> SendSupervisorPingAsync()
+        {
+            if (_txScheduler == null)
+                return Task.FromResult(SdGwLinkEngine.SendOutcome.TransportDown);
+
+            return _txScheduler.EnqueueAsync(
+                cmd: 0x55,
+                payload: Array.Empty<byte>(),
+                options: new SdGwLinkEngine.SendOptions
+                {
+                    RequireAck = true,
+                    TimeoutMs = 150,
+                    MaxRetries = 2,
+                    IsEvent = false
+                },
+                priority: SdGwTxPriority.Low,
+                origin: "SDGW link supervisor ping");
+        }
+
         public void Dispose()
         {
             if (_disposed)
@@ -213,19 +253,27 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
                 StopAndDisposeLinkTimer_NoLock();
             }
 
+            _txScheduler?.SetTransportAvailable(false);
+            _engine?.OnTransportDown("BpmSerialService dispose");
+
             _transport.ConnectionChanged -= OnTransportConnectionChanged;
             _transport.Error -= OnTransportError;
             _transport.BytesReceived -= OnTransportBytesReceived;
 
-            if (_health != null)
-                _health.LinkHealthChanged -= Health_LinkHealthChanged;
+            if (_engine != null)
+                _engine.ValidFrameReceived -= Engine_ValidFrameReceived;
 
-            LinkStateChanged -= OnLinkStateChanged_ForHealth;
+            if (_linkSupervisor != null)
+                _linkSupervisor.LinkHealthChanged -= LinkSupervisor_LinkHealthChanged;
 
-            if (_health != null)
-                _health.Dispose();
+            LinkStateChanged -= OnLinkStateChanged_ForLinkSupervisor;
 
-            _health = null;
+            if (_linkSupervisor != null)
+                _linkSupervisor.Dispose();
+
+            _linkSupervisor = null;
+            _txScheduler?.Dispose();
+            _txScheduler = null;
 
             if (Gsa != null)
                 Gsa.Dispose();
@@ -245,12 +293,12 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
             LinkStateChanged?.Invoke(State);
         }
 
-        private void OnLinkStateChanged_ForHealth(LinkState state)
+        private void OnLinkStateChanged_ForLinkSupervisor(LinkState state)
         {
-            _health?.SetEnabled(state == LinkState.Linked);
+            _linkSupervisor?.SetEnabled(state == LinkState.Linked);
         }
 
-        private void Health_LinkHealthChanged(bool alive)
+        private void LinkSupervisor_LinkHealthChanged(bool alive)
         {
             if (_disposed || _isDisconnecting || State != LinkState.Linked || !_transport.IsOpen || alive)
                 return;
@@ -281,7 +329,9 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
                     if (_isDisconnecting)
                         return;
 
-                    _health?.SetEnabled(false);
+                    _linkSupervisor?.SetEnabled(false);
+                    _sdgwSessionEstablished = false;
+                    _txScheduler?.SetTransportAvailable(false);
                     _engine?.OnTransportDown("Serial transport disconnected");
                     _attemptActive = false;
                     _draining = false;
@@ -297,6 +347,8 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
                 }
                 else
                 {
+                    _sdgwSessionEstablished = false;
+                    _txScheduler?.SetTransportAvailable(true);
                     SetState(LinkState.SerialConnected);
                     _attemptActive = false;
                     _draining = false;
@@ -315,9 +367,30 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
             Error?.Invoke(msg);
         }
 
+        private void Engine_ValidFrameReceived()
+        {
+            _linkSupervisor?.OnValidFrameReceived();
+        }
+
         private void OnTransportBytesReceived(byte[] data)
         {
             BytesReceived?.Invoke(data);
+
+            bool sdgwSessionEstablished = _sdgwSessionEstablished;
+
+            if (sdgwSessionEstablished)
+            {
+                if (LooksLikeAsciiTextNoise(data))
+                {
+                    if (State != LinkState.Linked)
+                        HandleHandshakeBytes(data);
+
+                    return;
+                }
+
+                _engine?.OnBytesReceived(data);
+                return;
+            }
 
             if (State == LinkState.Linked)
             {
@@ -432,6 +505,7 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
                     DeviceInfo deviceInfo;
                     if (BpmParsers.TryParseInterfaceInfo(line, out deviceInfo))
                     {
+                        _sdgwSessionEstablished = true;
                         SetState(LinkState.Linked);
                         _attemptActive = false;
                         StopAndDisposeLinkTimer_NoLock();

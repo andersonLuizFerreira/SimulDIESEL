@@ -25,7 +25,7 @@ void GatewayApp::onCommand(uint8_t cmd,
 
     uint8_t resp[300];
     size_t respLen = 0;
-    uint16_t timeoutMs = 30;
+    uint16_t timeoutMs = (uint16_t)SGGW_GATEWAY_ROUTE_TIMEOUT_MS;
 
     GwErr r = _router.route(cmd, data, dataLen, resp, sizeof(resp), respLen, timeoutMs);
     if (r != GWERR_OK) {

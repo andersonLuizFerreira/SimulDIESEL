@@ -14,7 +14,7 @@ namespace SimulDIESEL
         {
             InitializeComponent();
 
-            _bpmLogic = FrmBpmLogic.CreateFromLegacyAdapter();
+            _bpmLogic = FrmBpmLogic.CreateDefault();
             _bpmLogic.StatusChanged += BpmLogic_StatusChanged;
             _bpmLogic.Error += BpmLogic_Error;
 

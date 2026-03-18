@@ -25,8 +25,11 @@ public:
     /// Construtor da classe SggwLink.
     explicit SggwLink(SggwTransport& transport);
 
-    /// Ajusta timeout do watchdog de PING. (0 = desabilita)
-    void setPingTimeoutMs(uint16_t ms) { _pingTimeoutMs = ms; }
+    /// Ajusta timeout do watchdog de atividade do link. (0 = desabilita)
+    void setActivityTimeoutMs(uint16_t ms) { _activityTimeoutMs = ms; }
+
+    /// Alias legado: mantido para compatibilidade local.
+    void setPingTimeoutMs(uint16_t ms) { setActivityTimeoutMs(ms); }
 
     /// Anexa um dispositivo ao link.
     void attachApp(IGatewayApp* app) { _app = app; }
@@ -50,12 +53,12 @@ public:
     bool isLinked() const { return _hs == Linked; }
 
 private:
-    // Watchdog de PING (keep-alive)
-    uint32_t _lastPingMs;
-    uint16_t _pingTimeoutMs;
+    // Watchdog de atividade do link (qualquer frame SDGW valido recebido).
+    uint32_t _lastActivityMs;
+    uint16_t _activityTimeoutMs;
 
-    void onPingReceived();
-    void checkPingWatchdog();
+    void onValidFrameReceived();
+    void checkActivityWatchdog();
 
 private:
     SggwTransport& _tr; ///< Referência para a camada de transporte.

@@ -28,11 +28,9 @@ namespace SimulDIESEL.BLL.FormsLogic.BPM
             _serialService.Error += OnError;
         }
 
-        public static FrmBpmLogic CreateFromLegacyAdapter()
+        public static FrmBpmLogic CreateDefault()
         {
-            // Adapter transitório: a UI ainda obtém a BPM via SerialLink enquanto
-            // migramos gradualmente a composição para fora do ponto global estático.
-            return new FrmBpmLogic(SerialLink.Service);
+            return new FrmBpmLogic(BpmSerialService.Shared);
         }
 
         public string[] ListarPortas()

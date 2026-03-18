@@ -38,6 +38,11 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
 
         public Task<SdGwLinkEngine.SendOutcome> SendAsync(SdhCommand command)
         {
+            return SendAsync(command, SdGwTxPriority.Normal);
+        }
+
+        public Task<SdGwLinkEngine.SendOutcome> SendAsync(SdhCommand command, SdGwTxPriority priority, string origin = null)
+        {
             if (command == null)
                 throw new ArgumentNullException(nameof(command));
 
@@ -50,7 +55,9 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
                 mapped.Payload,
                 mapped.RequireAck,
                 mapped.TimeoutMs,
-                mapped.Retries);
+                mapped.Retries,
+                priority,
+                origin ?? (command.Target + ":" + command.Op));
         }
 
         public Task<SdGwLinkEngine.SendOutcome> SendTextAsync(string text)

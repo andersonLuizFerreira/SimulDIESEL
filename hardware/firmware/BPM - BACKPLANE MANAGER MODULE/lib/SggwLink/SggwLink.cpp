@@ -13,8 +13,8 @@ SggwLink::SggwLink(SggwTransport &transport)
       _haveLastResp(false),
       _lastRxSeq(0),
       _lastRespLen(0),
-      _lastPingMs(0),
-      _pingTimeoutMs(2000)
+      _lastActivityMs(0),
+      _activityTimeoutMs((uint16_t)SGGW_LINK_ACTIVITY_TIMEOUT_MS)
 {
     // Inicializa os buffers de banner e resposta com zeros.
     memset(_bannerBuf, 0, sizeof(_bannerBuf));
@@ -38,7 +38,7 @@ void SggwLink::begin()
 
     _tr.setTextEnabled(true); // Habilita o modo texto no transporte.
 
-    _lastPingMs = millis(); // Inicializa o temporizador de watchdog.
+    _lastActivityMs = millis(); // Inicializa o watchdog de atividade do link.
 
     digitalWrite(LED_BUILTIN, LOW); // Garante que o LED esteja desligado inicialmente.
 }
@@ -67,7 +67,10 @@ void SggwLink::poll()
         {
             SggwParser::Frame f;
             if (_parser.getFrame(f))
+            {
+                onValidFrameReceived(); // Qualquer frame SDGW valido renova a sessao.
                 handleFrameOk(f); // Processa quadro válido.
+            }
             continue;
         }
 
@@ -113,8 +116,8 @@ void SggwLink::poll()
         }
     }
 
-    // Sempre verifica o watchdog de ping para garantir que o link está ativo.
-    checkPingWatchdog();
+    // Verifica inatividade do link para evitar manter sessao zumbi.
+    checkActivityWatchdog();
 
     // Atualiza o estado do LED para indicar o status do link.
     setLedState();
@@ -151,7 +154,7 @@ void SggwLink::processHandshakeByte(uint8_t b)
 
             _tr.setTextEnabled(false); // Desabilita o modo texto.
 
-            _lastPingMs = millis(); // Reseta o temporizador de watchdog.
+            _lastActivityMs = millis(); // Reseta o watchdog de atividade.
 
             _bannerLen = 0;
             memset(_bannerBuf, 0, sizeof(_bannerBuf));
@@ -165,10 +168,10 @@ void SggwLink::sendBanner()
     _tr.writeBytes((const uint8_t *)SGGW_DEVICE_BANNER, strlen(SGGW_DEVICE_BANNER));
 }
 
-// Atualiza o tempo do último ping recebido.
-void SggwLink::onPingReceived()
+// Atualiza o tempo da ultima atividade SDGW valida recebida.
+void SggwLink::onValidFrameReceived()
 {
-    _lastPingMs = millis();
+    _lastActivityMs = millis();
 }
 
 // Altera o estado do LED_BUILTIN para indicar o status do link (opcional, pode ser usado para debug).
@@ -208,19 +211,19 @@ void SggwLink::setLedState()
     digitalWrite(LED_BUILTIN, state);
 }
 
-// Verifica se o watchdog de ping expirou e reseta o link se necessário.
-void SggwLink::checkPingWatchdog()
+// Verifica se o watchdog de atividade expirou e reseta o link se necessário.
+void SggwLink::checkActivityWatchdog()
 {
     if (_hs != Linked)
         return;
-    if (_pingTimeoutMs == 0)
+    if (_activityTimeoutMs == 0)
         return;
 
     uint32_t now = millis();
-    if ((uint32_t)(now - _lastPingMs) > (uint32_t)_pingTimeoutMs)
+    if ((uint32_t)(now - _lastActivityMs) > (uint32_t)_activityTimeoutMs)
     {
         logout(); // Reseta o link em caso de timeout.
-        _lastPingMs = now;
+        _lastActivityMs = now;
     }
 }
 
@@ -236,8 +239,6 @@ void SggwLink::handleFrameOk(const SggwParser::Frame &f)
 
     if (f.cmd == (uint8_t)SGGW_CMD_PING)
     {
-        onPingReceived();
-
         if (ackReq)
         {
             if (_haveLastResp && f.seq == _lastRxSeq)

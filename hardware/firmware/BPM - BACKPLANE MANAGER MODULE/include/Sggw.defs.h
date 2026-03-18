@@ -44,6 +44,12 @@
 // Handshake
 #define SGGW_HANDSHAKE_BUFFER           64
 
+// Sessao/atividade do link
+#define SGGW_LINK_ACTIVITY_TIMEOUT_MS   4000
+
+// Timeout interno do gateway ao rotear para a baby board
+#define SGGW_GATEWAY_ROUTE_TIMEOUT_MS   100
+
 // ============================================================
 // Flags
 // ============================================================

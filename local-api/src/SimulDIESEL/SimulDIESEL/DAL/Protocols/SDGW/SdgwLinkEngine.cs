@@ -107,6 +107,7 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
         public event Action<AppFrame> AppFrameReceived;
         public event Action<string> ProtocolError;
         public event Action<byte, SendOutcome> SendCompleted;
+        public event Action ValidFrameReceived;
 
         // opcional: log de falha física do transporte
         public event Action<string> TransportFault;
@@ -208,6 +209,8 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
 
                 int payloadLen = decoded.Length - 4;
                 byte[] payload = payloadLen > 0 ? Slice(decoded, 3, payloadLen) : Array.Empty<byte>();
+
+                ValidFrameReceived?.Invoke();
 
                 // ACK/ERR de transporte
                 if (cmd == _cfg.CmdAck)
@@ -313,6 +316,15 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
 
         public Task<SendOutcome> SendAsync(byte cmd, byte[] payload, SendOptions opt)
             => SendWithSeq(cmd, payload, opt).Task;
+
+        public bool IsAwaitingAck
+        {
+            get
+            {
+                lock (_swSync)
+                    return _waitAck;
+            }
+        }
 
         // ======================================================
         // ACK / ERR / TIMEOUT

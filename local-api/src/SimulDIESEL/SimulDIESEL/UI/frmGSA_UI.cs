@@ -37,7 +37,7 @@ namespace SimulDIESEL.UI
             base.OnLoad(e);
 
             if (_logic == null)
-                _logic = FrmGsaLogic.CreateFromLegacyAdapter();
+                _logic = FrmGsaLogic.CreateDefault();
 
             SyncLedSelection(false);
         }

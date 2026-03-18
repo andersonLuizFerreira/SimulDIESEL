@@ -47,7 +47,9 @@ namespace SimulDIESEL.BLL.Boards.BPM
                 Op = "ping"
             };
 
-            SdGwLinkEngine.SendOutcome outcome = await _sdhClient.SendAsync(command).ConfigureAwait(false);
+            SdGwLinkEngine.SendOutcome outcome = await _sdhClient
+                .SendAsync(command, SdGwTxPriority.High, "BPM gateway ping")
+                .ConfigureAwait(false);
             switch (outcome)
             {
                 case SdGwLinkEngine.SendOutcome.Acked:
@@ -59,7 +61,7 @@ namespace SimulDIESEL.BLL.Boards.BPM
                 case SdGwLinkEngine.SendOutcome.Nacked:
                     return BpmCommandResult.Fail("A BPM rejeitou o ping solicitado.", outcome);
                 case SdGwLinkEngine.SendOutcome.Busy:
-                    return BpmCommandResult.Fail("A BPM está ocupada processando outro comando.", outcome);
+                    return BpmCommandResult.Fail("O link da BPM estava temporariamente ocupado.", outcome);
                 default:
                     return BpmCommandResult.Fail("Falha ao enviar o ping para a BPM.", outcome);
             }

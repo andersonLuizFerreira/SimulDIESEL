@@ -12,13 +12,19 @@ namespace SimulDIESEL.BLL.Boards.GSA
     /// </summary>
     public sealed class GsaClient : IDisposable
     {
+        private sealed class PendingLedRequest
+        {
+            public TaskCompletionSource<SggwFrame> ResponseSource { get; set; }
+            public bool ExpectedState { get; set; }
+        }
+
         private const int ResponseTimeoutMs = 2000;
 
         private readonly SdhClient _sdh;
         private readonly SdgwSession _sdgwSession;
         private readonly SemaphoreSlim _ledGate = new SemaphoreSlim(1, 1);
 
-        private TaskCompletionSource<SggwFrame> _pendingLedResponse;
+        private PendingLedRequest _pendingLedRequest;
         private bool _disposed;
 
         public GsaClient(SdhClient sdh, SdgwSession sdgwSession)
@@ -39,7 +45,7 @@ namespace SimulDIESEL.BLL.Boards.GSA
             };
 
             command.Args["state"] = request.IsOn ? "on" : "off";
-            return _sdh.SendAsync(command);
+            return _sdh.SendAsync(command, SdGwTxPriority.High, "GSA builtin LED");
         }
 
         public async Task<GsaCommandResult> SetBuiltinLedAsync(bool on)
@@ -49,7 +55,11 @@ namespace SimulDIESEL.BLL.Boards.GSA
             await _ledGate.WaitAsync().ConfigureAwait(false);
             try
             {
-                _pendingLedResponse = new TaskCompletionSource<SggwFrame>(TaskCreationOptions.RunContinuationsAsynchronously);
+                _pendingLedRequest = new PendingLedRequest
+                {
+                    ExpectedState = on,
+                    ResponseSource = new TaskCompletionSource<SggwFrame>(TaskCreationOptions.RunContinuationsAsynchronously)
+                };
 
                 SdGwLinkEngine.SendOutcome outcome = await SetLedAsync(on).ConfigureAwait(false);
                 if (outcome != SdGwLinkEngine.SendOutcome.Acked)
@@ -85,38 +95,49 @@ namespace SimulDIESEL.BLL.Boards.GSA
             }
             finally
             {
-                _pendingLedResponse = null;
+                _pendingLedRequest = null;
                 _ledGate.Release();
             }
         }
 
         private void OnFrameReceived(SggwFrame frame)
         {
-            TaskCompletionSource<SggwFrame> pending = _pendingLedResponse;
+            PendingLedRequest pending = _pendingLedRequest;
             if (pending == null || frame == null)
                 return;
 
             if (frame.Cmd != GwProtocol.MakeCompactCommand(GwProtocol.GsaAddress, GwProtocol.GsaTlvTransactOp))
                 return;
 
-            pending.TrySetResult(frame);
+            GsaLedResponse parsedResponse;
+            string error;
+            if (!GsaParsers.TryReadBuiltinLedResponse(frame, out parsedResponse, out error))
+                return;
+
+            if (parsedResponse.AppliedState != pending.ExpectedState)
+                return;
+
+            pending.ResponseSource.TrySetResult(frame);
         }
 
         private Task<SggwFrame> WaitForLedResponseAsync()
         {
-            return WaitForLedResponseAsync(_pendingLedResponse);
+            return WaitForLedResponseAsync(_pendingLedRequest);
         }
 
-        private static async Task<SggwFrame> WaitForLedResponseAsync(TaskCompletionSource<SggwFrame> pendingResponse)
+        private static async Task<SggwFrame> WaitForLedResponseAsync(PendingLedRequest pendingRequest)
         {
-            Task finished = await Task.WhenAny(
-                pendingResponse.Task,
-                Task.Delay(ResponseTimeoutMs)).ConfigureAwait(false);
-
-            if (finished != pendingResponse.Task)
+            if (pendingRequest == null)
                 throw new OperationCanceledException();
 
-            return await pendingResponse.Task.ConfigureAwait(false);
+            Task finished = await Task.WhenAny(
+                pendingRequest.ResponseSource.Task,
+                Task.Delay(ResponseTimeoutMs)).ConfigureAwait(false);
+
+            if (finished != pendingRequest.ResponseSource.Task)
+                throw new OperationCanceledException();
+
+            return await pendingRequest.ResponseSource.Task.ConfigureAwait(false);
         }
 
         private static string TranslateOutcome(SdGwLinkEngine.SendOutcome outcome)
@@ -130,7 +151,7 @@ namespace SimulDIESEL.BLL.Boards.GSA
                 case SdGwLinkEngine.SendOutcome.TransportDown:
                     return "O transporte serial está indisponível no momento.";
                 case SdGwLinkEngine.SendOutcome.Busy:
-                    return "O gateway está ocupado processando outro comando.";
+                    return "O link estava temporariamente ocupado. Tente novamente.";
                 case SdGwLinkEngine.SendOutcome.Enqueued:
                     return "O comando foi enfileirado, mas não houve confirmação do gateway.";
                 default:

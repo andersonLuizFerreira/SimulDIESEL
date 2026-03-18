@@ -82,8 +82,8 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
                 Cmd = GwProtocol.MakeCompactCommand(GwProtocol.GsaAddress, GwProtocol.GsaTlvTransactOp),
                 Payload = BuildGsaLedPayload(isOn),
                 RequireAck = true,
-                TimeoutMs = 150,
-                Retries = 1
+                TimeoutMs = 400,
+                Retries = 2
             };
         }
 

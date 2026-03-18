@@ -37,7 +37,7 @@ namespace SimulDIESEL.UI
 
             ConfiguraStatusStrip();
 
-            _logic = FrmBpmLogic.CreateFromLegacyAdapter();
+            _logic = FrmBpmLogic.CreateDefault();
             _logic.StatusChanged += Logic_StatusChanged;
             _logic.Error += Logic_Error;
         }

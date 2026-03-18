@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using SimulDIESEL.BLL.Boards.GSA;
+using SimulDIESEL.BLL.Boards.BPM.Comm.Serial;
 
 namespace SimulDIESEL.BLL.FormsLogic.GSA
 {
@@ -19,11 +20,10 @@ namespace SimulDIESEL.BLL.FormsLogic.GSA
             _isLinked = isLinked ?? throw new ArgumentNullException(nameof(isLinked));
         }
 
-        public static FrmGsaLogic CreateFromLegacyAdapter()
+        public static FrmGsaLogic CreateDefault()
         {
-            // Adapter transitório: encapsula o uso do SerialLink para que o form
-            // não navegue diretamente pelos serviços globais legados.
-            return new FrmGsaLogic(SerialLink.Service.Gsa, () => SerialLink.IsLinked);
+            BpmSerialService service = BpmSerialService.Shared;
+            return new FrmGsaLogic(service.Gsa, () => service.IsLinked);
         }
 
         public Task<GsaCommandResult> SetBuiltinLedAsync(bool ligado)
