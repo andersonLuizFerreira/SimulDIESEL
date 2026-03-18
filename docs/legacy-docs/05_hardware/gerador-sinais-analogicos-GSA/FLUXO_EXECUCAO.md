@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # GSA — Fluxo de Execução
 
 ## Sequência geral
@@ -18,3 +20,4 @@
 Detalhes exatos dependem da versão do firmware do GSA auditada.
 
 [Retornar ao README principal](..\..\..\README.md)
+

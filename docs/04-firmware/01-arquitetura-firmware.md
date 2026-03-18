@@ -1,30 +1,20 @@
 # Arquitetura de Firmware
 
-## Visão Geral
+## Visão geral
 
-O firmware do SimulDIESEL é responsável por:
+O firmware atual da BPM continua baseado em SDGW/SGGW como camada binária de transporte entre host e gateway.
 
-- gerenciar o hardware das baby boards;
-- implementar o transporte físico e lógico de comunicação;
-- interpretar comandos da camada Hardware;
-- executar operações sobre recursos internos;
-- gerar respostas e eventos padronizados.
+A arquitetura ativa hoje está organizada em torno de:
 
-A arquitetura foi projetada para ser modular, previsível e escalável, permitindo a inclusão de novas boards, novos recursos e novos tipos de operação sem impacto estrutural no restante do sistema.
+- transporte serial
+- link SDGW confiável
+- aplicação local do gateway
+- roteamento para barramentos internos
+- contratos TLV curtos para as baby boards
 
-No estado atual do projeto, a sessão host/gateway continua baseada em `SGGW`, mas a evolução aprovada prevê a introdução do SDH como camada lógica de comando acima do transporte atual.
+O firmware não depende mais de ping periódico fixo como única forma de manter a sessão host/gateway.
 
 ## Camadas internas do firmware
-
-A arquitetura lógica pode ser dividida em cinco camadas principais:
-
-    Transporte físico
-    Motor de frames
-    Parser de protocolo
-    Router de recursos
-    Lógica funcional
-
-Cada camada possui responsabilidades bem definidas.
 
 ### Transporte físico
 
@@ -33,224 +23,167 @@ Responsável por:
 - UART
 - I2C
 - SPI
-- CAN
-- GPIO
-- timers e periféricos auxiliares
+- GPIO e temporização auxiliar
 
-Essa camada não conhece comandos de alto nível. Ela apenas envia e recebe bytes.
+Essa camada apenas movimenta bytes.
 
-### Motor de frames
+### Link SDGW
 
-Responsável por:
+Implementado principalmente em `SggwLink`.
 
-- delimitação de frames;
-- validação de CRC;
-- controle de sequência;
-- geração de ACK / RESP;
-- detecção de timeout;
-- retry quando aplicável.
+Responsabilidades:
 
-No estado atual, essa camada é representada pelo transporte host/gateway baseado em `SGGW`.
+- handshake textual inicial
+- transição para modo binário
+- delimitação de frames
+- `COBS`
+- `CRC-8/ATM`
+- tratamento de `ACK` / `ERR`
+- cache da última resposta para retransmissão
+- watchdog de atividade da sessão
 
-O motor de frames transforma fluxo de bytes em unidades lógicas confiáveis.
+### Aplicação local do gateway
 
-### Parser de protocolo
+Implementada em `GatewayApp`.
 
-Responsável por:
+Responsabilidades:
 
-- interpretar o comando lógico recebido;
-- validar a estrutura do protocolo ativo;
-- preparar a estrutura interna de execução.
+- tratar comandos locais da BPM
+- distinguir endereço local BPM de comandos roteados
+- encaminhar comandos compactos para o router
+- transformar erros do gateway em eventos SDGW
 
-No estado atual, o firmware já possui parsing do fluxo host/gateway e contratos internos de barramento.
-A evolução aprovada é introduzir o parser SDH acima do transporte atual, sem misturar semântica de comando com framing.
+### Router e barramentos
 
-### Router de recursos
+O `GwRouter` escolhe o destino físico e executa a transação:
 
-Responsável por:
+- I2C
+- SPI
 
-- resolver a baby board;
-- resolver o recurso interno;
-- encaminhar a operação para o módulo correto;
-- tratar indisponibilidade, busy e unsupported.
+O payload interno continua sendo TLV curto com CRC próprio da transação para a baby board.
 
-Essa camada implementa o endereçamento lógico:
+## Sessão host/gateway
 
-    <BOARD>.<resource>.<subresource>
+### Handshake inicial
 
-Exemplos:
+O bootstrap continua textual:
 
-    BPM.gateway
-    BPM.gateway.serial
-    PSU.power.main
-    GSA.led
-    UCO.can1
+1. a BPM inicia em `WaitingBanner`
+2. o host envia `SIMULDIESELAPI`
+3. a BPM responde com seu banner
+4. a BPM entra em `Linked`
+5. o transporte em texto é desabilitado
 
-### Lógica funcional
+Esse comportamento continua necessário para o primeiro estabelecimento da conexão serial.
 
-Responsável por:
+### Operação binária
 
-- executar operações físicas reais;
-- configurar periféricos;
-- alterar estados;
-- ler sensores;
-- atualizar DAC / PWM / GPIO;
-- interagir com drivers específicos.
+Depois do handshake, o link usa frames SDGW:
 
-Cada baby board possui sua própria implementação funcional.
+    CMD | FLAGS | SEQ | PAYLOAD | CRC8
 
-## Situação atual e evolução aprovada
+Nada foi alterado em:
 
-Hoje o gateway já resolve:
+- wire format
+- `COBS`
+- delimitador `0x00`
+- `ACK`
+- `ERR`
+- flags do protocolo
 
-- sessão host/gateway;
-- roteamento por endereço;
-- despacho por barramento;
-- contratos internos com devices.
+## Keepalive atual da BPM
 
-A evolução aprovada adiciona um novo passo no gateway:
+O firmware da BPM foi alinhado ao host novo.
 
-    transporte confiável
-        -> parser SDH
-        -> router lógico
-        -> binding lógico-físico
-        -> mapper para contrato interno
-        -> execução no barramento/device
+### Lógica antiga
 
-Isso permite que o gateway passe a ser o responsável por converter comandos semânticos em transações concretas sobre a infraestrutura física da bancada.
+Antes, a sessão era renovada na prática por `PING 0x55`.
 
-## Modelo de comando SDH no firmware
+Isso criava divergência com o host quando havia tráfego funcional válido, mas sem ping explícito recente.
 
-O modelo lógico aprovado para a camada Hardware é:
+### Lógica atual
 
-    version
-    target
-    op
-    args
-    meta
+Agora:
 
-Fluxo interno pretendido:
+- qualquer frame SDGW estruturalmente válido recebido renova a atividade da sessão
+- a renovação ocorre logo após a validação estrutural do frame
+- `PING 0x55` continua suportado, mas não é a única prova de vida
 
-1. Receber frame válido do host
-2. Extrair o comando lógico
-3. Parser valida versão
-4. Router resolve target
-5. Binding lógico-físico define a rota real
-6. Mapper interno converte para o contrato legado atual
-7. Handler executa
-8. Response Builder monta a resposta
+Em termos práticos:
 
-## Primeiro caso de uso aprovado para o gateway
+- comandos funcionais válidos mantêm a sessão ativa
+- `ACK`s e demais frames válidos também contam como atividade
+- a BPM não deve mais se auto-deslogar no meio de tráfego funcional só por falta de ping explícito
 
-O primeiro comando oficial a ser suportado nessa arquitetura é:
+### Timeout atual da sessão
 
-    sdh/1 GSA.led set state=on
-    sdh/1 GSA.led set state=off
+O watchdog da BPM mede silêncio de atividade SDGW válida.
 
-Esse caso foi escolhido porque já existe caminho funcional entre host, gateway e GSA, permitindo validar a nova arquitetura sem romper o legado já estável.
+Valor atual:
 
-## Dispatcher de operações
+- timeout de atividade do link: `4000 ms`
 
-O dispatcher utiliza um conjunto pequeno e estável de verbos:
+Quando esse silêncio expira:
 
-    read
-    set
-    cfg
-    run
-    status
-    reset
+- a BPM faz logout da sessão binária
+- volta para `WaitingBanner`
 
-Formas qualificadas podem existir:
+Esse comportamento continua existindo, mas agora está baseado em ausência de atividade válida, não em ausência específica de `PING`.
 
-    read.id
-    read.cfg
-    set.state
-    run.scan
-    run.apply
+## Router do gateway
 
-Isso permite padronização entre boards diferentes.
+O `GatewayApp` continua tratando:
 
-## Modelo de resposta
+- comandos locais da BPM
+- comandos compactos roteados para as baby boards
 
-Toda resposta gerada pelo firmware deve convergir para envelope comum:
+O timeout interno do roteamento foi tornado mais realista para uso interativo.
 
-    version
-    ok
-    target
-    op
-    code
-    message
-    data
-    meta
+Valor atual:
 
-Tipos de resposta:
+- timeout do router/gateway: `100 ms`
 
-- confirmação de escrita/configuração;
-- retorno de leitura;
-- resposta de status;
-- erro padronizado.
+Isso reduz falhas artificiais em operações repetitivas como o fluxo de LED da GSA.
 
-Códigos de erro recomendados:
+## Papel atual do SDH no firmware
 
-    OK
-    INVALID_TARGET
-    INVALID_OP
-    INVALID_ARG
-    MISSING_ARG
-    OUT_OF_RANGE
-    UNSUPPORTED
-    BUSY
-    FAULT
-    TIMEOUT
+No host, o SDH já existe como camada semântica.
 
-## Eventos assíncronos
+No firmware da BPM, a situação atual é mais conservadora:
 
-O firmware pode gerar eventos independentes de requisição:
+- o host resolve SDH para comandos SDGW compactos antes do envio
+- a BPM continua operando sobre o contrato compacto `[ADDR:4][OP:4]`
+- o gateway trata endereço local BPM ou roteia para a baby board correspondente
 
-    sdh/1 evt <source> <name> chave=valor ...
+Ou seja:
 
-Exemplos:
+- o firmware atual ainda não usa SDH textual como parser de entrada do gateway
+- a compatibilidade real vigente é host SDH semântico -> SDGW compacto -> BPM/Gateway -> TLV interno
 
-- inserção/remoção de X-CONN;
-- fault de PSU;
-- mudança de estado CAN;
-- watchdog;
-- alteração de entrada digital.
+## Exemplo atual de fluxo funcional
 
-## Persistência e perfis
+Caso de uso: `GSA.led set state=on`
 
-Configurações realizadas com `cfg` podem:
+Fluxo:
 
-- ser temporárias;
-- ser persistidas em NVS / EEPROM / Flash;
-- ser aplicadas via `run.apply`;
-- ser restauradas via `reset` ou `run.profile`.
+1. o host monta o comando SDH
+2. o host o converte para SDGW compacto do endereço GSA
+3. a BPM recebe o frame SDGW válido
+4. a atividade da sessão é renovada
+5. o `GatewayApp` encaminha a transação ao `GwRouter`
+6. o router envia o TLV curto para a GSA
+7. a resposta volta ao gateway
+8. a BPM publica a resposta como evento SDGW para o host
 
-## Escalabilidade
+## Conclusão
 
-A arquitetura permite:
+A arquitetura atual do firmware da BPM pode ser resumida assim:
 
-- inclusão de novas baby boards sem alterar o transporte host/gateway;
-- inclusão de novos recursos apenas registrando handlers;
-- expansão do protocolo mantendo compatibilidade por versão (`sdh/1`, `sdh/2` etc.);
-- coexistência de múltiplos transportes.
-
-## Integração com o software host
-
-O firmware foi projetado para operar com:
-
-- Dashboard local em C#;
-- API web futura;
-- terminal humano (UHM);
-- scripts automatizados.
-
-A evolução SDH mantém essa flexibilidade, mas desloca para o gateway a responsabilidade de resolver o target lógico e convertê-lo para a rota física real.
-
-## Referências
-
-- `docs/04-firmware/04-sdh-gateway-architecture.md`
-- `docs/06-protocolos/01-sdh-command-model.md`
-- `docs/06-protocolos/02-sdh-response-model.md`
-- `docs/06-protocolos/03-sdh-examples.md`
+- handshake textual inicial preservado
+- operação binária SDGW preservada
+- keepalive baseado em atividade SDGW válida
+- watchdog de sessão em `4000 ms`
+- router com timeout de `100 ms`
+- gateway ainda consumindo comandos compactos resolvidos pelo host
 
 [Retornar ao README principal](../README.md)

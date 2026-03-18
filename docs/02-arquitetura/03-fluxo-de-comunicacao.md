@@ -2,13 +2,18 @@
 
 ## Estado atual
 
-O fluxo de comunicação implementado no repositório é híbrido: textual no bootstrap e binário durante a operação normal. Essa escolha aparece em ambos os lados do enlace e explica por que o host primeiro procura um banner legível antes de passar a tratar frames delimitados por `0x00`.
+O fluxo de comunicação implementado no SimulDIESEL continua híbrido:
 
-## Funcionamento técnico
+- handshake textual no bootstrap da conexão serial
+- comunicação binária SDGW durante a operação normal
 
-### Fase 1: estabelecimento de link
+A diferença em relação ao desenho antigo é que o host agora possui um agendador central de TX e o keepalive não depende mais de ping periódico fixo.
 
-Máquina de estados do host (`SerialLinkService`):
+## Fase 1: estabelecimento inicial do link
+
+### Host
+
+O `BpmSerialService` controla a transição:
 
     Disconnected
       -> SerialConnected
@@ -17,111 +22,162 @@ Máquina de estados do host (`SerialLinkService`):
       -> Linked
       -> LinkFailed
 
-Máquina de estados do gateway (`SggwLink`):
+Fluxo:
+
+1. a porta serial é aberta
+2. o host drena ruído inicial
+3. o host envia o banner `SIMULDIESELAPI`
+4. a BPM responde com a linha de identificação
+5. o host marca `Linked`
+
+### BPM
+
+O `SggwLink` do firmware controla:
 
     WaitingBanner
       -> Linked
-      -> WaitingBanner (se resetar ou expirar)
 
-O host drena a serial, envia o banner de ativação e aguarda uma linha iniciada por `SimulDIESEL ver`. Depois disso, ativa o motor de frames.
+Enquanto está em `WaitingBanner`, a BPM aceita apenas o handshake textual.
 
-### Fase 2: frame lógico host/gateway
+## Fase 2: operação binária SDGW
 
-Estrutura lógica observada em `Sggw.defs.h`:
+Depois do bootstrap, o fluxo binário passa a ser:
+
+    UI / FormsLogic
+      -> BpmSerialService.Shared
+      -> Client funcional
+      -> SdhClient
+      -> SdgwSession
+      -> SdGwTxScheduler
+      -> SdGwLinkEngine
+      -> SerialTransport
+      -> BPM / SggwLink
+      -> GatewayApp
+      -> GwRouter
+      -> barramento físico
+      -> device
+
+## Estrutura do frame SDGW
+
+O wire format continua:
 
     CMD | FLAGS | SEQ | PAYLOAD... | CRC8
 
-- `CMD`: 4 bits de endereço e 4 bits de operação.
-- `FLAGS`: inclui pedido de `ACK` e marcação de evento.
-- `SEQ`: número de sequência para deduplicação.
-- `CRC8`: validação do quadro lógico.
+Depois disso:
 
-Esse bloco é codificado em `COBS` e finalizado com delimitador `0x00`.
+- o quadro é codificado em `COBS`
+- o delimitador final é `0x00`
 
-### Exemplo de ida e volta
+Nada mudou em:
 
-Exemplo conceitual de `PING` para o endereço do gateway:
+- `CRC-8/ATM`
+- framing `COBS`
+- `ACK`
+- `ERR`
+- flags de transporte
 
-    Host
-      Frame lógico: CMD=0x01 FLAGS=0x01 SEQ=0x10 PAYLOAD=[]
-      -> COBS(...)
-      -> 00
+## Arbitragem de transmissão no host
 
-    Gateway
-      valida frame
-      gera ACK/RESP
-      devolve frame com mesmo SEQ
+O host não envia mais direto do client funcional para o engine.
 
-Exemplo de operação roteada para o GSA:
+Todo TX normal passa por:
 
-    Host -> Gateway:
-      CMD = [ADDR_GSA | OP_GSA_TLV]
-      PAYLOAD = TLV do dispositivo
+    SdgwSession -> SdGwTxScheduler -> SdGwLinkEngine
 
-    Gateway -> GSA (I2C):
-      T | L | V... | CRC8
+O scheduler aplica prioridade:
 
-    GSA -> Gateway:
-      T | L | V... | CRC8
+- `High`
+- `Normal`
+- `Low`
 
-### Fase 3: roteamento interno
+Uso atual:
 
-`GwRouter` consulta `GwDeviceTable` para determinar:
+- comandos funcionais da aplicação: `High`
+- pings internos do supervisor: `Low`
 
-- tipo do barramento (`I2C` ou `SPI`);
-- endereço físico ou pino de seleção;
-- parâmetros necessários para a transação.
+Dentro da mesma prioridade, a ordem é FIFO.
 
-`GwI2cBus::transact` e `GwSpiBus::transact` usam a mesma ideia de request/resposta curta e validada, preservando um contrato uniforme para o restante do firmware.
+Essa fila central evita que o supervisor dispute diretamente o slot stop-and-wait com comandos funcionais.
 
-## Integração com o modelo SDH
+## Keepalive atual
 
-A arquitetura de evolução do SimulDIESEL deve convergir para o padrão SDH (SimulDiesel Hardware Command) como contrato oficial da camada Hardware.
+### No host
 
-Nesse modelo, todo comando é composto por:
+O `SdGwLinkSupervisor` trabalha como watchdog lógico de silêncio.
 
-- `version`
-- `target`
-- `op`
-- `args`
-- `meta`
+Regras:
 
-O fluxo lógico de processamento esperado passa a ser:
+- RX SDGW válido mantém o link vivo
+- ping só é agendado sob ociosidade
+- o silêncio prolongado é que derruba o link
 
-1. recepção do comando;
-2. validação da versão;
-3. resolução do `target`;
-4. resolução da `op`;
-5. validação dos `args`;
-6. execução no recurso correspondente;
-7. montagem da resposta padronizada.
+Configuração atual do host:
 
-Esse padrão permite desacoplamento entre:
+- `IdleBeforePingMs = 1500`
+- `LinkTimeoutMs = 3000`
+- `PingTimeoutMs = 150`
+- `PingRetries = 2`
 
-- transporte físico;
-- parser do protocolo;
-- roteamento por board;
-- lógica funcional do recurso;
-- representação textual e JSON.
+### Na BPM
 
-## Limitações
+O firmware da BPM foi alinhado ao mesmo conceito.
 
-O protocolo do host está bem definido no código, mas o repertório funcional ainda é enxuto. O canal existe, a confiabilidade existe e o roteamento existe; o número de comandos de alto nível e a quantidade de dispositivos funcionais ainda são limitados. Também não há evidência, no fluxo atual, de multiplexação avançada de sessões ou fila concorrente de requisições.
+Regras atuais:
 
-## Evolução prevista
+- qualquer frame SDGW válido renova a atividade da sessão
+- `PING 0x55` continua suportado, mas não é mais a única prova de vida
+- o watchdog do firmware mede silêncio de frames válidos
 
-O fluxo atual já suporta a ampliação natural do sistema:
+Parâmetros atuais:
 
-- novos `OP codes` por endereço;
-- novos dispositivos na tabela do gateway;
-- novos tipos de evento gerados do firmware para a UI;
-- maior densidade de payloads TLV, desde que respeitados os limites de tamanho do enlace;
-- convergência gradual para o envelope semântico SDH como contrato único da camada Hardware.
+- timeout de atividade do link: `4000 ms`
+- timeout do router/gateway: `100 ms`
+
+## Recepção após o primeiro `Linked`
+
+O host foi ajustado para ser mais tolerante com tráfego tardio.
+
+Depois que a conexão serial já atingiu `Linked` pelo menos uma vez:
+
+- o `BpmSerialService` passa a considerar a sessão SDGW estabelecida naquela conexão
+- tráfego binário SDGW continua sendo entregue ao `SdGwLinkEngine` mesmo se o estado lógico cair para `LinkFailed`
+- isso vale enquanto a porta serial continuar aberta
+
+Objetivo:
+
+- não tratar `ACK`s tardios como texto de handshake
+- não perder respostas tardias por regressão prematura ao bootstrap textual
+
+## Exemplo funcional atual: GSA LED
+
+Fluxo:
+
+1. a UI dispara `GsaClient.SetBuiltinLedAsync(bool)`
+2. o `GsaClient` monta `SdhCommand` para `GSA.led set state=on|off`
+3. o `SdhClient` valida e mapeia para SDGW compacto
+4. o envio entra no `SdGwTxScheduler` com prioridade `High`
+5. o `SdGwLinkEngine` envia o frame e aguarda `ACK`
+6. a BPM roteia a transação para a GSA
+7. a resposta TLV retorna como evento SDGW
+8. o `GsaClient` valida a resposta e correlaciona o estado aplicado
+
+Ajustes recentes desse fluxo:
+
+- timeout do LED: `400 ms`
+- retries do LED: `2`
+- correlação de resposta reforçada
+
+## Limitações atuais
+
+- o host continua com uma única transação ativa no engine por vez
+- a fila resolve arbitragem, não paralelismo real
+- a recepção funcional ainda usa `SggwFrame`
+- o catálogo funcional suportado continua pequeno
 
 ## Referências
 
-- `docs/06-protocolos/01-sdh-command-model.md`
-- `docs/06-protocolos/02-sdh-response-model.md`
-- `docs/06-protocolos/03-sdh-examples.md`
+- `docs/05-software-dashboard/03-camada-hardware.md`
+- `docs/05-software-dashboard/04-sdh-host-architecture.md`
+- `docs/04-firmware/01-arquitetura-firmware.md`
 
 [Retornar ao README principal](../README.md)

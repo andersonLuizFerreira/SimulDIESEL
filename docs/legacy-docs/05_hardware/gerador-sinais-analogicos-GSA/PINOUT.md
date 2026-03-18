@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # GSA — Pinout
 
 ## Pinos documentados
@@ -16,3 +18,4 @@
 A pinagem física depende da placa-alvo utilizada no firmware.
 
 [Retornar ao README principal](..\..\..\README.md)
+

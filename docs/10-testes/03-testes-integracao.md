@@ -2,53 +2,77 @@
 
 ## Estado atual
 
-Os testes de integração mais importantes do SimulDIESEL são os que atravessam toda a cadeia host -> gateway -> periférico. O repositório já possui todos os blocos necessários para esse teste no caso do GSA, tornando possível validar o desenho arquitetural completo sem depender de uma camada de nuvem.
+Os testes de integração mais relevantes do projeto são os que atravessam toda a cadeia:
 
-## Funcionamento técnico
+    WinForms -> host SDGW/SDH -> BPM -> baby board
 
-### Caminho integrado
+Hoje, o caso mais representativo continua sendo o fluxo do LED da GSA.
+
+## Caminho integrado real
 
 ```text
 WinForms
-  -> SdGgwClient
+  -> FrmGsaLogic / FrmBpmLogic
+  -> BpmSerialService.Shared
+  -> GsaClient / BpmClient
+  -> SdhClient
+  -> SdgwSession
+  -> SdGwTxScheduler
   -> SdGwLinkEngine
   -> SerialTransport
-  -> ESP32 SggwLink / GatewayApp
-  -> GwRouter / GwDeviceTable
-  -> I2C ou SPI
-  -> dispositivo remoto
+  -> BPM / SggwLink / GatewayApp
+  -> GwRouter
+  -> I2C
+  -> GSA
 ```
 
-### Cenário de integração mais representativo
+## Cenário de integração mais representativo
 
-Caso de teste: alterar e ler o estado do LED no GSA.
+Caso de teste: alterar o estado do LED embutido da GSA.
 
-1. A UI dispara o comando.
-2. O cliente local cria o frame lógico.
-3. O gateway valida `COBS` e `CRC8`.
-4. O roteador seleciona o barramento correto.
-5. O GSA aplica o comando e monta a resposta TLV.
-6. O gateway devolve a resposta ao host.
-7. O host correlaciona a resposta ao `SEQ` enviado.
+1. a UI dispara o comando
+2. o `GsaClient` monta `SdhCommand` para `GSA.led`
+3. o `SdhClient` valida e mapeia para SDGW compacto
+4. o `SdGwTxScheduler` envia em prioridade `High`
+5. o `SdGwLinkEngine` aguarda `ACK`
+6. a BPM valida o frame e roteia a transação para a GSA
+7. a GSA responde em TLV
+8. a BPM devolve a resposta ao host como evento SDGW
+9. o `GsaClient` valida a resposta e confere o estado aplicado
 
-### Evidência de robustez do fluxo
+## Evidências atuais de robustez
 
-- estados de link explícitos no host e no gateway;
-- tolerância a retransmissão por `SEQ`;
-- erro local por camada;
-- diferenciação entre erro de transporte e erro de serviço.
+- estados de link explícitos no `BpmSerialService`
+- stop-and-wait técnico concentrado no `SdGwLinkEngine`
+- arbitragem de TX centralizada no `SdGwTxScheduler`
+- keepalive por atividade SDGW válida no host e na BPM
+- tolerância do host para `ACK`s e respostas tardias após o primeiro `Linked`
+
+## O que não deve mais ser tratado como fluxo principal
+
+Os testes de integração não devem mais assumir:
+
+- envio manual de ping como passo central da operação normal
+- concorrência interna resolvida por `Busy`
+- arquitetura baseada em `SerialLink`, `SerialLinkService`, `SdGgwClient` ou `SdgwHealthService`
 
 ## Limitações
 
-O conjunto de testes de integração ainda é pequeno em diversidade funcional, porque o repertório de serviços de dispositivo também é pequeno. O repositório também não mostra integração fim a fim com `cloud`, nem com protocolos automotivos ativos como `CAN` e `J1939`.
+O conjunto de testes de integração ainda é pequeno em diversidade funcional.
+
+Hoje:
+
+- o caso GSA LED é o principal cenário ponta a ponta
+- ainda não há cobertura equivalente para múltiplas boards em paralelo
+- a recepção funcional ainda é baseada em `SggwFrame`
 
 ## Evolução prevista
 
-Os testes de integração devem crescer junto com os dispositivos suportados e com os contratos funcionais. Os próximos ganhos naturais são:
+Os próximos ganhos naturais são:
 
-- mais cenários além do LED;
-- validação de eventos assíncronos;
-- testes cruzando múltiplos dispositivos da tabela;
-- integração com contratos remotos quando a camada `cloud` estiver operacional.
+- mais cenários além do LED
+- validação de eventos assíncronos
+- testes cruzando múltiplos destinos da BPM
+- maior formalização dos roteiros de integração
 
 [Retornar ao README principal](../README.md)

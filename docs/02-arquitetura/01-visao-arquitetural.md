@@ -2,65 +2,98 @@
 
 ## Estado atual
 
-A arquitetura do SimulDIESEL é multicamada e orientada a gateways. O host não fala diretamente com cada periférico; ele fala com um gateway ESP32 que centraliza enquadramento, confiabilidade de link e roteamento para barramentos internos. Esse desenho já está visível tanto no software local em C# quanto no firmware do `esp32-api-bridge`.
+A arquitetura do SimulDIESEL continua multicamada e orientada a gateway, mas a pilha do host foi consolidada em torno da BPM como dona funcional do link serial.
 
+Hoje o desenho vigente é:
+
+```text
+UI / FormsLogic
+    -> BpmSerialService
+    -> SdhClient / Clients por board
+    -> SdgwSession
+    -> SdGwTxScheduler
+    -> SdGwLinkEngine
+    -> SerialTransport
+    -> BPM / SggwLink / GatewayApp / GwRouter
+    -> I2C / SPI
+    -> dispositivo
 ```
-+--------------------+       +----------------------+       +------------------+
-| UI / BLL / DAL     |       | ESP32 API Bridge     |       | Dispositivos     |
-| local-api (C#)     |<----->| Link / Router / Buses|<----->| I2C / SPI        |
-+--------------------+       +----------------------+       +------------------+
-```
 
-## Funcionamento técnico
+## Camada host
 
-### Camada host
+Os componentes centrais do host são:
 
-- `SerialTransport`: leitura e escrita de bytes crus.
-- `SerialLinkService`: sincronização inicial, controle de estado e descarte de ruído textual.
-- `SdGwLinkEngine`: montagem e análise de frames, `ACK`, retransmissão e deduplicação por sequência.
-- `SdGgwClient`: API de envio para a camada superior.
-- `SdGwHealthService`: supervisão periódica com `ping`.
+- `BpmSerialService`: dono funcional do link serial da BPM
+- `SdGwLinkEngine`: infraestrutura técnica de framing, `ACK`, timeout e retry
+- `SdGwTxScheduler`: arbitragem central de TX com prioridades
+- `SdgwSession`: sessão de alto nível sobre engine + scheduler
+- `SdhClient`: camada semântica SDH sobre SDGW compacto
+- `SdGwLinkSupervisor`: supervisão atual da saúde do link
+- `GsaClient` e `BpmClient`: fachada funcional por board
 
-### Camada gateway
+O acesso global transitório usado pela UI atual é:
 
-- `SggwTransport`: abstração do meio serial no ESP32.
-- `SggwParser`: validação de `COBS`, tamanho e `CRC8`.
-- `SggwLink`: sessão host/gateway, tratamento de `ACK`, respostas em cache e watchdog.
-- `GatewayApp`: tratamento de comandos do endereço do gateway.
-- `GwRouter`: resolução do destino lógico.
-- `GwDeviceTable`: catálogo local de dispositivos e barramentos.
-- `GwI2cBus` e `GwSpiBus`: execução da transação física.
+    BpmSerialService.Shared
 
-### Camada de dispositivo
+## Camada gateway
 
-No `GSA`, a organização é explícita:
+Na BPM, a arquitetura vigente é:
 
-- `Transport`: integra callbacks do barramento.
-- `Link`: valida frame TLV e administra erros de protocolo.
-- `Service`: interpreta comando funcional.
-- `LedService`: atua sobre o pino físico.
+- `SggwLink`: handshake textual, framing SDGW, `ACK`, `ERR` e watchdog de atividade
+- `GatewayApp`: tratamento local da BPM e despacho de comandos roteados
+- `GwRouter`: seleção de barramento e destino físico
+- `GwI2cBus` / `GwSpiBus`: execução da transação física
 
-### Fluxo arquitetural real
+## Camada de dispositivo
 
-1. A UI solicita uma operação.
-2. O cliente C# monta um frame lógico.
-3. O gateway valida e resolve o endereço.
-4. O barramento selecionado entrega o comando ao dispositivo.
-5. O dispositivo responde em TLV.
-6. O gateway reconstrói a resposta do protocolo host.
-7. O host confirma `ACK` e atualiza a interface.
+No estado atual, o caso funcional mais exercitado é a GSA.
+
+O contrato interno continua baseado em TLV curto com CRC próprio da transação da baby board.
+
+## Fluxo arquitetural real
+
+1. a UI dispara uma ação
+2. o client funcional monta um `SdhCommand`
+3. o `SdhClient` valida e mapeia o comando
+4. o `SdgwSession` envia pela fila do `SdGwTxScheduler`
+5. o `SdGwLinkEngine` aplica o stop-and-wait
+6. a BPM valida o frame SDGW
+7. o `GatewayApp` resolve se o comando é local ou roteado
+8. o barramento entrega a transação à board
+9. a resposta volta como tráfego SDGW válido ao host
+
+## Keepalive e saúde do link
+
+O enlace atual é supervisionado por atividade SDGW válida, não por ping fixo periódico.
+
+No host:
+
+- `SdGwLinkSupervisor` mede silêncio de RX válido
+- ping só é agendado sob ociosidade
+
+Na BPM:
+
+- qualquer frame SDGW válido renova a sessão
+- watchdog de atividade do link: `4000 ms`
+- timeout do router/gateway: `100 ms`
 
 ## Limitações
 
-A arquitetura está mais madura nos mecanismos de transporte do que nos serviços de domínio. O mapeamento de dispositivos existe, mas a tabela ainda é curta e parte dos endereços aponta para dispositivos cuja documentação textual não está consolidada no repositório. Também não há, no estado atual, uma camada de integração em nuvem equivalente ao nível de detalhe do enlace local.
+A arquitetura está mais madura no enlace host/gateway do que no volume de serviços embarcados.
+
+Hoje:
+
+- o caso GSA LED é o principal fluxo ponta a ponta
+- o catálogo SDH suportado continua pequeno
+- a recepção funcional no host ainda é baseada em `SggwFrame`
 
 ## Evolução prevista
 
-As decisões já presentes no código favorecem expansão sem ruptura:
+As decisões atuais favorecem expansão sem romper o enlace:
 
-- inclusão de novos dispositivos por tabela, sem alterar o protocolo host;
-- reaproveitamento da pilha `Transport/Link/Service` em novos periféricos;
-- enriquecimento do dashboard com mais casos de uso sem reescrever o enlace;
-- evolução dos contratos formais quando os serviços embarcados deixarem de ser apenas infraestrutura básica.
+- inclusão de novos comandos SDH sobre a mesma base
+- ampliação de boards e serviços na BPM
+- redução gradual de pontos transitórios da UI
+- evolução da observabilidade e dos testes de integração
 
 [Retornar ao README principal](../README.md)

@@ -1,39 +1,98 @@
 # Arquitetura do Software Dashboard (Local API)
 
-## Estrutura de camadas da aplicação WinForms
+## Estrutura atual da aplicação WinForms
 
-A aplicação em `local-api/` segue o fluxo:
+A aplicação local segue o fluxo:
 
-`UI (Forms) → BLL → DAL → Transporte serial`
+```text
+UI (Forms)
+  -> FormsLogic / BLL
+  -> BpmSerialService
+  -> DAL de protocolo e transporte
+  -> BPM
+```
 
-Onde:
+Os componentes centrais hoje são:
 
-- **UI:** `DashBoard`, `frmPortaSerial_UI`, `frmLedGw`.
-- **BLL:** `SerialLinkService`, `SerialLink`, `SdGwLinkEngine`, `SdGgwClient`, `SdGwHealthService`, `LedGwTest_BLL`.
-- **DAL:** `SerialTransport`, `IByteTransport`.
+- UI: `DashBoard`, `frmPortaSerial_UI`, `frmGSA_UI`
+- BLL: `BpmSerialService`, `GsaClient`, `BpmClient`, `FrmBpmLogic`, `FrmGsaLogic`
+- DAL/protocolo: `SerialTransport`, `SdGwLinkEngine`, `SdGwTxScheduler`, `SdgwSession`, `SdhClient`, `SdGwLinkSupervisor`
 
 ## Núcleo de orquestração
 
-- `SerialLink` é um ponto de entrada único com propriedade estática do serviço de link.
-- `SerialLinkService` mantém estado (`Disconnected`, `SerialConnected`, `Draining`, `BannerSent`, `Linked`, `LinkFailed`) e dispara eventos para a UI.
+O núcleo funcional atual do software local é:
 
-## Fluxo de execução
+    BpmSerialService
 
-1. UI solicita conexão.
-2. `SerialTransport` abre COM (ou mantém fechado).
-3. Em estado serial ok, inicia handshake textual.
-4. Após banner válido, ativa transporte de frames SGGW.
-5. Comandos de negócio (`LED`) passam por `SdGgwClient`.
+Ele:
 
-## Responsabilidades por camada
+- controla conexão e desconexão
+- mantém o estado lógico do link
+- compõe sessão, scheduler, supervisor e clients funcionais
 
-- UI trata interação e atualização visual.
-- BLL cuida de protocolo e estado.
-- DAL trata apenas bytes e conexão física.
+O acesso global transitório atualmente consumido pela UI é:
 
-## Pontos de estabilidade já observados
+    BpmSerialService.Shared
 
-- Eventos são inscritos/unsubscritos com cuidado para atualização thread-safe.
-- Fechamento da conexão não depende do fechamento de janelas auxiliares (`frmPortaSerial_UI`).
+## Fluxo de execução atual
+
+1. a UI solicita conexão
+2. o `SerialTransport` abre a COM
+3. o `BpmSerialService` executa o bootstrap textual
+4. após o banner válido, o link entra em `Linked`
+5. comandos funcionais são enviados por `SdhClient -> SdgwSession -> SdGwTxScheduler -> SdGwLinkEngine`
+
+## Arbitragem de TX
+
+Todo TX normal do host passa pelo `SdGwTxScheduler`.
+
+Prioridades atuais:
+
+- `High`
+- `Normal`
+- `Low`
+
+Uso atual:
+
+- comandos funcionais: `High`
+- pings do supervisor: `Low`
+
+Isso evita que supervisão e tráfego funcional disputem diretamente o stop-and-wait do engine.
+
+## Estado e saúde do link
+
+O `SdGwLinkSupervisor` é o supervisor vigente.
+
+Comportamento atual:
+
+- RX SDGW válido mantém o link vivo
+- ping é agendado apenas sob silêncio
+- o host não depende de ping periódico fixo
+- a BPM foi alinhada ao mesmo conceito de atividade válida
+
+## Caso funcional atual
+
+O caso funcional mais exercitado é o LED embutido da GSA.
+
+Fluxo:
+
+```text
+frmGSA_UI
+  -> FrmGsaLogic
+  -> BpmSerialService.Shared.Gsa
+  -> GsaClient
+  -> SdhClient
+  -> SdgwSession
+  -> SdGwTxScheduler
+  -> SdGwLinkEngine
+  -> BPM
+  -> GSA
+```
+
+## Pontos de estabilidade observados
+
+- o envio funcional não depende mais de competição direta com o supervisor
+- o host aceita tráfego SDGW binário tardio após o primeiro `Linked`
+- o fluxo da GSA LED já usa timeout/retry mais tolerantes e correlação de resposta reforçada
 
 [Retornar ao README principal](../README.md)

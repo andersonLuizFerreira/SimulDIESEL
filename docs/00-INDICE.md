@@ -1,5 +1,15 @@
 # 00-INDICE — Índice da documentação oficial
 
+## Referência oficial do link host <-> BPM
+
+- [Visão geral do host SDH/SDGW](../local-api/src/SimulDIESEL/SimulDIESEL/SDH_HOST_OVERVIEW.md)
+- [Arquitetura SDH no host](05-software-dashboard/04-sdh-host-architecture.md)
+- [Camada de hardware do software](05-software-dashboard/03-camada-hardware.md)
+- [Fluxo de comunicação](02-arquitetura/03-fluxo-de-comunicacao.md)
+- [Contratos de software](12-documentacao-tecnica/03-contratos-software.md)
+- [Arquitetura de firmware](04-firmware/01-arquitetura-firmware.md)
+- [Board BPM](04-firmware/boards/01-bpm.md)
+
 ## README principal
 
 - [README da documentação oficial](README.md)
@@ -34,15 +44,6 @@
 - [07. Resolver Engine do gateway](04-firmware/07-resolver-engine-gateway.md)
 - [Boards de firmware](04-firmware/boards/README.md)
 - [Board BPM](04-firmware/boards/01-bpm.md)
-- [Board PSU](04-firmware/boards/02-psu.md)
-- [Board GSA](04-firmware/boards/03-gsa.md)
-- [Board GSC](04-firmware/boards/04-gsc.md)
-- [Board URL](04-firmware/boards/05-url.md)
-- [Board SLU](04-firmware/boards/06-slu.md)
-- [Board UCO](04-firmware/boards/07-uco.md)
-- [Board UCS](04-firmware/boards/08-ucs.md)
-- [Board UIOD](04-firmware/boards/09-uiod.md)
-- [Board UHM](04-firmware/boards/10-uhm.md)
 
 ## 05-software-dashboard
 
@@ -60,41 +61,19 @@
 - [04. CAN](06-protocolos/04-can.md)
 - [05. J1939](06-protocolos/05-j1939.md)
 
-## 07-simulacoes
-
-- [01. Simulação de módulos](07-simulacoes/01-simulacao-modulos.md)
-- [02. Simulação de sensores](07-simulacoes/02-simulacao-sensores.md)
-- [03. Simulação de atuadores](07-simulacoes/03-simulacao-atuadores.md)
-
 ## 08-casos-de-uso
 
-- [01. Manutenção de módulos](08-casos-de-uso/01-manutencao-modulos.md)
 - [02. Diagnóstico](08-casos-de-uso/02-diagnostico.md)
 - [03. Testes de bancada](08-casos-de-uso/03-testes-bancada.md)
 
-## 09-desenvolvimento
-
-- [01. Organização do repositório](09-desenvolvimento/01-organizacao-repositorio.md)
-- [02. Padrões de código](09-desenvolvimento/02-padroes-codigo.md)
-- [03. Fluxo Git](09-desenvolvimento/03-fluxo-git.md)
-
 ## 10-testes
 
-- [01. Testes de hardware](10-testes/01-testes-hardware.md)
-- [02. Testes de firmware](10-testes/02-testes-firmware.md)
 - [03. Testes de integração](10-testes/03-testes-integracao.md)
 
-## 11-planejamento
+## Acervo histórico preservado
 
-- [01. Planejamento atual](11-planejamento/01-planejamento.md)
-- [02. Próximas funcionalidades](11-planejamento/02-proximas-funcionalidades.md)
-
-## 12-documentacao-tecnica
-
-- [01. Especificações](12-documentacao-tecnica/01-especificacoes.md)
-- [02. Diagramas](12-documentacao-tecnica/02-diagramas.md)
-- [03. Contratos de software](12-documentacao-tecnica/03-contratos-software.md)
-
-## Legado técnico preservado
+Os itens abaixo não representam a arquitetura vigente:
 
 - [Índice legado](legacy-docs/00-INDICE-LEGACY.md)
+- `../docs_estado_atual/`
+- `../docs_reconstruida/`

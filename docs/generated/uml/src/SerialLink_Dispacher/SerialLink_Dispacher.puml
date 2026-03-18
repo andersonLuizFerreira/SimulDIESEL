@@ -1,0 +1,49 @@
+@startuml
+title SDGW TX Scheduler / Dispatcher
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+package "Producers" {
+  [GsaClient\nfunctional command]
+  [BpmClient\nfunctional command]
+  [Internal sender]
+  [SdGwLinkSupervisor\nping under silence]
+}
+
+package "Central arbitration" {
+  [SdGwTxScheduler]
+  [High queue]
+  [Normal queue]
+  [Low queue]
+}
+
+[GsaClient\nfunctional command] --> [High queue]
+[BpmClient\nfunctional command] --> [High queue]
+[Internal sender] --> [Normal queue]
+[SdGwLinkSupervisor\nping under silence] --> [Low queue]
+
+[High queue] --> [SdGwTxScheduler]
+[Normal queue] --> [SdGwTxScheduler]
+[Low queue] --> [SdGwTxScheduler]
+
+[SdGwTxScheduler] --> [SdGwLinkEngine\nsingle stop-and-wait]
+[SdGwLinkEngine\nsingle stop-and-wait] --> [SerialTransport]
+[SerialTransport] --> [BPM / SggwLink]
+[BPM / SggwLink] --> [GatewayApp / GwRouter]
+[GatewayApp / GwRouter] --> [GSA]
+
+note right of [SdGwTxScheduler]
+Priority order:
+1. High
+2. Normal
+3. Low
+
+FIFO inside the same priority.
+end note
+
+note bottom of [SdGwLinkEngine\nsingle stop-and-wait]
+Busy remains a technical safeguard,
+but should not be the normal way to arbitrate
+functional commands vs supervision.
+end note
+@enduml

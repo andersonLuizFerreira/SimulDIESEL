@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # GSA — Arquitetura do Firmware
 
 ## Objetivo
@@ -17,3 +19,4 @@ Documentar a organização interna do firmware do módulo GSA.
 Este documento permanece como visão de alto nível. Detalhes finos dependem do firmware efetivamente versionado do GSA.
 
 [Retornar ao README principal](..\..\..\README.md)
+

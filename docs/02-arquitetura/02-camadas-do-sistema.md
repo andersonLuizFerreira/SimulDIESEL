@@ -1,59 +1,98 @@
 # Camadas do Sistema
 
-## Camada de Apresentação (UI)
+## Camada de apresentação
 
-**Arquivos principais:** `DashBoard`, `frmPortaSerial_UI`, `frmLedGw`.
+Arquivos principais:
 
-Responsabilidades observadas:
-- exibir estado de serial/link;
-- acionar conexão/desconexão;
-- iniciar testes de comando simples (ex.: LED no GSA).
+- `DashBoard`
+- `frmPortaSerial_UI`
+- `frmGSA_UI`
 
-A UI responde por eventos, sem manipular diretamente framing/protocolo.
+Responsabilidades:
 
-## Camada de Aplicação/BLL
+- exibir estado de serial e link
+- acionar conexão e desconexão
+- consumir operações funcionais expostas pelas FormsLogic
 
-**Arquivos principais:**
-- `SerialLinkService`
+A UI não manipula framing ou protocolo diretamente.
+
+## Camada de aplicação / BLL
+
+Componentes centrais:
+
+- `BpmSerialService`
+- `GsaClient`
+- `BpmClient`
+- `BackplaneService`
+- `XConnService`
+- `FrmBpmLogic`
+- `FrmGsaLogic`
+
+Responsabilidades:
+
+- orquestrar o uso funcional do link serial da BPM
+- refletir estado do link para a UI
+- expor operações por board
+- concentrar a composição atual do host em `BpmSerialService`
+
+Ponto global transitório atual:
+
+    BpmSerialService.Shared
+
+## Camada de protocolo / DAL
+
+Componentes centrais:
+
+- `SerialTransport`
 - `SdGwLinkEngine`
-- `SdGwHealthService`
-- `SdGgwClient`
-- `LedGwTest_BLL`
+- `SdGwTxScheduler`
+- `SdgwSession`
+- `SdhClient`
+- `SdhToSdgwMapper`
+- `SdGwLinkSupervisor`
 
 Responsabilidades:
-- manter estado do link;
-- orquestrar handshake de link;
-- parser/encode de frames SGGW;
-- reintentos e timeout de mensagens críticas;
-- manter watchdog de conexão.
 
-## Camada de Acesso a Dados (DAL)
+- I/O serial bruto
+- framing SDGW
+- timeout/retry e stop-and-wait
+- arbitragem de TX com prioridade
+- sessão de alto nível
+- tradução semântica SDH para SDGW compacto
+- supervisão lógica do link por silêncio de RX válido
 
-**Arquivo:** `SerialTransport`.
+## Camada de gateway embarcada
 
-Responsável por I/O serial bruto: listar portas, abrir/fechar, escrever bytes e repassar bytes recebidos.
+Componentes principais:
 
-## Camada de Gateway embarcada
-
-**Arquivos:** `SggwTransport`, `SggwLink`, `GatewayApp`, `GwRouter`, `GwI2cBus`, `GwSpiBus`.
+- `SggwLink`
+- `GatewayApp`
+- `GwRouter`
+- `GwI2cBus`
+- `GwSpiBus`
 
 Responsabilidades:
-- handshake de validação textual com ESP32;
-- parsing e roteamento de comandos lógicos (`ADDR/OP`);
-- tradução para barramentos internos (TLV+CRC para módulos).
+
+- handshake textual inicial
+- parsing e validação de frames SDGW
+- keepalive por atividade SDGW válida
+- tratamento de comandos locais da BPM
+- roteamento para barramentos internos
 
 ## Camada de módulos
 
-No estado atual, a implementação de módulo ativa no repositório é `gerador-sinais-analógicos` com comunicação TLV no barramento I2C.
+No estado atual, a implementação funcional mais exercitada é a GSA, usando transação TLV curta sobre I2C.
 
 ## Dependências entre camadas
 
-A integridade da arquitetura depende da ordem de inicialização:
-1. UI disponível;
-2. DAL aberta;
-3. handshake;
-4. ativação do protocolo binário.
+A ordem operacional do sistema continua sendo:
 
-Qualquer variação fora dessa ordem aumenta risco de frames inválidos no primeiro minuto de conexão.
+1. UI solicita conexão
+2. `BpmSerialService` abre a serial
+3. bootstrap textual até `Linked`
+4. operação binária SDGW
+5. envio funcional via scheduler
+
+Depois do primeiro `Linked` da conexão atual, o host continua podendo entregar tráfego binário SDGW ao engine mesmo se o estado lógico cair temporariamente para `LinkFailed`, desde que a porta continue aberta.
 
 [Retornar ao README principal](../README.md)

@@ -1,18 +1,18 @@
 # Documentação Oficial do SimulDIESEL
 
-Esta pasta concentra a documentação oficial do estado atual do projeto SimulDIESEL. O conteúdo foi reorganizado para refletir o que está implementado no repositório hoje: hardware embarcado, firmware de gateway, firmware de periféricos, software local em C# e contratos/protocolos preservados em material legado.
+Esta pasta concentra a documentação oficial vigente do projeto.
 
-## Visão rápida
+Para a arquitetura atual do enlace host <-> BPM, a referência principal é:
 
-O repositório mostra uma arquitetura de bancada composta por:
+- [Visão geral do host SDH/SDGW](../local-api/src/SimulDIESEL/SimulDIESEL/SDH_HOST_OVERVIEW.md)
+- [Arquitetura SDH no host](./05-software-dashboard/04-sdh-host-architecture.md)
+- [Camada de hardware do software](./05-software-dashboard/03-camada-hardware.md)
+- [Fluxo de comunicação](./02-arquitetura/03-fluxo-de-comunicacao.md)
+- [Contratos de software](./12-documentacao-tecnica/03-contratos-software.md)
+- [Arquitetura de firmware](./04-firmware/01-arquitetura-firmware.md)
+- [Board BPM](./04-firmware/boards/01-bpm.md)
 
-- `local-api/`: aplicação local em C# com camadas `UI`, `BLL`, `DAL` e `DTL`.
-- `hardware/firmware/esp32-api-bridge/`: gateway embarcado baseado em ESP32 que faz o enlace com o host e roteia requisições para barramentos internos.
-- `hardware/firmware/gerador-sinais-analogicos-GSA/`: firmware de periférico I2C com pilha `Transport -> Link -> Service`.
-- `hardware/boards/`: artefatos de placas, backplane e conectores.
-- `cloud/`: área reservada para contratos e evolução de integração remota; no estado atual, os contratos OpenAPI ainda não descrevem endpoints ativos.
-
-## Navegação
+## Navegação oficial
 
 ### Visão geral
 
@@ -27,57 +27,36 @@ O repositório mostra uma arquitetura de bancada composta por:
 - [Camadas do sistema](./02-arquitetura/02-camadas-do-sistema.md)
 - [Fluxo de comunicação](./02-arquitetura/03-fluxo-de-comunicacao.md)
 
-### Hardware e firmware
+### Firmware
 
-- [Backplane](./03-hardware/01-backplane.md)
-- [Baby boards](./03-hardware/02-baby-boards.md)
-- [Barramentos](./03-hardware/03-barramentos.md)
-- [Alimentação](./03-hardware/04-alimentacao.md)
 - [Arquitetura de firmware](./04-firmware/01-arquitetura-firmware.md)
-- [Drivers](./04-firmware/02-drivers.md)
-- [Gerenciamento de recursos](./04-firmware/03-gerenciamento-recursos.md)
+- [Board BPM](./04-firmware/boards/01-bpm.md)
 - [Arquitetura SDH no gateway](./04-firmware/04-sdh-gateway-architecture.md)
-- [Catálogo de baby boards](./04-firmware/05-catalogo-baby-boards.md)
-- [Binding lógico-físico do gateway](./04-firmware/06-gateway-binding-logico-fisico.md)
-- [Resolver Engine do gateway](./04-firmware/07-resolver-engine-gateway.md)
-- [Boards de firmware](./04-firmware/boards/README.md)
 
-### Software local e protocolos
+### Software local
 
 - [Arquitetura do software](./05-software-dashboard/01-arquitetura-software.md)
-- [Interface de usuário](./05-software-dashboard/02-interface-usuario.md)
 - [Camada de hardware do software](./05-software-dashboard/03-camada-hardware.md)
 - [Arquitetura SDH no host](./05-software-dashboard/04-sdh-host-architecture.md)
-- [Onboarding de comandos](./06-protocolos/00-onboarding-comandos.md)
-- [SDH Command Model](./06-protocolos/01-sdh-command-model.md)
-- [SDH Response Model](./06-protocolos/02-sdh-response-model.md)
-- [SDH Examples](./06-protocolos/03-sdh-examples.md)
-- [CAN](./06-protocolos/04-can.md)
-- [J1939](./06-protocolos/05-j1939.md)
 
-### Simulações, uso e desenvolvimento
+### Casos de uso e testes
 
-- [Simulação de módulos](./07-simulacoes/01-simulacao-modulos.md)
-- [Simulação de sensores](./07-simulacoes/02-simulacao-sensores.md)
-- [Simulação de atuadores](./07-simulacoes/03-simulacao-atuadores.md)
-- [Manutenção de módulos](./08-casos-de-uso/01-manutencao-modulos.md)
 - [Diagnóstico](./08-casos-de-uso/02-diagnostico.md)
 - [Testes de bancada](./08-casos-de-uso/03-testes-bancada.md)
-- [Organização do repositório](./09-desenvolvimento/01-organizacao-repositorio.md)
-- [Padrões de código](./09-desenvolvimento/02-padroes-codigo.md)
-- [Fluxo Git](./09-desenvolvimento/03-fluxo-git.md)
-
-### Testes, planejamento e documentação técnica
-
-- [Testes de hardware](./10-testes/01-testes-hardware.md)
-- [Testes de firmware](./10-testes/02-testes-firmware.md)
 - [Testes de integração](./10-testes/03-testes-integracao.md)
-- [Planejamento](./11-planejamento/01-planejamento.md)
-- [Próximas funcionalidades](./11-planejamento/02-proximas-funcionalidades.md)
+
+### Documentação técnica
+
 - [Especificações](./12-documentacao-tecnica/01-especificacoes.md)
 - [Diagramas](./12-documentacao-tecnica/02-diagramas.md)
 - [Contratos de software](./12-documentacao-tecnica/03-contratos-software.md)
 
-## Material legado preservado
+## Acervo histórico
 
-A pasta `docs/legacy-docs/` continua sendo a principal fonte histórica para contratos, decisões arquiteturais e roadmap técnico. Ela não substitui a documentação oficial atual, mas sustenta diversas descrições aqui consolidadas, especialmente sobre o protocolo `SGGW`, decisões de enquadramento `COBS + CRC8` e o planejamento incremental do gateway.
+Os diretórios abaixo não representam a arquitetura vigente e devem ser lidos apenas como histórico:
+
+- `docs/legacy-docs/`
+- `docs_estado_atual/`
+- `docs_reconstruida/`
+
+Quando houver divergência entre esses acervos e os documentos listados neste README, prevalece a documentação oficial em `docs/` e em `local-api/src/SimulDIESEL/SimulDIESEL/SDH_HOST_OVERVIEW.md`.

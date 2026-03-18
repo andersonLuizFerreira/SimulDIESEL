@@ -2,232 +2,244 @@
 
 ## Objetivo
 
-Este documento registra formalmente a primeira implementação funcional da arquitetura de comandos SDH no host C# do SimulDIESEL.
+Este documento descreve a arquitetura atual do host SDGW/SDH no SimulDIESEL.
 
-O objetivo desta camada é introduzir um envelope semântico de comandos acima do transporte atual, preservando a arquitetura já existente baseada em `SGGW`, `SdGwLinkEngine` e `SdGgwClient`.
+O foco é o comportamento realmente implementado no código C#:
 
-## Escopo implementado
+- composição central em `BpmSerialService`
+- transmissão arbitrável por `SdGwTxScheduler`
+- sessão funcional em `SdgwSession`
+- camada semântica em `SdhClient`
+- supervisão de link em `SdGwLinkSupervisor`
 
-Nesta primeira fase, a implementação no host cobre o caso funcional:
+Os componentes `SerialLink`, `SerialLinkService`, `SdGgwClient` e `SdgwHealthService` pertencem ao legado removido e não devem mais ser usados como referência arquitetural vigente.
 
-    sdh/1 GSA.led set state=on
-    sdh/1 GSA.led set state=off
+## Composição atual
 
-O SDH foi introduzido como camada semântica acima do cliente atual, sem alterar o motor de transporte nem o framing binário.
+O host é composto assim:
 
-## Decisão arquitetural
-
-A arquitetura aprovada para o host é:
-
-    Caso de uso / BLL
-        -> Client por board
+    UI / FormsLogic
+        -> BpmSerialService.Shared
+        -> GsaClient / BpmClient
         -> SdhClient
-        -> SdhValidator
-        -> SdhToSggwMapper
-        -> SdGgwClient
+        -> SdgwSession
+        -> SdGwTxScheduler
         -> SdGwLinkEngine
         -> SerialTransport
 
-Essa decisão preserva a separação entre:
+Além desse caminho principal, o `BpmSerialService` também coordena:
 
-- semântica de comando;
-- transporte confiável;
-- framing binário;
-- infraestrutura de serial.
+- handshake textual inicial com a BPM
+- recebimento bruto da serial
+- `SdGwLinkSupervisor`
+- transição de estados do link
 
-## Classes introduzidas
+## Responsabilidades por componente
 
-### Modelos
+### `BpmSerialService`
 
-- `DTL\SdhCommand.cs`
-- `DTL\SdhResponse.cs`
-- `DTL\SdhTarget.cs`
-
-### Serviços SDH
-
-- `BLL\SDH\SdhTextParser.cs`
-- `BLL\SDH\SdhTextSerializer.cs`
-- `BLL\SDH\SdhValidator.cs`
-- `BLL\SDH\SdhToSggwMapper.cs`
-- `BLL\SDH\SdhClient.cs`
-
-### Client por board
-
-- `BLL\Boards\GsaClient.cs`
-
-## Responsabilidade de cada componente
-
-### SdhCommand
-
-Representa o envelope semântico do comando no host:
-
-- `Version`
-- `Target`
-- `Op`
-- `Args`
-- `Meta`
-
-### SdhTarget
-
-Resolve o target lógico em partes:
-
-- `Board`
-- `Resource`
-- `Subresource`
-
-Nesta fase, o parse já exige no mínimo:
-
-    Board.resource
-
-e aceita, opcionalmente:
-
-    Board.resource.subresource
-
-### SdhTextParser
-
-Converte o texto canônico SDH em `SdhCommand`.
-
-Exemplo suportado:
-
-    sdh/1 GSA.led set state=on
-
-### SdhTextSerializer
-
-Gera a forma textual canônica de um `SdhCommand`.
-
-### SdhValidator
-
-Valida o comando semântico no host.
-
-Na fase atual, o catálogo suportado é deliberadamente pequeno:
-
-- versão: `sdh/1`
-- target: `GSA.led`
-- operação: `set`
-- argumento obrigatório: `state`
-- valores aceitos: `on`, `off`
-
-### SdhToSggwMapper
-
-Faz a adaptação entre o SDH e o contrato legado atualmente funcional no host.
-
-Nesta fase, o mapper converte:
-
-    sdh/1 GSA.led set state=on
-
-em um envio compatível com o contrato já existente de LED no projeto.
-
-### SdhClient
-
-É a camada central de uso do SDH no host.
+É o dono funcional do link serial da BPM.
 
 Responsabilidades:
 
-- receber comando SDH em objeto ou texto;
-- validar;
-- mapear para o contrato atual;
-- delegar o envio ao `SdGgwClient`.
+- abrir e fechar a porta serial
+- executar o bootstrap textual até `Linked`
+- compor `SdGwLinkEngine`, `SdGwTxScheduler`, `SdgwSession`, `SdhClient`, `SdGwLinkSupervisor`, `GsaClient` e `BpmClient`
+- expor estado do link à UI
+- manter o engine recebendo tráfego SDGW binário depois que a conexão já atingiu `Linked` ao menos uma vez
 
-### GsaClient
+O acesso global transitório atualmente usado pela UI é:
 
-É a ergonomia por board para o caso `GSA`.
+    BpmSerialService.Shared
 
-Exemplo de uso:
+### `SdGwLinkEngine`
 
-    GsaClient.SetLedAsync(true)
+É a camada técnica do protocolo SDGW.
 
-Esse client não conhece framing, `SEQ`, `ACK`, serial ou payload binário.
+Responsabilidades:
 
-## Fluxo implementado
+- framing
+- `COBS`
+- `CRC-8/ATM`
+- `ACK`
+- `ERR`
+- timeout/retry
+- stop-and-wait
+- publicação de `ValidFrameReceived`
 
-O fluxo atual do primeiro caso funcional é:
+Ele não implementa fila de prioridades.
 
-    GsaClient.SetLedAsync(true)
-        -> monta SdhCommand
-        -> SdhClient.SendAsync(...)
-        -> SdhValidator.Validate(...)
-        -> SdhToSggwMapper.Map(...)
-        -> SdGgwClient.SendAsync(...)
+### `SdGwTxScheduler`
+
+É o agendador central de TX acima do engine.
+
+Responsabilidades:
+
+- receber solicitações de envio
+- aplicar prioridade
+- manter FIFO por prioridade
+- despachar um item por vez
+- completar pendências com o resultado do engine
+- encerrar a fila com `TransportDown` quando o transporte cai
+
+Prioridades atualmente implementadas:
+
+- `High`
+- `Normal`
+- `Low`
+
+Uso atual:
+
+- comandos funcionais da aplicação: `High`
+- uso interno não urgente: `Normal`
+- ping do supervisor: `Low`
+
+### `SdgwSession`
+
+É a sessão de alto nível do SDGW sobre o scheduler.
+
+Responsabilidades:
+
+- expor `SendAsync(...)`
+- publicar `FrameReceived`
+- publicar `EventReceived`
+
+Nenhum cliente funcional deve enviar direto no `SdGwLinkEngine`.
+
+### `SdhClient`
+
+É a camada semântica do host.
+
+Responsabilidades:
+
+- validar `SdhCommand`
+- mapear SDH para SDGW compacto via `SdhToSdgwMapper`
+- encaminhar o envio para o `SdgwSession`
+
+### `SdGwLinkSupervisor`
+
+É o supervisor lógico do link.
+
+Ele usa watchdog por silêncio de RX válido e agenda ping apenas quando necessário.
+
+Não existe mais ping periódico fixo como mecanismo central de vida da sessão.
+
+## Fluxo de transmissão
+
+O fluxo de TX atual para um comando funcional é:
+
+    Client funcional
+        -> SdhClient
+        -> SdhToSdgwMapper
+        -> SdgwSession
+        -> SdGwTxScheduler (High)
         -> SdGwLinkEngine
         -> SerialTransport
 
-## Mapeamento atual para o contrato legado
+O fluxo de TX do supervisor é:
 
-Nesta fase, o SDH não substitui o contrato atual do host. Ele apenas o encapsula semanticamente.
+    SdGwLinkSupervisor
+        -> callback de ping
+        -> SdGwTxScheduler (Low)
+        -> SdGwLinkEngine
+        -> SerialTransport
 
-O caso suportado hoje utiliza:
+Com isso:
 
-- `SggwCmd.LED`
-- payload de 1 byte
-- `0x01` para `on`
-- `0x00` para `off`
+- o supervisor não compete mais diretamente com comandos funcionais
+- a arbitragem principal ocorre no scheduler
+- `Busy` deixa de ser o mecanismo normal de concorrência interna
 
-O binding entre endereço lógico e físico ainda não acontece no host.
+## Estratégia atual de keepalive
 
-## O que permaneceu intocado
+### No host
 
-Para preservar a estabilidade da solução, os seguintes componentes não foram reescritos:
+O host considera o link vivo quando há RX SDGW válido recente.
 
-- `SdGwLinkEngine`
-- `SdGgwClient`
-- `SerialTransport`
-- framing `SGGW`
-- transporte serial
+Regras atuais:
 
-## Estado atual da arquitetura
+- qualquer frame SDGW válido recebido renova o watchdog do link
+- isso inclui `ACK`, `ERR`, frame normal e evento
+- ping só é tentado após ociosidade
+- o link só é marcado como falho quando o silêncio ultrapassa o timeout lógico configurado
 
-A situação atual do host pode ser resumida assim:
+Configuração usada hoje no `BpmSerialService`:
 
-### Transmissão
+- `IdleBeforePingMs = 1500`
+- `LinkTimeoutMs = 3000`
+- `PingTimeoutMs = 150`
+- `PingRetries = 2`
+- `TickPeriodMs = 50`
 
-A transmissão já passou a contar com uma camada semântica SDH.
+### Na BPM
 
-### Recepção
+O firmware da BPM foi alinhado ao mesmo conceito:
 
-A recepção ainda permanece baseada no modelo legado de `SggwFrame`.
+- a sessão é mantida por atividade SDGW válida
+- `PING 0x55` continua suportado, mas não é a única prova de vida
+- o watchdog do firmware mede silêncio de frames válidos
 
-Isso significa que, nesta fase:
+Valores atuais no firmware:
 
-- TX = SDH sobre SGGW
-- RX = SGGW puro
+- timeout de atividade do link: `4000 ms`
+- timeout interno do router/gateway: `100 ms`
 
-Essa escolha é intencional e reduz risco na adoção incremental do SDH.
+## Recepção e tolerância após o primeiro `Linked`
 
-## Integração com a BLL atual
+O bootstrap serial continua híbrido:
 
-A `LedGwTest_BLL` foi ajustada para receber `GsaClient` por injeção, deixando de montar internamente a camada SDH.
+- texto no handshake inicial
+- binário SDGW na operação normal
 
-Essa mudança corrige a responsabilidade da BLL de caso de uso, que deixa de compor infraestrutura e passa apenas a consumir dependências já prontas.
+Mas o comportamento atual do host foi reforçado:
 
-## Limitações atuais
+- depois que a conexão atinge `Linked` pela primeira vez
+- o `BpmSerialService` passa a tratar a sessão SDGW como estabelecida naquela conexão serial
+- a partir daí, tráfego binário SDGW continua podendo ser entregue ao engine mesmo se o estado lógico cair temporariamente para `LinkFailed`
 
-A implementação atual ainda possui limitações intencionais:
+Esse ajuste existe para não descartar `ACK`s e respostas tardias como se fossem texto de handshake.
 
-- somente `GSA.led set state=on|off` é suportado;
-- `Meta` e `SdhResponse` ainda não participam do fluxo de envio;
-- o host ainda não traduz respostas legadas para envelope SDH;
-- não existe catálogo amplo de boards;
-- o binding lógico-físico ainda não foi implementado.
+## Fluxo atual da GSA
 
-## Próximos passos recomendados
+O caso funcional de LED embutido da GSA é o fluxo mais sensível da UI atual.
 
-Os próximos passos coerentes com a arquitetura atual são:
+Fluxo:
 
-- documentar e projetar a implementação do SDH no gateway;
-- definir onde ocorrerá o binding lógico para físico;
-- ampliar o catálogo de targets e operações;
-- introduzir adaptação de respostas e eventos para o modelo SDH;
-- adicionar novos clients por board conforme os casos de uso reais surgirem.
+    GsaClient.SetBuiltinLedAsync(bool)
+        -> SdhClient.SendAsync(...)
+        -> SdhToSdgwMapper.MapGsaLed(...)
+        -> SdgwSession.SendAsync(..., priority: High)
+        -> SdGwTxScheduler
+        -> SdGwLinkEngine
+
+Ajustes já incorporados:
+
+- timeout do comando de LED: `400 ms`
+- retries do comando de LED: `2`
+- correlação de resposta reforçada no `GsaClient`
+- validação do payload de resposta antes de completar a pendência
+- conferência do `AppliedState` esperado para reduzir aceite de resposta tardia incorreta
+
+## Estado atual da recepção
+
+A recepção ainda é baseada em `SggwFrame` no nível de consumo da sessão.
+
+Isso significa:
+
+- TX funcional já é mediado por SDH + scheduler
+- RX funcional ainda chega como frame SDGW validado
+
+Essa escolha foi mantida para preservar compatibilidade incremental com o restante do host.
 
 ## Conclusão
 
-A primeira implementação do SDH no host foi introduzida no lugar correto da arquitetura: acima do transporte e abaixo dos casos de uso de board.
+A arquitetura atual do host pode ser resumida assim:
 
-Com isso, o projeto passa a ter:
-
-- um modelo semântico de comando;
-- uma camada de validação formal;
-- uma adaptação controlada para o legado;
-- uma base coerente para evolução futura.
+- `BpmSerialService` é a composição central do link
+- `SdGwTxScheduler` é o único caminho normal de TX
+- `SdGwLinkEngine` continua técnico e stop-and-wait
+- `SdGwLinkSupervisor` supervisiona silêncio de RX válido
+- `SdhClient` mantém a semântica de comando acima do SDGW
+- a BPM e o host agora compartilham a mesma ideia de keepalive por atividade válida, e não por ping periódico fixo
 
 [Retornar ao README principal](../README.md)

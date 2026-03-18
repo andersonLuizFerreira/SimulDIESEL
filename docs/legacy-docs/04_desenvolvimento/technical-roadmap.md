@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # SimulDIESEL – Technical Roadmap
 
 **Projeto:** SimulDIESEL  
@@ -135,3 +137,4 @@ Evoluir o SimulDIESEL para:
 ---
 
 **Roadmap técnico oficial do projeto SimulDIESEL.**
+

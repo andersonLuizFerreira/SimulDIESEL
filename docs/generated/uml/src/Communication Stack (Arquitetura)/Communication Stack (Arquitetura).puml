@@ -1,0 +1,76 @@
+@startuml
+title SimulDIESEL - Communication Stack (Arquitetura)
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam packageStyle rectangle
+
+package "Host Local (WinForms)" {
+  [WinForms UI]
+  [FrmBpmLogic]
+  [FrmGsaLogic]
+  [BpmSerialService.Shared\n(acesso global transitório)]
+  [BpmSerialService]
+  [BpmClient]
+  [GsaClient]
+  [SdhClient]
+  [SdgwSession]
+  [SdGwTxScheduler\nHigh / Normal / Low]
+  [SdGwLinkEngine]
+  [SdGwLinkSupervisor\nsilêncio -> ping Low]
+  [SerialTransport]
+
+  [WinForms UI] --> [FrmBpmLogic]
+  [WinForms UI] --> [FrmGsaLogic]
+  [FrmBpmLogic] --> [BpmSerialService.Shared\n(acesso global transitório)]
+  [FrmGsaLogic] --> [BpmSerialService.Shared\n(acesso global transitório)]
+  [BpmSerialService.Shared\n(acesso global transitório)] --> [BpmSerialService]
+  [BpmSerialService] --> [BpmClient]
+  [BpmSerialService] --> [GsaClient]
+  [BpmSerialService] --> [SdGwLinkSupervisor\nsilêncio -> ping Low]
+  [BpmClient] --> [SdhClient] : funcional High
+  [GsaClient] --> [SdhClient] : funcional High
+  [SdhClient] --> [SdgwSession]
+  [SdgwSession] --> [SdGwTxScheduler\nHigh / Normal / Low]
+  [SdGwLinkSupervisor\nsilêncio -> ping Low] --> [SdGwTxScheduler\nHigh / Normal / Low] : ping Low
+  [SdGwTxScheduler\nHigh / Normal / Low] --> [SdGwLinkEngine]
+  [SdGwLinkEngine] --> [SerialTransport]
+  [SdGwLinkEngine] --> [SdGwLinkSupervisor\nsilêncio -> ping Low] : ValidFrameReceived
+}
+
+package "BPM Gateway" {
+  [Handshake textual inicial]
+  [SggwLink\nSDGW binário\nkeepalive por frame válido\natividade = 4000 ms]
+  [GatewayApp]
+  [GwRouter\ntimeout = 100 ms]
+  [BPM.local]
+
+  [Handshake textual inicial] --> [SggwLink\nSDGW binário\nkeepalive por frame válido\natividade = 4000 ms]
+  [SggwLink\nSDGW binário\nkeepalive por frame válido\natividade = 4000 ms] --> [GatewayApp]
+  [GatewayApp] --> [BPM.local]
+  [GatewayApp] --> [GwRouter\ntimeout = 100 ms]
+}
+
+package "GSA" {
+  [GSA TLV/I2C]
+  [LED_BUILTIN]
+  [GSA TLV/I2C] --> [LED_BUILTIN]
+}
+
+[SerialTransport] --> [Handshake textual inicial] : bootstrap
+[SerialTransport] --> [SggwLink\nSDGW binário\nkeepalive por frame válido\natividade = 4000 ms] : RX/TX SDGW
+[GwRouter\ntimeout = 100 ms] --> [GSA TLV/I2C]
+
+note bottom of [BpmSerialService]
+Após o primeiro Linked, RX SDGW binário
+continua sendo entregue ao engine
+mesmo se o estado lógico cair
+temporariamente para LinkFailed,
+desde que a porta continue aberta.
+end note
+
+note bottom of [SdGwTxScheduler\nHigh / Normal / Low]
+Busy deixa de ser o mecanismo principal
+de arbitragem entre tráfego funcional
+e ping de supervisão.
+end note
+@enduml
