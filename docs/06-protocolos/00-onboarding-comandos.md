@@ -126,7 +126,7 @@ Objetivo:
 - entender o subconjunto SDH hoje suportado pela GSA;
 - compreender o contrato TLV binário entre gateway e board;
 - entender status, enable, offsets e evento de fault;
-- registrar a inconsistência histórica do type `0x12`.
+- entender o conflito histórico do type `0x12` e a migração oficial de `channel.status` para `0x1B`.
 
 Tempo estimado: 25 minutos.
 

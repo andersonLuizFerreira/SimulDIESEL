@@ -213,15 +213,17 @@ Correções já incorporadas para estabilizar o fluxo da GSA:
 
 ### Observação de compatibilidade
 
-Há uma inconsistência histórica no contrato TLV da GSA:
+Houve uma inconsistência histórica no contrato TLV da GSA:
 
 - o LED builtin já usava `type = 0x12`;
-- o status por canal também passou a usar `type = 0x12`.
+- o status por canal também chegou a ser documentado como `type = 0x12`.
 
-No host, a compatibilidade foi preservada pelo parser com base em:
+Essa ambiguidade foi removida no contrato atual:
 
-- `len = 0x01` para LED builtin
-- `len = 0x06` para status por canal
+- LED builtin legado permanece em `0x12`;
+- status por canal passa a usar `0x1B`.
+
+Com isso, o host deixa de depender de distinção por `len` para `channel.status`.
 
 ## Limitações atuais
 

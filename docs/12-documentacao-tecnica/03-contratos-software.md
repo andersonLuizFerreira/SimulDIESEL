@@ -167,19 +167,19 @@ Além do LED builtin, o host agora suporta:
 - `iread` em `mA`
 - evento assíncrono existe apenas para `fault`
 
-### Inconsistência histórica documentada
+### Conflito histórico documentado
 
-Há um conflito histórico no contrato TLV da GSA:
+Houve um conflito histórico no contrato TLV da GSA:
 
 - o LED builtin já usava `type 0x12`;
-- o status por canal também passou a ser documentado como `type 0x12`.
+- uma fase intermediária da expansão também documentou o status por canal como `type 0x12`.
 
-O host preservou compatibilidade por parser, diferenciando:
+O contrato oficial atual resolve esse ponto da seguinte forma:
 
-- LED builtin por `len = 0x01`
-- status por canal por `len = 0x06`
+- LED builtin legado continua em `0x12`;
+- `GSA.channel.status` passa a usar `0x1B`.
 
-Essa inconsistência ainda precisa de convergência futura no contrato da board/gateway.
+Com isso, host e firmware deixam de depender de resolução polimórfica por `len` para o status por canal.
 
 ### Contrato específico do LED
 
@@ -212,7 +212,7 @@ Os conflitos mais prováveis nesses materiais são:
 - ausência do catálogo completo de 16 canais
 - ausência do contrato atual de offsets
 - ausência do evento assíncrono de fault
-- possível divergência quanto ao uso do type `0x12`
+- possíveis referências legadas ao antigo uso de `0x12` para `channel.status`
 
 ## Regra de manutenção
 

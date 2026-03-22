@@ -6,6 +6,11 @@ Status deste arquivo:
 - superado pela documentação oficial atual;
 - incompatível em partes com a expansão recente da GSA no host.
 
+Observação adicional:
+
+- este material antecede a resolução do conflito histórico do type `0x12`;
+- no contrato oficial atual, `0x12` permanece no LED builtin legado e `GSA.channel.status` usa `0x1B`.
+
 Referência oficial atual:
 
 - `docs/06-protocolos/06-gsa-sdh-tlv.md`

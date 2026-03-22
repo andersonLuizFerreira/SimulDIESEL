@@ -30,7 +30,7 @@ Ele não cobre:
 - o catálogo atual de 16 canais;
 - offsets por canal;
 - evento assíncrono de fault;
-- a inconsistência histórica do type `0x12`.
+- a resolução do conflito histórico do type `0x12`, no qual `channel.status` foi migrado para `0x1B`.
 
 [Retornar ao README principal](..\..\..\..\README.md)
 

@@ -30,5 +30,7 @@ A semântica detalhada dos comandos deste arquivo não representa mais o contrat
 
 Este material foi preservado apenas como registro histórico de uma fase anterior do protocolo.
 
+Ele também antecede a resolução do conflito histórico do type `0x12`, superado no contrato oficial atual pela migração de `channel.status` para `0x1B`.
+
 [Retornar ao README principal](..\..\..\README.md)
 

@@ -222,18 +222,17 @@ Regras observadas no host:
 
 O fluxo do LED builtin continua compatível e não foi removido.
 
-Há, porém, uma inconsistência histórica no contrato TLV da GSA:
+Houve, porém, uma inconsistência histórica no contrato TLV da GSA:
 
 - o LED builtin já usava `type = 0x12`;
-- a expansão da GSA também documenta `type = 0x12` para `channel.status`.
+- uma fase intermediária da expansão da GSA também chegou a documentar `type = 0x12` para `channel.status`.
 
-No host atual, a distinção é feita por:
+O contrato oficial atual resolve esse ponto da seguinte forma:
 
-- `type`
-- `len`
-- layout esperado do payload
+- `0x12` permanece dedicado ao LED builtin legado;
+- `0x1B` passa a ser o type oficial de `channel.status`.
 
-Isso permite preservar o LED e suportar o status por canal sem regressão imediata.
+Isso preserva o LED sem regressão e remove a necessidade de distinguir o status por canal por `len`.
 
 ## Limitações atuais
 
@@ -241,7 +240,7 @@ Isso permite preservar o LED e suportar o status por canal sem regressão imedia
 - a recepção funcional ainda é entregue como `SggwFrame`
 - `BpmSerialService.Shared` ainda é um ponto global transitório
 - o catálogo SDH suportado no host ainda é parcial em relação ao catálogo documental geral
-- o contrato TLV da GSA ainda carrega o conflito histórico de `type 0x12`
+- o conflito histórico de `type 0x12` foi resolvido migrando `channel.status` para `0x1B`
 
 ## Referência adicional
 

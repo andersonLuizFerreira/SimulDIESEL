@@ -10,7 +10,7 @@ Ele descreve:
 - o subconjunto efetivamente implementado hoje para a GSA;
 - o contrato TLV binário usado entre gateway e board;
 - as regras funcionais observadas e assumidas pelo host;
-- a inconsistência histórica do type `0x12`.
+- o conflito histórico do type `0x12` e sua resolução pela migração de `channel.status` para `0x1B`.
 
 ## Escopo e papel de cada camada
 
@@ -185,7 +185,6 @@ CRC:
 - `GwProtocol.GsaSetLedType` = LED builtin
 - `0x10` = `GsaChannelSetpointType`
 - `0x11` = `GsaChannelEnableType`
-- `0x12` = `GsaChannelStatusType`
 - `0x13` = `GsaChannelsStatusType`
 - `0x14` = `GsaChannelsEnableType`
 - `0x15` = `GsaChannelFaultResetType`
@@ -194,6 +193,7 @@ CRC:
 - `0x18` = `GsaChannelOffsetSaveType`
 - `0x19` = `GsaChannelOffsetResetType`
 - `0x1A` = `GsaOffsetResetType`
+- `0x1B` = `GsaChannelStatusType`
 - `0x30` = `GsaChannelFaultEventType`
 - `0x7F` = `GsaErrorType`
 
@@ -227,11 +227,11 @@ Response:
 
 Request:
 
-    [0x12][0x01][channel][crc]
+    [0x1B][0x01][channel][crc]
 
 Response:
 
-    [0x12][0x06][channel][setpoint][vout][iread][enabled][fault][crc]
+    [0x1B][0x06][channel][setpoint][vout][iread][enabled][fault][crc]
 
 ### 4. Channels Status Get
 
@@ -343,45 +343,34 @@ Payload:
 
     [0x30][0x06][channel][setpoint][vout][iread][enabled][fault][crc]
 
-## Inconsistência histórica do type `0x12`
+## Conflito histórico do type `0x12`
 
-Há uma inconsistência histórica importante no contrato da GSA:
+Houve um conflito histórico importante no contrato da GSA:
 
 - o host já preservava `GwProtocol.GsaSetLedType = 0x12` para o LED builtin;
-- a expansão documental e de código da GSA também definiu `0x12` para `GsaChannelStatusType`.
+- uma fase intermediária da expansão da GSA também chegou a documentar `0x12` para `GsaChannelStatusType`.
 
-Isso significa que, hoje, o valor `0x12` ficou associado a dois usos distintos:
+Esse conflito foi resolvido no contrato oficial atual:
 
-- LED builtin
-- status por canal
+- `0x12` permanece dedicado ao LED builtin legado;
+- `0x1B` passa a ser o type oficial de `GSA.channel.status`.
 
-### Como a compatibilidade foi preservada no host
+### Consequência para host e firmware
 
-O host não substituiu o contrato do LED para evitar regressão no único caso já funcional em produção.
+Com a migração de `channel.status` para `0x1B`:
 
-Em vez disso, a compatibilidade foi preservada pelo parser:
+- o host não precisa mais resolver `channel.status` por `len`;
+- o parser do LED builtin continua preservado sem regressão;
+- o firmware da GSA passa a operar com contrato TLV sem ambiguidade para status por canal.
 
-- LED builtin é reconhecido por `type=0x12` com `len=0x01`;
-- status por canal é reconhecido por `type=0x12` com `len=0x06`.
+### Regra documental vigente
 
-Na prática, a distinção vigente no host é feita por:
+A documentação oficial deve tratar como contrato atual:
 
-- `type`
-- `len`
-- layout esperado do payload
+- `0x12` = LED builtin legado
+- `0x1B` = `GSA.channel.status`
 
-### Consequência documental
-
-Esse conflito não deve ser escondido em documentação futura.
-
-Até que haja convergência oficial do contrato da board/gateway:
-
-- o LED builtin continua documentado e preservado como compatível;
-- o status por canal também continua documentado como suportado;
-- qualquer revisão futura do contrato TLV da GSA deverá decidir explicitamente se:
-  - o LED muda de type;
-  - o status muda de type;
-  - ou a coexistência por `len` continuará sendo aceita como regra oficial.
+Referências antigas que associem `channel.status` ao `0x12` devem ser lidas apenas como histórico superado.
 
 ## Papel do host e da board
 

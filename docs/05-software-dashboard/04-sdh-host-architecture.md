@@ -267,23 +267,19 @@ Não há, por enquanto:
 - evento assíncrono normal de enable/disable;
 - telemetria contínua por evento.
 
-### Inconsistência histórica do type `0x12`
+### Conflito histórico do type `0x12`
 
-Existe um conflito histórico documentado na GSA:
+Houve um conflito histórico documentado na GSA:
 
 - `GwProtocol.GsaSetLedType` já era `0x12` no host;
-- a expansão da GSA também documenta `0x12` como `GsaChannelStatusType`.
+- uma fase intermediária da expansão também documentou `0x12` como `GsaChannelStatusType`.
 
-Para não quebrar o caso já funcional do LED, o host preservou compatibilidade da seguinte forma:
+O contrato vigente foi simplificado para eliminar essa ambiguidade:
 
-- LED builtin: `type=0x12` com `len=0x01`
-- status por canal: `type=0x12` com `len=0x06`
+- LED builtin legado permanece em `0x12`;
+- status por canal passa a usar `0x1B`.
 
-A distinção vigente é feita pelo parser com base em:
-
-- `type`
-- `len`
-- layout esperado do payload
+Com isso, o host deixa de depender de distinção por `len` para `channel.status` e o firmware pode tratar o status por canal com type dedicado.
 
 ## Estado atual da recepção
 

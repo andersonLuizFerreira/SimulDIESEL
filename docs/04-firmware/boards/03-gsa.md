@@ -115,12 +115,12 @@ Board atualmente mais concreta do projeto no caminho host -> gateway -> device, 
 - A expansão atual do host adiciona o catálogo completo de setpoint, enable, status, fault reset e offsets.
 - O evento assíncrono documentado para a board é exclusivamente o de `fault`.
 - O contrato TLV detalhado está em `docs/06-protocolos/06-gsa-sdh-tlv.md`.
-- Há uma inconsistência histórica envolvendo o type `0x12`, documentada explicitamente no contrato oficial da GSA.
+- Houve uma inconsistência histórica envolvendo o type `0x12`, já resolvida no contrato oficial pela migração de `channel.status` para `0x1B`.
 
 ## Pendências desta documentação
 
 - Confirmar o código legado numérico da board no gateway.
 - Confirmar o binding lógico-físico no firmware do gateway.
-- Consolidar futuramente uma decisão oficial para o conflito de type `0x12`.
+- Alinhar firmware e gateway ao contrato oficial vigente, no qual `channel.status` usa `0x1B`.
 
 [Retornar ao README principal](../../README.md)
