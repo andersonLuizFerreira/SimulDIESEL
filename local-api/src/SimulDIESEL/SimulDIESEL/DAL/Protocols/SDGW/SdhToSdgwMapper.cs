@@ -1,4 +1,6 @@
 using System;
+using System.Globalization;
+using SimulDIESEL.DTL.Boards.GSA;
 using SimulDIESEL.DTL.Protocols.SDGW;
 
 namespace SimulDIESEL.DAL.Protocols.SDGW
@@ -21,9 +23,8 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
 
         private const string BpmGatewayTarget = "BPM.gateway";
         private const string PingOp = "ping";
-        private const string LedTarget = "GSA.led";
-        private const string SetOp = "set";
-        private const string StateArg = "state";
+        private const int DefaultGsaTimeoutMs = 400;
+        private const int DefaultGsaRetries = 2;
 
         public MappedSdgwCommand Map(SdhCommand command)
         {
@@ -33,8 +34,8 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
             if (string.Equals(command.Target, BpmGatewayTarget, StringComparison.OrdinalIgnoreCase))
                 return MapBpmGateway(command);
 
-            if (string.Equals(command.Target, LedTarget, StringComparison.OrdinalIgnoreCase))
-                return MapGsaLed(command);
+            if (command.Target.StartsWith("GSA.", StringComparison.OrdinalIgnoreCase))
+                return MapGsa(command);
 
             throw new NotSupportedException("Mapeamento SDH->SDGW ainda não suporta target: " + command.Target + ".");
         }
@@ -54,47 +55,163 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
             };
         }
 
-        private static MappedSdgwCommand MapGsaLed(SdhCommand command)
+        private static MappedSdgwCommand MapGsa(SdhCommand command)
         {
-            if (!string.Equals(command.Op, SetOp, StringComparison.OrdinalIgnoreCase))
-                throw new NotSupportedException("Mapeamento SDH->SDGW ainda não suporta op: " + command.Op + ".");
+            byte[] payload;
 
-            string state;
-            if (!command.Args.TryGetValue(StateArg, out state))
-                throw new InvalidOperationException("Mapeamento SDH->SDGW requer o argumento state.");
-
-            bool isOn;
-            if (string.Equals(state, "on", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(command.Target, "GSA.led", StringComparison.OrdinalIgnoreCase))
             {
-                isOn = true;
+                payload = BuildTlvPayload(
+                    GwProtocol.GsaSetLedType,
+                    ParseState(command.Args["state"]) ? (byte)0x01 : (byte)0x00);
             }
-            else if (string.Equals(state, "off", StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals(command.Target, "GSA.channel.setpoint", StringComparison.OrdinalIgnoreCase))
             {
-                isOn = false;
+                payload = BuildTlvPayload(
+                    GwProtocol.GsaChannelSetpointType,
+                    ParseChannel(command),
+                    ParseByte(command, "value"));
+            }
+            else if (string.Equals(command.Target, "GSA.channel.enable", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = BuildTlvPayload(
+                    GwProtocol.GsaChannelEnableType,
+                    ParseChannel(command),
+                    ParseState(command.Args["state"]) ? (byte)0x01 : (byte)0x00);
+            }
+            else if (string.Equals(command.Target, "GSA.channels.enable", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = BuildTlvPayload(
+                    GwProtocol.GsaChannelsEnableType,
+                    ParseState(command.Args["state"]) ? (byte)0x01 : (byte)0x00);
+            }
+            else if (string.Equals(command.Target, "GSA.channel.status", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = BuildTlvPayload(
+                    GwProtocol.GsaChannelStatusType,
+                    ParseChannel(command));
+            }
+            else if (string.Equals(command.Target, "GSA.channels.status", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = BuildTlvPayload(GwProtocol.GsaChannelsStatusType);
+            }
+            else if (string.Equals(command.Target, "GSA.channel.fault", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = BuildTlvPayload(
+                    GwProtocol.GsaChannelFaultResetType,
+                    ParseChannel(command));
+            }
+            else if (string.Equals(command.Target, "GSA.channel.offset", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = MapGsaChannelOffset(command);
+            }
+            else if (string.Equals(command.Target, "GSA.offset", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = BuildTlvPayload(GwProtocol.GsaOffsetResetType);
             }
             else
             {
-                throw new InvalidOperationException("State inválido para mapeamento SDH->SDGW: " + state + ".");
+                throw new NotSupportedException("Mapeamento SDH->SDGW ainda não suporta target: " + command.Target + ".");
             }
 
             return new MappedSdgwCommand
             {
                 Cmd = GwProtocol.MakeCompactCommand(GwProtocol.GsaAddress, GwProtocol.GsaTlvTransactOp),
-                Payload = BuildGsaLedPayload(isOn),
+                Payload = payload,
                 RequireAck = true,
-                TimeoutMs = 400,
-                Retries = 2
+                TimeoutMs = DefaultGsaTimeoutMs,
+                Retries = DefaultGsaRetries
             };
         }
 
-        private static byte[] BuildGsaLedPayload(bool isOn)
+        private static byte[] MapGsaChannelOffset(SdhCommand command)
         {
-            var payload = new byte[4];
-            payload[0] = GwProtocol.GsaSetLedType;
-            payload[1] = 0x01;
-            payload[2] = isOn ? (byte)0x01 : (byte)0x00;
-            payload[3] = SdgwFrameCodec.Crc8Atm(payload, 0, 3);
+            byte channel = ParseChannel(command);
+
+            if (string.Equals(command.Op, "set", StringComparison.OrdinalIgnoreCase))
+            {
+                short value = ParseInt16(command, "value");
+                byte[] offsetBytes = BitConverter.GetBytes(value);
+                return BuildTlvPayload(
+                    GwProtocol.GsaChannelOffsetSetType,
+                    channel,
+                    ParseOffsetKind(command.Args["kind"]),
+                    offsetBytes[0],
+                    offsetBytes[1]);
+            }
+
+            if (string.Equals(command.Op, "get", StringComparison.OrdinalIgnoreCase))
+            {
+                return BuildTlvPayload(
+                    GwProtocol.GsaChannelOffsetGetType,
+                    channel,
+                    ParseOffsetKind(command.Args["kind"]));
+            }
+
+            if (string.Equals(command.Op, "save", StringComparison.OrdinalIgnoreCase))
+                return BuildTlvPayload(GwProtocol.GsaChannelOffsetSaveType, channel);
+
+            if (string.Equals(command.Op, "reset", StringComparison.OrdinalIgnoreCase))
+                return BuildTlvPayload(GwProtocol.GsaChannelOffsetResetType, channel);
+
+            throw new NotSupportedException("Mapeamento SDH->SDGW ainda não suporta op: " + command.Op + ".");
+        }
+
+        private static byte[] BuildTlvPayload(byte type, params byte[] data)
+        {
+            int payloadLength = data != null ? data.Length : 0;
+            byte[] payload = new byte[payloadLength + 3];
+            payload[0] = type;
+            payload[1] = (byte)payloadLength;
+
+            if (payloadLength > 0)
+                Buffer.BlockCopy(data, 0, payload, 2, payloadLength);
+
+            payload[payload.Length - 1] = SdgwFrameCodec.Crc8Atm(payload, 0, payload.Length - 1);
             return payload;
+        }
+
+        private static byte ParseChannel(SdhCommand command)
+        {
+            int channel = ParseInt(command, "channel");
+            return checked((byte)channel);
+        }
+
+        private static byte ParseByte(SdhCommand command, string argName)
+        {
+            int value = ParseInt(command, argName);
+            return checked((byte)value);
+        }
+
+        private static short ParseInt16(SdhCommand command, string argName)
+        {
+            int value = ParseInt(command, argName);
+            return checked((short)value);
+        }
+
+        private static int ParseInt(SdhCommand command, string argName)
+        {
+            string rawValue = command.Args[argName];
+            return int.Parse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture);
+        }
+
+        private static bool ParseState(string state)
+        {
+            return string.Equals(state, "on", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static byte ParseOffsetKind(string kind)
+        {
+            if (string.Equals(kind, "vout", StringComparison.OrdinalIgnoreCase))
+                return GwProtocol.GsaOffsetKindVout;
+
+            if (string.Equals(kind, "vread", StringComparison.OrdinalIgnoreCase))
+                return GwProtocol.GsaOffsetKindVread;
+
+            if (string.Equals(kind, "iread", StringComparison.OrdinalIgnoreCase))
+                return GwProtocol.GsaOffsetKindIread;
+
+            throw new InvalidOperationException("Kind inválido para mapeamento SDH->SDGW: " + kind + ".");
         }
     }
 }

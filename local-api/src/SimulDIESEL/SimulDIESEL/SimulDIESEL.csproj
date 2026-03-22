@@ -56,6 +56,7 @@
     <Compile Include="BLL\Boards\BPM\XConn\XConnService.cs" />
     <Compile Include="BLL\Boards\GSA\GsaClient.cs" />
     <Compile Include="BLL\Boards\GSA\GsaCommandResult.cs" />
+    <Compile Include="BLL\Boards\GSA\GsaOperationResult.cs" />
     <Compile Include="BLL\Boards\GSA\GsaParsers.cs" />
     <Compile Include="BLL\FormsLogic\BPM\FrmBpmLogic.cs" />
     <Compile Include="BLL\FormsLogic\GSA\FrmGsaLogic.cs" />
@@ -78,6 +79,9 @@
     <Compile Include="DTL\Boards\BPM\BpmStatusDto.cs" />
     <Compile Include="DTL\Boards\GSA\GsaLedRequest.cs" />
     <Compile Include="DTL\Boards\GSA\GsaLedResponse.cs" />
+    <Compile Include="DTL\Boards\GSA\GsaCommon.cs" />
+    <Compile Include="DTL\Boards\GSA\GsaRequests.cs" />
+    <Compile Include="DTL\Boards\GSA\GsaResponses.cs" />
     <Compile Include="DTL\Common\DeviceInfo.cs" />
     <Compile Include="DTL\Common\OperationStatusDto.cs" />
     <Compile Include="DTL\Protocols\SDGW\GwProtocol.cs" />

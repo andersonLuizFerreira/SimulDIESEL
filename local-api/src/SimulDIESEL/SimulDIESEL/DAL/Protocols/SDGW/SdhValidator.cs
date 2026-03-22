@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using SimulDIESEL.DTL.Protocols.SDGW;
 
 namespace SimulDIESEL.DAL.Protocols.SDGW
@@ -7,9 +8,6 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
     {
         private const string SupportedVersion = "sdh/1";
         private const string GsaBoard = "GSA";
-        private const string GsaResource = "led";
-        private const string GsaSetOp = "set";
-        private const string StateArg = "state";
         private const string BpmBoard = "BPM";
         private const string BpmResource = "gateway";
         private const string BpmPingOp = "ping";
@@ -33,11 +31,9 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
 
             SdhTarget target = SdhTarget.Parse(command.Target);
 
-            if (string.Equals(target.Board, GsaBoard, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(target.Resource, GsaResource, StringComparison.OrdinalIgnoreCase) &&
-                string.IsNullOrWhiteSpace(target.Subresource))
+            if (string.Equals(target.Board, GsaBoard, StringComparison.OrdinalIgnoreCase))
             {
-                ValidateGsaLed(command);
+                ValidateGsaCommand(target, command);
                 return;
             }
 
@@ -52,13 +48,204 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
             throw new NotSupportedException("Target SDH não suportado nesta fase: " + command.Target + ".");
         }
 
+        private static void ValidateGsaCommand(SdhTarget target, SdhCommand command)
+        {
+            if (string.Equals(target.Resource, "led", StringComparison.OrdinalIgnoreCase) &&
+                string.IsNullOrWhiteSpace(target.Subresource))
+            {
+                ValidateGsaLed(command);
+                return;
+            }
+
+            if (string.Equals(target.Resource, "channel", StringComparison.OrdinalIgnoreCase))
+            {
+                ValidateGsaChannel(target, command);
+                return;
+            }
+
+            if (string.Equals(target.Resource, "channels", StringComparison.OrdinalIgnoreCase))
+            {
+                ValidateGsaChannels(target, command);
+                return;
+            }
+
+            if (string.Equals(target.Resource, "offset", StringComparison.OrdinalIgnoreCase) &&
+                string.IsNullOrWhiteSpace(target.Subresource))
+            {
+                RequireOp(command, "reset");
+                RequireArgCount(command, 0);
+                return;
+            }
+
+            throw new NotSupportedException("Target SDH não suportado nesta fase: " + command.Target + ".");
+        }
+
         private static void ValidateGsaLed(SdhCommand command)
         {
-            if (!string.Equals(command.Op, GsaSetOp, StringComparison.OrdinalIgnoreCase))
-                throw new NotSupportedException("Op SDH não suportada para " + command.Target + ": " + command.Op + ".");
+            RequireOp(command, "set");
+            RequireArgCount(command, 1);
+            RequireStateArg(command);
+        }
 
+        private static void ValidateGsaChannel(SdhTarget target, SdhCommand command)
+        {
+            string subresource = target.Subresource ?? string.Empty;
+
+            if (string.Equals(subresource, "setpoint", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireOp(command, "set");
+                RequireArgCount(command, 2);
+                RequireChannelArg(command);
+                RequireByteArg(command, "value");
+                return;
+            }
+
+            if (string.Equals(subresource, "enable", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireOp(command, "set");
+                RequireArgCount(command, 2);
+                RequireChannelArg(command);
+                RequireStateArg(command);
+                return;
+            }
+
+            if (string.Equals(subresource, "status", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireOp(command, "get");
+                RequireArgCount(command, 1);
+                RequireChannelArg(command);
+                return;
+            }
+
+            if (string.Equals(subresource, "fault", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireOp(command, "reset");
+                RequireArgCount(command, 1);
+                RequireChannelArg(command);
+                return;
+            }
+
+            if (string.Equals(subresource, "offset", StringComparison.OrdinalIgnoreCase))
+            {
+                ValidateGsaChannelOffset(command);
+                return;
+            }
+
+            throw new NotSupportedException("Target SDH não suportado nesta fase: " + command.Target + ".");
+        }
+
+        private static void ValidateGsaChannels(SdhTarget target, SdhCommand command)
+        {
+            if (string.Equals(target.Subresource, "enable", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireOp(command, "set");
+                RequireArgCount(command, 1);
+                RequireStateArg(command);
+                return;
+            }
+
+            if (string.Equals(target.Subresource, "status", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireOp(command, "get");
+                RequireArgCount(command, 0);
+                return;
+            }
+
+            throw new NotSupportedException("Target SDH não suportado nesta fase: " + command.Target + ".");
+        }
+
+        private static void ValidateGsaChannelOffset(SdhCommand command)
+        {
+            if (string.Equals(command.Op, "set", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireArgCount(command, 3);
+                RequireChannelArg(command);
+                RequireKindArg(command);
+                RequireInt16Arg(command, "value");
+                return;
+            }
+
+            if (string.Equals(command.Op, "get", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireArgCount(command, 2);
+                RequireChannelArg(command);
+                RequireKindArg(command);
+                return;
+            }
+
+            if (string.Equals(command.Op, "save", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(command.Op, "reset", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireArgCount(command, 1);
+                RequireChannelArg(command);
+                return;
+            }
+
+            throw new NotSupportedException("Op SDH não suportada para " + command.Target + ": " + command.Op + ".");
+        }
+
+        private static void ValidateBpmGateway(SdhCommand command)
+        {
+            RequireOp(command, BpmPingOp);
+            RequireArgCount(command, 0);
+        }
+
+        private static void RequireOp(SdhCommand command, string expectedOp)
+        {
+            if (!string.Equals(command.Op, expectedOp, StringComparison.OrdinalIgnoreCase))
+                throw new NotSupportedException("Op SDH não suportada para " + command.Target + ": " + command.Op + ".");
+        }
+
+        private static void RequireArgCount(SdhCommand command, int expectedCount)
+        {
+            if (command.Args.Count != expectedCount)
+                throw new InvalidOperationException("Quantidade de argumentos inválida para " + command.Target + " " + command.Op + ".");
+        }
+
+        private static int RequireChannelArg(SdhCommand command)
+        {
+            int channel = RequireIntArg(command, "channel");
+            if (channel < 1 || channel > 16)
+                throw new InvalidOperationException("Canal inválido para " + command.Target + ". Faixa aceita: 1..16.");
+
+            return channel;
+        }
+
+        private static byte RequireByteArg(SdhCommand command, string argName)
+        {
+            int value = RequireIntArg(command, argName);
+            if (value < byte.MinValue || value > byte.MaxValue)
+                throw new InvalidOperationException("Valor inválido para " + command.Target + ": " + argName + " deve estar em 0..255.");
+
+            return (byte)value;
+        }
+
+        private static short RequireInt16Arg(SdhCommand command, string argName)
+        {
+            int value = RequireIntArg(command, argName);
+            if (value < short.MinValue || value > short.MaxValue)
+                throw new InvalidOperationException("Valor inválido para " + command.Target + ": " + argName + " deve estar em -32768..32767.");
+
+            return (short)value;
+        }
+
+        private static int RequireIntArg(SdhCommand command, string argName)
+        {
+            string rawValue;
+            if (!command.Args.TryGetValue(argName, out rawValue) || string.IsNullOrWhiteSpace(rawValue))
+                throw new InvalidOperationException("Argumento obrigatório ausente para " + command.Target + ": " + argName + ".");
+
+            int parsedValue;
+            if (!int.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out parsedValue))
+                throw new InvalidOperationException("Argumento inválido para " + command.Target + ": " + argName + " deve ser inteiro.");
+
+            return parsedValue;
+        }
+
+        private static string RequireStateArg(SdhCommand command)
+        {
             string state;
-            if (!command.Args.TryGetValue(StateArg, out state) || string.IsNullOrWhiteSpace(state))
+            if (!command.Args.TryGetValue("state", out state) || string.IsNullOrWhiteSpace(state))
                 throw new InvalidOperationException("Argumento obrigatório ausente para " + command.Target + ": state.");
 
             if (!string.Equals(state, "on", StringComparison.OrdinalIgnoreCase) &&
@@ -66,15 +253,24 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
             {
                 throw new InvalidOperationException("State inválido para " + command.Target + ". Valores aceitos: on, off.");
             }
+
+            return state;
         }
 
-        private static void ValidateBpmGateway(SdhCommand command)
+        private static string RequireKindArg(SdhCommand command)
         {
-            if (!string.Equals(command.Op, BpmPingOp, StringComparison.OrdinalIgnoreCase))
-                throw new NotSupportedException("Op SDH não suportada para " + command.Target + ": " + command.Op + ".");
+            string kind;
+            if (!command.Args.TryGetValue("kind", out kind) || string.IsNullOrWhiteSpace(kind))
+                throw new InvalidOperationException("Argumento obrigatório ausente para " + command.Target + ": kind.");
 
-            if (command.Args.Count > 0)
-                throw new InvalidOperationException("O comando " + command.Target + " " + command.Op + " não aceita argumentos nesta fase.");
+            if (!string.Equals(kind, "vout", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(kind, "vread", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(kind, "iread", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Kind inválido para " + command.Target + ". Valores aceitos: vout, vread, iread.");
+            }
+
+            return kind;
         }
     }
 }
