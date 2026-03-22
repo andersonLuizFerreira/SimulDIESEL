@@ -120,11 +120,70 @@ Do lado da BPM, o comportamento documentado e implementado é:
 
 ## Contrato vigente do fluxo GSA
 
-O caso funcional ativo mais importante é:
+Historicamente, o caso funcional ativo mais importante era:
 
     GSA.led set state=on|off
 
-Contrato atual do host para esse fluxo:
+Esse fluxo permanece compatível.
+
+### Expansão vigente da GSA no host
+
+Além do LED builtin, o host agora suporta:
+
+    GSA.channel.setpoint set channel=<1..16> value=<0..255>
+    GSA.channel.enable set channel=<1..16> state=on|off
+    GSA.channels.enable set state=on|off
+    GSA.channel.status get channel=<1..16>
+    GSA.channels.status get
+    GSA.channel.fault reset channel=<1..16>
+    GSA.channel.offset set/get/save/reset
+    GSA.offset reset
+
+### Contrato atual do host para a GSA
+
+- envio via `SdhClient`
+- mapeamento para SDGW compacto por `SdhToSdgwMapper`
+- serialização TLV específica da GSA no host
+- envio em prioridade `High`
+- correlação funcional de respostas no `GsaClient`
+- tratamento de erro funcional TLV `0x7F`
+- consumo de evento assíncrono de `fault` via `SdgwSession.EventReceived`
+
+### Contrato funcional da GSA documentado hoje
+
+- existem `16` canais
+- canais `1..8` em `0..5 V`
+- canais `9..16` em `0..12 V`
+- setpoint lógico em `0..255`
+- status deve responder mesmo com canal `OFF`
+- status retorna valores reais lidos
+- `setpoint set` é permitido com canal `OFF`
+- `setpoint set` é permitido com `fault latched`
+- `enable on` por canal falha se houver `fault latched`
+- `channels.enable on` respeita fault latched
+- `channels.enable off` não limpa fault
+- offsets usam `int16` com sinal
+- `vout` e `vread` em `mV`
+- `iread` em `mA`
+- evento assíncrono existe apenas para `fault`
+
+### Inconsistência histórica documentada
+
+Há um conflito histórico no contrato TLV da GSA:
+
+- o LED builtin já usava `type 0x12`;
+- o status por canal também passou a ser documentado como `type 0x12`.
+
+O host preservou compatibilidade por parser, diferenciando:
+
+- LED builtin por `len = 0x01`
+- status por canal por `len = 0x06`
+
+Essa inconsistência ainda precisa de convergência futura no contrato da board/gateway.
+
+### Contrato específico do LED
+
+Para o fluxo de LED builtin, permanecem válidos:
 
 - envio via `SdhClient`
 - mapeamento para SDGW compacto por `SdhToSdgwMapper`
@@ -132,6 +191,28 @@ Contrato atual do host para esse fluxo:
 - timeout de ACK do LED em `400 ms`
 - retries do LED em `2`
 - correlação de resposta reforçada no `GsaClient`
+
+## Documentos oficiais relacionados
+
+- `docs/04-firmware/boards/03-gsa.md`
+- `docs/05-software-dashboard/04-sdh-host-architecture.md`
+- `docs/06-protocolos/06-gsa-sdh-tlv.md`
+
+## Conflitos legados preservados para limpeza futura
+
+Os documentos abaixo podem conflitar com a documentação oficial vigente da GSA e precisam de revisão futura, mas não foram alterados nesta etapa:
+
+- `docs/legacy-docs/01_arquitetura/00_contratos/CONTRATO_GSA.md`
+- `docs/legacy-docs/05_hardware/gerador-sinais-analogicos-GSA/PROTOCOLO.md`
+- `docs/legacy-docs/01_arquitetura/05_babyboards/gsa/PROTOCOLO.md`
+
+Os conflitos mais prováveis nesses materiais são:
+
+- modelo antigo `GSA.ch1`
+- ausência do catálogo completo de 16 canais
+- ausência do contrato atual de offsets
+- ausência do evento assíncrono de fault
+- possível divergência quanto ao uso do type `0x12`
 
 ## Regra de manutenção
 

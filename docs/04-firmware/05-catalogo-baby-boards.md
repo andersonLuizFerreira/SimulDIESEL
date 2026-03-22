@@ -41,7 +41,7 @@ Portanto, esta documentação formaliza o domínio lógico sem inventar mapeamen
 |-------|------------|-------------------|------------------------|
 | BPM   | `BPM`      | `BPM.gateway`     | PENDENTE DE DEFINIÇÃO |
 | PSU   | `PSU`      | `PSU.power.main`  | PENDENTE DE DEFINIÇÃO |
-| GSA   | `GSA`      | `GSA.ch1` / `GSA.led` | PENDENTE DE DEFINIÇÃO |
+| GSA   | `GSA`      | `GSA.led` / `GSA.channel.status` | PENDENTE DE DEFINIÇÃO |
 | GSC   | `GSC`      | `GSC.signal1`     | PENDENTE DE DEFINIÇÃO |
 | URL   | `URL`      | `URL.relay3`      | PENDENTE DE DEFINIÇÃO |
 | SLU   | `SLU`      | PENDENTE DE DEFINIÇÃO | PENDENTE DE DEFINIÇÃO |
@@ -55,11 +55,14 @@ Portanto, esta documentação formaliza o domínio lógico sem inventar mapeamen
 As operações base aprovadas para o modelo SDH são:
 
     read
+    get
     set
     cfg
     run
     status
     reset
+    save
+    ping
 
 Formas qualificadas podem existir quando necessário:
 
@@ -74,6 +77,7 @@ Formas qualificadas podem existir quando necessário:
 - `docs/06-protocolos/01-sdh-command-model.md`
 - `docs/06-protocolos/02-sdh-response-model.md`
 - `docs/06-protocolos/03-sdh-examples.md`
+- `docs/06-protocolos/06-gsa-sdh-tlv.md`
 - `docs/04-firmware/04-sdh-gateway-architecture.md`
 
 [Retornar ao README principal](../README.md)

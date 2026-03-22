@@ -17,7 +17,14 @@ O binding lógico-físico é a etapa responsável por converter o domínio lógi
 | PSU  | POWER SUPPLY UNIT | PSU.power.main | power | main | PENDENTE DE DEFINIÇÃO OFICIAL | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PLANEJADO |
 
 | GSA  | GERADOR DE SINAIS ANALÓGICOS | GSA.led | led | N/A | PENDENTE DE DEFINIÇÃO OFICIAL | I2C | PENDENTE | GsaLedMapper | PENDENTE | PARCIAL |
-| GSA  | GERADOR DE SINAIS ANALÓGICOS | GSA.ch1 | ch1 | N/A | PENDENTE DE DEFINIÇÃO OFICIAL | I2C | PENDENTE | PENDENTE | PENDENTE | PLANEJADO |
+| GSA  | GERADOR DE SINAIS ANALÓGICOS | GSA.channel.setpoint | channel | setpoint | PENDENTE DE DEFINIÇÃO OFICIAL | I2C | PENDENTE | PENDENTE | PENDENTE | PARCIAL |
+| GSA  | GERADOR DE SINAIS ANALÓGICOS | GSA.channel.enable | channel | enable | PENDENTE DE DEFINIÇÃO OFICIAL | I2C | PENDENTE | PENDENTE | PENDENTE | PARCIAL |
+| GSA  | GERADOR DE SINAIS ANALÓGICOS | GSA.channels.enable | channels | enable | PENDENTE DE DEFINIÇÃO OFICIAL | I2C | PENDENTE | PENDENTE | PENDENTE | PARCIAL |
+| GSA  | GERADOR DE SINAIS ANALÓGICOS | GSA.channel.status | channel | status | PENDENTE DE DEFINIÇÃO OFICIAL | I2C | PENDENTE | PENDENTE | PENDENTE | PARCIAL |
+| GSA  | GERADOR DE SINAIS ANALÓGICOS | GSA.channels.status | channels | status | PENDENTE DE DEFINIÇÃO OFICIAL | I2C | PENDENTE | PENDENTE | PENDENTE | PARCIAL |
+| GSA  | GERADOR DE SINAIS ANALÓGICOS | GSA.channel.fault | channel | fault | PENDENTE DE DEFINIÇÃO OFICIAL | I2C | PENDENTE | PENDENTE | PENDENTE | PARCIAL |
+| GSA  | GERADOR DE SINAIS ANALÓGICOS | GSA.channel.offset | channel | offset | PENDENTE DE DEFINIÇÃO OFICIAL | I2C | PENDENTE | PENDENTE | PENDENTE | PARCIAL |
+| GSA  | GERADOR DE SINAIS ANALÓGICOS | GSA.offset | offset | N/A | PENDENTE DE DEFINIÇÃO OFICIAL | I2C | PENDENTE | PENDENTE | PENDENTE | PARCIAL |
 
 | GSC  | GERADOR DE SINAIS DE CONTROLE | GSC.signal1 | signal1 | N/A | PENDENTE DE DEFINIÇÃO OFICIAL | PENDENTE | PENDENTE | PENDENTE | PENDENTE | PLANEJADO |
 
@@ -50,5 +57,11 @@ Esta tabela deve evoluir conforme:
 O primeiro binding prioritário continua sendo:
 
     GSA.led
+
+O binding lógico da GSA já foi expandido na documentação oficial do host, mas os mapeamentos físicos detalhados e handlers de firmware ainda exigem consolidação oficial.
+
+Para o contrato funcional da GSA, consultar:
+
+    docs/06-protocolos/06-gsa-sdh-tlv.md
 
 [Retornar ao README principal](../README.md)

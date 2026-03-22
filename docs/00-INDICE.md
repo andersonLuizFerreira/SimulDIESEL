@@ -60,6 +60,7 @@
 - [03. SDH Examples](06-protocolos/03-sdh-examples.md)
 - [04. CAN](06-protocolos/04-can.md)
 - [05. J1939](06-protocolos/05-j1939.md)
+- [06. GSA — Contrato SDH/TLV](06-protocolos/06-gsa-sdh-tlv.md)
 
 ## 08-casos-de-uso
 

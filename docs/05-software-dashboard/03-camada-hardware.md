@@ -162,38 +162,92 @@ Esse ajuste evita descarte indevido de:
 
 ## Caso atual da GSA
 
-O caso funcional mais exercitado no host atual é `GSA.led set state=on|off`.
+Historicamente, o caso funcional mais exercitado no host foi `GSA.led set state=on|off`.
 
-Fluxo:
+Esse fluxo continua preservado, mas o host agora também suporta a expansão funcional da GSA para:
 
-    GsaClient.SetBuiltinLedAsync(bool)
-      -> GsaClient.SetLedAsync(bool)
+- setpoint por canal;
+- enable por canal;
+- enable global;
+- status por canal;
+- status global;
+- fault reset por canal;
+- offsets por canal;
+- save/reset de offsets;
+- reset global de offsets;
+- evento assíncrono de fault.
+
+### Fluxo funcional vigente
+
+Fluxo base:
+
+    FrmGsaLogic
+      -> GsaClient
       -> SdhClient
-      -> SdhToSdgwMapper.MapGsaLed(...)
+      -> SdhToSdgwMapper
       -> SdgwSession (priority: High)
       -> SdGwTxScheduler
       -> SdGwLinkEngine
 
-Ajustes recentes de robustez:
+Fluxos expostos hoje pelo `GsaClient`:
 
-- timeout de ACK do LED aumentado para `400 ms`
-- retries do LED aumentados para `2`
-- correlação de resposta reforçada no `GsaClient`
-- conferência do estado aplicado esperado
+- `SetBuiltinLedAsync(bool)`
+- `SetChannelSetpointAsync(...)`
+- `SetChannelEnableAsync(...)`
+- `SetChannelsEnableAsync(...)`
+- `GetChannelStatusAsync(...)`
+- `GetChannelsStatusAsync()`
+- `ResetChannelFaultAsync(...)`
+- `SetChannelOffsetAsync(...)`
+- `GetChannelOffsetAsync(...)`
+- `SaveChannelOffsetAsync(...)`
+- `ResetChannelOffsetAsync(...)`
+- `ResetOffsetsAsync()`
 
-Esses ajustes reduziram a instabilidade sob clique repetido no `LED_BUILTIN`.
+### Recepção funcional da GSA
+
+O `GsaClient` consome:
+
+- respostas funcionais recebidas como `SggwFrame`;
+- erros funcionais TLV da GSA;
+- evento assíncrono de `fault` via `SdgwSession.EventReceived`.
+
+Regras observadas no host:
+
+- não há evento assíncrono normal para enable/disable;
+- não há telemetria contínua por evento;
+- o evento assíncrono publicado ao host é apenas o snapshot de `fault` do canal.
+
+### Compatibilidade preservada
+
+O fluxo do LED builtin continua compatível e não foi removido.
+
+Há, porém, uma inconsistência histórica no contrato TLV da GSA:
+
+- o LED builtin já usava `type = 0x12`;
+- a expansão da GSA também documenta `type = 0x12` para `channel.status`.
+
+No host atual, a distinção é feita por:
+
+- `type`
+- `len`
+- layout esperado do payload
+
+Isso permite preservar o LED e suportar o status por canal sem regressão imediata.
 
 ## Limitações atuais
 
 - o host ainda opera com uma sessão serial por vez
 - a recepção funcional ainda é entregue como `SggwFrame`
 - `BpmSerialService.Shared` ainda é um ponto global transitório
-- o catálogo SDH suportado no host continua pequeno
+- o catálogo SDH suportado no host ainda é parcial em relação ao catálogo documental geral
+- o contrato TLV da GSA ainda carrega o conflito histórico de `type 0x12`
 
 ## Referência adicional
 
 Para o detalhamento formal do host atual, consulte:
 
 - `docs/05-software-dashboard/04-sdh-host-architecture.md`
+- `docs/06-protocolos/06-gsa-sdh-tlv.md`
 
 [Retornar ao README principal](../README.md)

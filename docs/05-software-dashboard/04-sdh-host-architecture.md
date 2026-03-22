@@ -201,13 +201,42 @@ Esse ajuste existe para não descartar `ACK`s e respostas tardias como se fossem
 
 ## Fluxo atual da GSA
 
-O caso funcional de LED embutido da GSA é o fluxo mais sensível da UI atual.
+O caso de LED embutido da GSA continua sendo o fluxo mais antigo e mais sensível da UI, mas o host já foi expandido para um catálogo funcional mais amplo da board.
+
+### Operações GSA suportadas hoje no host
+
+Já existia:
+
+- `GSA.led set state=on|off`
+
+Agora também existem:
+
+- `GSA.channel.setpoint set channel=<1..16> value=<0..255>`
+- `GSA.channel.enable set channel=<1..16> state=on|off`
+- `GSA.channels.enable set state=on|off`
+- `GSA.channel.status get channel=<1..16>`
+- `GSA.channels.status get`
+- `GSA.channel.fault reset channel=<1..16>`
+- `GSA.channel.offset set/get/save/reset`
+- `GSA.offset reset`
+
+### Fluxo funcional base
 
 Fluxo:
 
+    FrmGsaLogic
+        -> GsaClient
+        -> SdhClient.SendAsync(...)
+        -> SdhToSdgwMapper.Map(...)
+        -> SdgwSession.SendAsync(..., priority: High)
+        -> SdGwTxScheduler
+        -> SdGwLinkEngine
+
+No caso do LED, o fluxo específico continua:
+
     GsaClient.SetBuiltinLedAsync(bool)
         -> SdhClient.SendAsync(...)
-        -> SdhToSdgwMapper.MapGsaLed(...)
+        -> SdhToSdgwMapper.Map(...)
         -> SdgwSession.SendAsync(..., priority: High)
         -> SdGwTxScheduler
         -> SdGwLinkEngine
@@ -219,6 +248,42 @@ Ajustes já incorporados:
 - correlação de resposta reforçada no `GsaClient`
 - validação do payload de resposta antes de completar a pendência
 - conferência do `AppliedState` esperado para reduzir aceite de resposta tardia incorreta
+
+### Recepção funcional e eventos
+
+No estado atual:
+
+- respostas funcionais continuam chegando como `SggwFrame`;
+- o `GsaClient` faz o parse das respostas TLV da GSA;
+- erros funcionais são tratados como resposta funcional TLV `0x7F`;
+- eventos assíncronos são recebidos via `SdgwSession.EventReceived`.
+
+O único evento assíncrono documentado para a GSA no host é:
+
+- snapshot de `fault` por canal
+
+Não há, por enquanto:
+
+- evento assíncrono normal de enable/disable;
+- telemetria contínua por evento.
+
+### Inconsistência histórica do type `0x12`
+
+Existe um conflito histórico documentado na GSA:
+
+- `GwProtocol.GsaSetLedType` já era `0x12` no host;
+- a expansão da GSA também documenta `0x12` como `GsaChannelStatusType`.
+
+Para não quebrar o caso já funcional do LED, o host preservou compatibilidade da seguinte forma:
+
+- LED builtin: `type=0x12` com `len=0x01`
+- status por canal: `type=0x12` com `len=0x06`
+
+A distinção vigente é feita pelo parser com base em:
+
+- `type`
+- `len`
+- layout esperado do payload
 
 ## Estado atual da recepção
 
@@ -241,5 +306,12 @@ A arquitetura atual do host pode ser resumida assim:
 - `SdGwLinkSupervisor` supervisiona silêncio de RX válido
 - `SdhClient` mantém a semântica de comando acima do SDGW
 - a BPM e o host agora compartilham a mesma ideia de keepalive por atividade válida, e não por ping periódico fixo
+- a expansão da GSA já está incorporada no host sem quebrar o caso legado do LED builtin
+
+## Referência complementar
+
+Para o contrato detalhado da GSA, consulte:
+
+- `docs/06-protocolos/06-gsa-sdh-tlv.md`
 
 [Retornar ao README principal](../README.md)

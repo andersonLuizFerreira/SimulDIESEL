@@ -28,12 +28,17 @@ Erro:
     {
       "version": "sdh/1",
       "ok": true,
-      "target": "GSA.ch1",
-      "op": "set",
+      "target": "GSA.channel.status",
+      "op": "get",
       "code": "OK",
-      "message": "Canal atualizado",
+      "message": "Status do canal lido",
       "data": {
-        "value": 2.50
+        "channel": 6,
+        "setpoint": 128,
+        "vout": 134,
+        "iread": 17,
+        "enabled": true,
+        "fault": false
       },
       "meta": {}
     }
@@ -62,5 +67,6 @@ Erro:
 
 - `docs/06-protocolos/01-sdh-command-model.md`
 - `docs/06-protocolos/03-sdh-examples.md`
+- `docs/06-protocolos/06-gsa-sdh-tlv.md`
 
 [Retornar ao README principal](../README.md)

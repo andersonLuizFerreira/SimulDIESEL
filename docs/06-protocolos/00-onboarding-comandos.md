@@ -115,7 +115,24 @@ Tempo estimado: 15 minutos.
 
 ---
 
-### 6. Arquitetura de firmware
+### 6. Contrato oficial da GSA
+
+Arquivo:
+
+    docs/06-protocolos/06-gsa-sdh-tlv.md
+
+Objetivo:
+
+- entender o subconjunto SDH hoje suportado pela GSA;
+- compreender o contrato TLV binário entre gateway e board;
+- entender status, enable, offsets e evento de fault;
+- registrar a inconsistência histórica do type `0x12`.
+
+Tempo estimado: 25 minutos.
+
+---
+
+### 7. Arquitetura de firmware
 
 Arquivo:
 
@@ -133,7 +150,7 @@ Tempo estimado: 25 minutos.
 
 ---
 
-### 7. Camada hardware no software host
+### 8. Camada hardware no software host
 
 Arquivo:
 
@@ -166,6 +183,8 @@ Após seguir essa sequência, o engenheiro deverá ser capaz de:
 - TLV é o contrato interno entre gateway e dispositivos.
 - O target é sempre lógico, nunca físico.
 - Argumentos devem ser sempre explícitos.
+- O catálogo documental geral de SDH é maior que o subconjunto efetivamente suportado hoje no host.
+- Para a GSA, a referência oficial do contrato vigente é `docs/06-protocolos/06-gsa-sdh-tlv.md`.
 
 ## Próximos passos recomendados
 
