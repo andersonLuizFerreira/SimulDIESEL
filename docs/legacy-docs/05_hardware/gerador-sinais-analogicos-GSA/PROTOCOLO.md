@@ -1,4 +1,9 @@
-⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+⚠️ Documento histórico e superado. Não usar como protocolo oficial vigente da GSA.
+
+Referência oficial atual:
+
+- `docs/06-protocolos/06-gsa-sdh-tlv.md`
+- `docs/04-firmware/boards/03-gsa.md`
 
 # GSA — Protocolo (TLV + CRC-8)
 
@@ -21,7 +26,9 @@ Permitir comunicação simples e validada entre Gateway e GSA.
 
 ## Observação
 
-A semântica detalhada dos comandos deve ser alinhada ao contrato atual da GSA e ao firmware efetivamente versionado.
+A semântica detalhada dos comandos deste arquivo não representa mais o contrato oficial vigente da GSA.
+
+Este material foi preservado apenas como registro histórico de uma fase anterior do protocolo.
 
 [Retornar ao README principal](..\..\..\README.md)
 

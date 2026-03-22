@@ -41,14 +41,6 @@ namespace SimulDIESEL.BLL.Boards.GSA
 
         public event Action<GsaChannelFaultEvent> ChannelFaultEventReceived;
 
-        public Task<SdGwLinkEngine.SendOutcome> SetLedAsync(bool on)
-        {
-            var request = new GsaLedRequest { IsOn = on };
-            var command = CreateCommand("GSA.led", "set");
-            command.Args["state"] = request.IsOn ? "on" : "off";
-            return _sdh.SendAsync(command, SdGwTxPriority.High, "GSA builtin LED");
-        }
-
         public async Task<GsaCommandResult> SetBuiltinLedAsync(bool on)
         {
             GsaOperationResult<GsaLedResponse> result = await ExecuteOperationAsync<GsaLedResponse>(

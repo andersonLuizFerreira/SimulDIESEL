@@ -42,7 +42,7 @@ Ele organiza a fila com três prioridades:
 
 Na prática:
 
-- `GsaClient.SetLedAsync(...)` envia em `High`
+- comandos funcionais da `GsaClient` enviam em `High`
 - `BpmClient.PingGatewayAsync()` envia em `High`
 - o `SdGwLinkSupervisor` agenda ping em `Low`
 
@@ -168,40 +168,66 @@ Esse ajuste evita que `ACK`s ou respostas tardias sejam tratados como texto de h
 
 O handshake textual inicial continua existindo apenas antes do primeiro `Linked` da conexão atual.
 
-## Caso funcional GSA LED
+## Fluxo funcional atual da GSA
 
-O fluxo atual do LED embutido da GSA é:
+Historicamente, o primeiro fluxo estável da GSA foi o LED embutido:
 
-    GsaClient.SetBuiltinLedAsync(bool)
-        -> GsaClient.SetLedAsync(bool)
+    GSA.led set state=on|off
+
+Esse fluxo permanece compatível, mas não é mais o único contrato da GSA no host.
+
+### Expansão hoje suportada
+
+Além do LED builtin, o host já suporta:
+
+- `GSA.channel.setpoint`
+- `GSA.channel.enable`
+- `GSA.channels.enable`
+- `GSA.channel.status`
+- `GSA.channels.status`
+- `GSA.channel.fault`
+- `GSA.channel.offset`
+- `GSA.offset`
+
+Fluxo base:
+
+    FrmGsaLogic
+        -> GsaClient
         -> SdhClient.SendAsync(...)
-        -> SdhToSdgwMapper.MapGsaLed(...)
+        -> SdhToSdgwMapper.Map(...)
         -> SdgwSession.SendAsync(...)
         -> SdGwTxScheduler (High)
         -> SdGwLinkEngine
 
-Mapeamento atual:
+No caso do LED builtin, o método público preservado é:
 
-- target SDH: `GSA.led`
-- operação: `set`
-- transporte SDGW: comando compacto `GW_ADDR_GSA / GW_OP_GSA_TLV_TRANSACT`
-- payload: TLV curto com CRC interno da transação para a GSA
+    GsaClient.SetBuiltinLedAsync(bool)
 
-Correções já incorporadas para estabilizar esse fluxo:
+Correções já incorporadas para estabilizar o fluxo da GSA:
 
 - `TimeoutMs = 400`
 - `Retries = 2`
 - correlação de resposta reforçada no `GsaClient`
 - validação da resposta antes de completar a requisição pendente
-- conferência do estado aplicado esperado para reduzir aceitação de resposta tardia errada
+- conferência do payload e do estado aplicado esperado
 
-Isso reduziu a instabilidade em clique repetido no `LED_BUILTIN`.
+### Observação de compatibilidade
+
+Há uma inconsistência histórica no contrato TLV da GSA:
+
+- o LED builtin já usava `type = 0x12`;
+- o status por canal também passou a usar `type = 0x12`.
+
+No host, a compatibilidade foi preservada pelo parser com base em:
+
+- `len = 0x01` para LED builtin
+- `len = 0x06` para status por canal
 
 ## Limitações atuais
 
 - o host ainda trabalha com uma sessão SDGW por vez
 - a recepção funcional ainda entrega `SggwFrame`, não um envelope SDH completo
-- o catálogo SDH suportado continua pequeno
+- o catálogo SDH suportado ainda é parcial em relação ao modelo documental geral, mas a GSA já não está mais restrita ao LED builtin
 - `BpmSerialService.Shared` ainda é um ponto global transitório, mantido por compatibilidade de composição com a UI atual
 
 ## Legado removido

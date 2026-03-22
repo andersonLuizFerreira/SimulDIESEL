@@ -88,19 +88,15 @@ Os exemplos abaixo continuam úteis para ilustrar o envelope SDH, mas não repre
 
 ## Observação específica da GSA
 
-O modelo antigo baseado em:
-
-    sdh/1 GSA.ch1 set value=2.50 unit=V
-
-não é mais a forma oficial vigente da GSA no host atual.
-
-O contrato oficial passou a ser orientado por:
+O contrato oficial atual da GSA passou a ser orientado por:
 
 - `GSA.channel.setpoint`
 - `GSA.channel.enable`
 - `GSA.channel.status`
 - `GSA.channels.status`
 - `GSA.channel.offset`
+
+Modelos antigos baseados em `GSA.ch1` devem ser tratados como legado histórico e não como contrato vigente.
 
 ## Referências
 

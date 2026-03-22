@@ -167,12 +167,38 @@ Ajustes recentes desse fluxo:
 - retries do LED: `2`
 - correlação de resposta reforçada
 
+## Expansão atual da GSA no mesmo pipeline
+
+O LED builtin continua sendo o exemplo funcional mais simples desse fluxo, mas o caminho arquitetural acima hoje também suporta a expansão da GSA para:
+
+- `GSA.channel.setpoint`
+- `GSA.channel.enable`
+- `GSA.channels.enable`
+- `GSA.channel.status`
+- `GSA.channels.status`
+- `GSA.channel.fault`
+- `GSA.channel.offset`
+- `GSA.offset`
+
+Na prática, o pipeline continua o mesmo:
+
+    UI / FormsLogic
+      -> GsaClient
+      -> SdhClient
+      -> SdgwSession
+      -> SdGwTxScheduler
+      -> SdGwLinkEngine
+      -> BPM / gateway
+      -> GSA
+
+O que muda é o target SDH e o TLV funcional transportado para a board.
+
 ## Limitações atuais
 
 - o host continua com uma única transação ativa no engine por vez
 - a fila resolve arbitragem, não paralelismo real
 - a recepção funcional ainda usa `SggwFrame`
-- o catálogo funcional suportado continua pequeno
+- o catálogo funcional suportado ainda é parcial em relação ao SDH documental geral, mas a GSA já não está mais limitada ao LED
 
 ## Referências
 

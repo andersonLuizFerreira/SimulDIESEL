@@ -6,7 +6,9 @@ Os testes de integração mais relevantes do projeto são os que atravessam toda
 
     WinForms -> host SDGW/SDH -> BPM -> baby board
 
-Hoje, o caso mais representativo continua sendo o fluxo do LED da GSA.
+Historicamente, o caso mais representativo foi o fluxo do LED da GSA.
+
+Com a expansão atual da GSA no host, esse cenário continua válido como teste-base, mas já não é o único fluxo funcional relevante.
 
 ## Caminho integrado real
 
@@ -62,7 +64,8 @@ O conjunto de testes de integração ainda é pequeno em diversidade funcional.
 
 Hoje:
 
-- o caso GSA LED é o principal cenário ponta a ponta
+- o caso GSA LED é o principal cenário ponta a ponta já exercitado
+- ainda faltam roteiros equivalentes para setpoint, status, offsets e fault event da GSA
 - ainda não há cobertura equivalente para múltiplas boards em paralelo
 - a recepção funcional ainda é baseada em `SggwFrame`
 
@@ -71,6 +74,11 @@ Hoje:
 Os próximos ganhos naturais são:
 
 - mais cenários além do LED
+- roteiros específicos para:
+  - `GSA.channel.status`
+  - `GSA.channels.status`
+  - `GSA.channel.offset`
+  - evento assíncrono de fault
 - validação de eventos assíncronos
 - testes cruzando múltiplos destinos da BPM
 - maior formalização dos roteiros de integração

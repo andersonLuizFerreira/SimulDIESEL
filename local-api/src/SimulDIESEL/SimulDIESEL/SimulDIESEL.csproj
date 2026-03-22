@@ -77,7 +77,6 @@
     <Compile Include="DAL\Transport\Serial\SerialPortAdapter.cs" />
     <Compile Include="DAL\Transport\Serial\SerialTransport.cs" />
     <Compile Include="DTL\Boards\BPM\BpmStatusDto.cs" />
-    <Compile Include="DTL\Boards\GSA\GsaLedRequest.cs" />
     <Compile Include="DTL\Boards\GSA\GsaLedResponse.cs" />
     <Compile Include="DTL\Boards\GSA\GsaCommon.cs" />
     <Compile Include="DTL\Boards\GSA\GsaRequests.cs" />

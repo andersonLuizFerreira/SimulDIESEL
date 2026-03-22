@@ -1,8 +1,19 @@
-⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+⚠️ Documento histórico e superado. Não usar como contrato vigente da GSA.
+
+Status deste arquivo:
+
+- preservado apenas por valor histórico;
+- superado pela documentação oficial atual;
+- incompatível em partes com a expansão recente da GSA no host.
+
+Referência oficial atual:
+
+- `docs/06-protocolos/06-gsa-sdh-tlv.md`
+- `docs/04-firmware/boards/03-gsa.md`
 
 # 📘 CONTRATO OFICIAL – GSA (Gerador de Sinais Analógicos)
 **Versão:** 1.2  
-**Status:** Ativo  
+**Status:** Obsoleto / superado  
 **Compatível com:** CONTRATO_CENTRAL v1.0
 
 ---

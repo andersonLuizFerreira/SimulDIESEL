@@ -35,7 +35,7 @@ Exemplos:
 
     sdh/1 BPM.gateway cfg mode=serial
     sdh/1 PSU.power.main set state=on
-    sdh/1 GSA.ch1 set value=2.50 unit=V
+    sdh/1 GSA.channel.setpoint set channel=6 value=128
     sdh/1 BPM.xconn read
 
 ## Forma JSON equivalente
@@ -61,7 +61,7 @@ Exemplos:
     BPM.gateway
     BPM.gateway.serial
     PSU.power.main
-    GSA.ch1
+    GSA.channel.status
     URL.relay3
     UCO.can1
     UIOD.do5
@@ -132,7 +132,7 @@ Alvos como:
 
     PSU.power.main
     UCO.can1
-    GSA.ch1
+    URL.relay3
 
 continuam úteis como exemplos do modelo documental geral, mas não devem ser tratados como suporte implementado no host atual sem documento específico confirmando isso.
 

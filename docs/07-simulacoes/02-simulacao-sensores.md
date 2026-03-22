@@ -2,9 +2,19 @@
 
 ## Estado atual
 
-O nome do firmware `gerador-sinais-analogicos-GSA` sugere uma direção clara para simulação de sensores, mas o código atualmente versionado não expõe ainda uma superfície funcional correspondente a sinais analógicos variados. O serviço implementado e comprovado no firmware é o controle de LED, com leitura e escrita de estado por TLV.
+O nome do firmware `gerador-sinais-analogicos-GSA` sugere uma direção clara para simulação de sensores e, no estado atual do host, essa direção já deixou de estar limitada ao LED builtin.
 
-Portanto, a capacidade presente no repositório é de infraestrutura para simulação de sensores, não de um conjunto amplo de sensores já implementados.
+Hoje, a documentação oficial e o host já descrevem/suportam para a GSA:
+
+- `16` canais;
+- setpoint lógico `0..255`;
+- leitura de status por canal e global;
+- enable por canal e global;
+- offsets por canal;
+- reset de fault por canal;
+- evento assíncrono de fault.
+
+Isso não significa que a plataforma já documente um catálogo rico de sinais físicos por tipo de sensor, frequência ou forma de onda. O que existe hoje é um gerador analógico por canal com contrato funcional e binário já formalizado.
 
 ## Funcionamento técnico
 
@@ -19,18 +29,31 @@ UI / caso de uso
   -> resposta confirma aplicação do comando
 ```
 
-No GSA, a pilha é curta e reaproveitável:
+No GSA, a pilha continua curta e reaproveitável:
 
 - `Transport` recebe bytes do barramento;
 - `Link` valida `T/L/CRC` e trata erros;
 - `Service` decide o comando funcional;
 - o serviço específico altera o estado local da placa.
 
-Esse padrão é adequado para sensores simulados por DAC, PWM, chaveamento ou outros mecanismos, desde que o firmware efetivamente passe a expor esses serviços.
+Esse padrão é adequado para sensores simulados por DAC, PWM, chaveamento ou outros mecanismos, desde que o firmware efetivamente detalhe esses serviços no nível físico.
 
 ## Limitações
 
-Não há, no código analisado, comandos de amplitude, frequência, offset, calibração ou seleção de canal analógico que justifiquem documentar uma simulação de sensor mais rica como funcionalidade pronta. Também não foram encontrados exemplos reais de payload nesse sentido. O documento, portanto, delimita a plataforma existente e registra a lacuna entre o nome do módulo e o estado atual do firmware.
+Ainda não há, na documentação oficial atual, contrato completo para:
+
+- amplitude em unidade física contínua;
+- frequência;
+- forma de onda;
+- catálogo por tipo de sensor simulado.
+
+Também não há, no recorte oficial atual, documentação suficiente para afirmar uma simulação de sensor “plena” por domínio físico. O contrato oficial vigente da GSA está centrado em:
+
+- canais analógicos genéricos;
+- setpoint lógico;
+- status real lido;
+- offsets de correção;
+- fault.
 
 ## Evolução prevista
 
@@ -41,6 +64,12 @@ Quando a simulação de sensores for expandida no firmware, a documentação ofi
 - limites físicos por canal;
 - estratégia de teste de resposta em bancada.
 
-Até esse ponto, o GSA deve ser lido como base de integração de periférico, não como simulador analógico plenamente documentado.
+Até esse ponto, o GSA deve ser lido como uma plataforma analógica funcional e já integrada, mas ainda não como catálogo completo de sensores simulados por tipo.
+
+## Referência oficial
+
+Para o contrato vigente da GSA, consultar:
+
+- `docs/06-protocolos/06-gsa-sdh-tlv.md`
 
 [Retornar ao README principal](../README.md)
