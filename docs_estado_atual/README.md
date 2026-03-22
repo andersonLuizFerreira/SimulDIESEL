@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # SimulDIESEL
 
 **SimulDIESEL** é uma plataforma modular para simulação e diagnóstico de módulos eletrônicos automotivos, projetada com arquitetura em camadas e foco em escalabilidade, robustez e evolução incremental.
@@ -84,4 +86,5 @@ Definir conforme estratégia futura do projeto.
 ---
 
 **SimulDIESEL – Plataforma de Simulação Modular Automotiva**
+
 

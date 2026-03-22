@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # SGGW Connector Contract
 
 **SimulDIESEL — Serial Gateway Connector Specification**
@@ -303,3 +305,4 @@ Component: SdGgwClient
 ---
 
 # END OF DOCUMENT
+

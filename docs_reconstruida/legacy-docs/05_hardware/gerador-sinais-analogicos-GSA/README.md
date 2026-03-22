@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # Gerador de Sinais Analógicos (GSA) — Firmware
 
 Este diretório documenta o firmware do módulo GSA do projeto SimulDIESEL.
@@ -22,3 +24,4 @@ O firmware implementa um dispositivo I2C slave que recebe e responde comandos em
 - `FLUXO_EXECUCAO.md`
 
 [Retornar ao README principal](..\..\..\README.md)
+

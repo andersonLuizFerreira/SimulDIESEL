@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # SD-GW-LINK — Interface de Integração (DAL ↔ Protocolo ↔ Consumidor)
 
 **Projeto:** SimulDIESEL  
@@ -258,3 +260,4 @@ Uma implementação é considerada conforme se:
 ---
 
 **Fim — Interface SD-GW-LINK v1.0.0**
+

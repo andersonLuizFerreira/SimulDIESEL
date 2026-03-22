@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # GSA — Estrutura interna
 
 **Status:** Rascunho técnico
@@ -15,3 +17,4 @@
 - **Service:** interpreta operações e subcomandos
 
 [Retornar ao README principal](..\..\..\..\README.md)
+

@@ -41,6 +41,7 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.mnuFerramentas = new System.Windows.Forms.ToolStripMenuItem();
             this.gSAGERADORDENIVEISANALOGICOSToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.demoGaugesVerticaisToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripConectar = new System.Windows.Forms.ToolStripButton();
             this.statusStrip1.SuspendLayout();
@@ -130,7 +131,8 @@
             // mnuFerramentas
             // 
             this.mnuFerramentas.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.gSAGERADORDENIVEISANALOGICOSToolStripMenuItem});
+            this.gSAGERADORDENIVEISANALOGICOSToolStripMenuItem,
+            this.demoGaugesVerticaisToolStripMenuItem});
             this.mnuFerramentas.Name = "mnuFerramentas";
             this.mnuFerramentas.Size = new System.Drawing.Size(104, 24);
             this.mnuFerramentas.Text = "&Ferramentas";
@@ -141,6 +143,13 @@
             this.gSAGERADORDENIVEISANALOGICOSToolStripMenuItem.Size = new System.Drawing.Size(368, 26);
             this.gSAGERADORDENIVEISANALOGICOSToolStripMenuItem.Text = "GSA - GERADOR DE SINAIS ANALOGICOS";
             this.gSAGERADORDENIVEISANALOGICOSToolStripMenuItem.Click += new System.EventHandler(this.gSAGERADORDENIVEISANALOGICOSToolStripMenuItem_Click);
+            // 
+            // demoGaugesVerticaisToolStripMenuItem
+            // 
+            this.demoGaugesVerticaisToolStripMenuItem.Name = "demoGaugesVerticaisToolStripMenuItem";
+            this.demoGaugesVerticaisToolStripMenuItem.Size = new System.Drawing.Size(368, 26);
+            this.demoGaugesVerticaisToolStripMenuItem.Text = "DEMO - GAUGES VERTICAIS";
+            this.demoGaugesVerticaisToolStripMenuItem.Click += new System.EventHandler(this.demoGaugesVerticaisToolStripMenuItem_Click);
             // 
             // toolStrip1
             // 
@@ -207,6 +216,7 @@
         private System.Windows.Forms.ToolStripStatusLabel tsNomeInterface;
         private System.Windows.Forms.ToolStripMenuItem mnuFerramentas;
         private System.Windows.Forms.ToolStripMenuItem gSAGERADORDENIVEISANALOGICOSToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem demoGaugesVerticaisToolStripMenuItem;
     }
 }
 

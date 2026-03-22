@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # 📘 CONTRATO OFICIAL -- GSA (Gerador de Sinais Analógicos)
 
 **Versão:** 1.2\
@@ -159,3 +161,4 @@ Fluxo:
 ------------------------------------------------------------------------
 
 **CONTRATO_GSA v1.2**
+

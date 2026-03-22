@@ -86,6 +86,36 @@
     <Compile Include="DTL\Protocols\SDGW\SdhTarget.cs" />
     <Compile Include="DTL\Protocols\SDGW\SggwCmd.cs" />
     <Compile Include="DTL\Protocols\SDGW\SggwFrame.cs" />
+    <Compile Include="UI\Controls\GsaChannelControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\Controls\GsaChannelControl.Designer.cs">
+      <DependentUpon>GsaChannelControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Controls\GsaControls.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\Controls\SdLedIndicator.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\Controls\SdVerticalSlider.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\Controls\SdVerticalGauge.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="UI\FormGsaChannelsDemo.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\FormGsaChannelsDemo.Designer.cs">
+      <DependentUpon>FormGsaChannelsDemo.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\FormGaugeDemo.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\FormGaugeDemo.Designer.cs">
+      <DependentUpon>FormGaugeDemo.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\frmGSA_UI.cs">
       <SubType>Form</SubType>
     </Compile>

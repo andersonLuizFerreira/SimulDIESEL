@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # GSA — Protocolo (TLV + CRC-8)
 
 ## Visão geral
@@ -22,3 +24,4 @@ Permitir comunicação simples e validada entre Gateway e GSA.
 A semântica detalhada dos comandos deve ser alinhada ao contrato atual da GSA e ao firmware efetivamente versionado.
 
 [Retornar ao README principal](..\..\..\README.md)
+

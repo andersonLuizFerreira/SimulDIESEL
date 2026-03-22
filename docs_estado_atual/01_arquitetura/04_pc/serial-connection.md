@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # Serial Connection – Versão Base (Main)
 
 **Projeto:** SimulDIESEL  
@@ -206,3 +208,4 @@ v0.1.0-serial-ok
 ```
 
 Representa a versão estável da conexão serial antes da introdução da camada de LINK.
+

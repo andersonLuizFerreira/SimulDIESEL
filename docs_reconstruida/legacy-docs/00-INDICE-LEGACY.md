@@ -1,4 +1,6 @@
-﻿# SimulDIESEL — Índice da Documentação Legada
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
+# SimulDIESEL — Índice da Documentação Legada
 
 Este índice reúne os documentos movidos para legacy-docs durante a reorganização da documentação.
 
@@ -66,3 +68,4 @@ Este índice reúne os documentos movidos para legacy-docs durante a reorganiza�
 ---
 
 _Arquivo gerado automaticamente em 2026-03-14 15:44:28_
+

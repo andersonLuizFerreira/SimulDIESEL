@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # I2C Bus – TLV+CRC (Gateway)
 **Status:** Rascunho inicial (alinhado ao CONTRATO_CENTRAL v1.0)
 
@@ -12,3 +14,4 @@ CRC-8/ATM em `[T L V]`.
 Para evitar problemas de resposta fragmentada em múltiplos `requestFrom()`, recomenda-se:
 - ler a resposta em uma única chamada `requestFrom(rxMax)`
 - recortar pelo campo L (2+L+1)
+

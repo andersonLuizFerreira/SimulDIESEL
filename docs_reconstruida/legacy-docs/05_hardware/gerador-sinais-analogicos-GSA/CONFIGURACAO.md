@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # GSA — Configuração do Firmware
 
 ## Itens identificados
@@ -12,3 +14,4 @@
 Este documento descreve itens identificados documentalmente e pode ser refinado conforme o firmware do GSA for auditado em detalhe.
 
 [Retornar ao README principal](..\..\..\README.md)
+

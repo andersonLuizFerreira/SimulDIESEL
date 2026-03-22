@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # Link Layer – Handshake (Feature)
 
 **Projeto:** SimulDIESEL  
@@ -192,3 +194,4 @@ feature/link-handshake
 ```
 
 Ainda não mesclada à main.
+

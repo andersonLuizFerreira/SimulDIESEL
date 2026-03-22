@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # 📘 CONTRATO OFICIAL – GATEWAY ↔ BABY BOARDS
 **Versão:** 1.2  
 **Status:** Ativo  
@@ -103,3 +105,4 @@ Exemplo de ACK simples:
 ---
 
 **CONTRATO_GATEWAY v1.2**
+

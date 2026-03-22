@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # SD-GW-LINK — Gateway ↔ API Transport Protocol
 
 **Projeto:** SimulDIESEL  
@@ -98,3 +100,4 @@ devem residir em seus respectivos módulos de firmware ou software.
 ---
 
 **Fim — SD-GW-LINK**
+

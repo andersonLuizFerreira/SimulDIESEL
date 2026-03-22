@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # SimulDIESEL – Architecture Overview
 
 **Projeto:** SimulDIESEL  
@@ -181,3 +183,4 @@ Evoluir para:
 ---
 
 **Documento de referência arquitetural do projeto SimulDIESEL.**
+

@@ -152,5 +152,21 @@ namespace SimulDIESEL
             frmGsa.StartPosition = FormStartPosition.CenterParent;
             frmGsa.Show();
         }
+
+        private void demoGaugesVerticaisToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var formGaugeDemo = FormGaugeDemo.Instance;
+
+            if (formGaugeDemo.Visible)
+            {
+                formGaugeDemo.BringToFront();
+                formGaugeDemo.Activate();
+                return;
+            }
+
+            formGaugeDemo.MdiParent = this;
+            formGaugeDemo.StartPosition = FormStartPosition.CenterParent;
+            formGaugeDemo.Show();
+        }
     }
 }

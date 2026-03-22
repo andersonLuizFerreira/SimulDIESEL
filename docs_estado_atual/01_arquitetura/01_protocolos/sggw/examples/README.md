@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # SD-GW-LINK — Exemplos em Hex (Vetores de Teste)
 
 Este diretório contém **vetores de teste oficiais** do protocolo de transporte
@@ -79,3 +81,4 @@ Uso típico:
 Projeto: **SimulDIESEL**  
 Protocolo: **SD-GW-LINK**  
 Versão: **1.0.0**
+

@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # 📘 CONTRATO CENTRAL – GATEWAY ↔ BABY BOARDS (SimulDIESEL)
 **Versão:** 1.0  
 **Status:** Ativo  
@@ -98,3 +100,4 @@ Padrão recomendado e consistente com o firmware atual do GatewayApp:
 ---
 
 **CONTRATO_CENTRAL v1.0**
+

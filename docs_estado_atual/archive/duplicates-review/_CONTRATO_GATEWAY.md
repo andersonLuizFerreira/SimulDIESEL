@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # 📘 CONTRATO OFICIAL -- GATEWAY ↔ BABY BOARDS
 
 **Versão:** 1.0\
@@ -142,3 +144,4 @@ Expansão deve ocorrer dentro do payload (subcomandos).
 ------------------------------------------------------------------------
 
 **CONTRATO_GATEWAY v1.0**
+

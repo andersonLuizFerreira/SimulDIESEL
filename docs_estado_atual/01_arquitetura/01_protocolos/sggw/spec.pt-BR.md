@@ -1,3 +1,5 @@
+⚠️ Documento histórico. Pode não refletir a arquitetura atual do SimulDIESEL.
+
 # SD-GW-LINK — Especificação do Protocolo de Transporte (Gateway ↔ API)
 
 **Projeto:** SimulDIESEL  
@@ -223,3 +225,4 @@ CMD + FLAGS + SEQ + PAYLOAD
 ---
 
 **Fim da Especificação SD-GW-LINK v1.0.0**
+
