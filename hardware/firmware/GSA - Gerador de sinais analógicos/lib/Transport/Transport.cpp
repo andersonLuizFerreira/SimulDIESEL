@@ -1,3 +1,6 @@
+#include <Arduino.h>
+#include <Wire.h>
+
 #include "Transport.h"
 #include "crc8.h"
 
@@ -16,7 +19,11 @@ void Transport::begin(uint8_t i2cAddr) {
   _rxPending = false;
   _txLen = 0;
 
-  Wire.begin(i2cAddr);                  // UNO como SLAVE
+  resumeSlave(i2cAddr);
+}
+
+void Transport::resumeSlave(uint8_t i2cAddr) {
+  Wire.begin(i2cAddr);
   Wire.onReceive(onReceiveThunk);
   Wire.onRequest(onRequestThunk);
 }

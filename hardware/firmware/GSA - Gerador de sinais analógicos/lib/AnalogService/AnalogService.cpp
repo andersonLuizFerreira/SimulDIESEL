@@ -1,5 +1,6 @@
 #include "AnalogService.h"
 
+#include "../AnalogDriver/AnalogDriver.h"
 #include "config.h"
 #include "TlvBuilder.h"
 
@@ -130,6 +131,10 @@ bool AnalogService::handleSetpoint(const TlvFrame& tlv, uint8_t* txOut, uint8_t&
   _channels[index].setpointRaw = tlv.v[1];
   refreshChannelTelemetry((uint8_t)index);
 
+  if (_channels[index].effectiveEnable) {
+    analogWriteChannel(channel, _channels[index].setpointRaw);
+  }
+
   uint8_t payload[2] = { channel, _channels[index].setpointRaw };
   txLenOut = TlvBuilder::build(CMD_SETPOINT, payload, sizeof(payload), txOut, TLV_MAX_LEN);
   return txLenOut != 0;
@@ -162,6 +167,12 @@ bool AnalogService::handleEnableChannel(const TlvFrame& tlv, uint8_t* txOut, uin
   state.requestedEnable = (requestedState != 0);
   state.effectiveEnable = state.requestedEnable && !state.faultLatched;
 
+  if (state.effectiveEnable) {
+    analogWriteChannel(channel, state.setpointRaw);
+  } else {
+    analogDisableChannel(channel);
+  }
+
   uint8_t payload[2] = { channel, (uint8_t)(state.effectiveEnable ? 1 : 0) };
   txLenOut = TlvBuilder::build(CMD_ENABLE_CHANNEL, payload, sizeof(payload), txOut, TLV_MAX_LEN);
   return txLenOut != 0;
@@ -179,20 +190,24 @@ bool AnalogService::handleEnableGlobal(const TlvFrame& tlv, uint8_t* txOut, uint
 
   for (uint8_t index = 0; index < GSA_CHANNEL_COUNT; index++) {
     GsaChannelState& state = _channels[index];
+    uint8_t channel = (uint8_t)(index + 1);
     if (requestedState == 0) {
       state.requestedEnable = false;
       state.effectiveEnable = false;
+      analogDisableChannel(channel);
       continue;
     }
 
     if (state.faultLatched) {
       state.requestedEnable = false;
       state.effectiveEnable = false;
+      analogDisableChannel(channel);
       continue;
     }
 
     state.requestedEnable = true;
     state.effectiveEnable = true;
+    analogWriteChannel(channel, state.setpointRaw);
   }
 
   txLenOut = TlvBuilder::buildU8(CMD_ENABLE_GLOBAL, requestedState, txOut, TLV_MAX_LEN);
@@ -213,6 +228,7 @@ bool AnalogService::handleFaultReset(const TlvFrame& tlv, uint8_t* txOut, uint8_
   _channels[index].faultLatched = false;
   _channels[index].requestedEnable = false;
   _channels[index].effectiveEnable = false;
+  analogDisableChannel(channel);
 
   uint8_t payload[2] = { channel, 0 };
   txLenOut = TlvBuilder::build(CMD_FAULT_RESET, payload, sizeof(payload), txOut, TLV_MAX_LEN);

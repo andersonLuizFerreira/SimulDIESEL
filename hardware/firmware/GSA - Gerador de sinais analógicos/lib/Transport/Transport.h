@@ -1,11 +1,11 @@
 #pragma once
-#include <Arduino.h>
-#include <Wire.h>
+#include <stdint.h>
 #include "defs.h"
 
 class Transport {
 public:
   void begin(uint8_t i2cAddr);
+  static void resumeSlave(uint8_t i2cAddr);
 
   // Chamar no loop para pegar frame recebido (se houver)
   bool popRx(uint8_t* out, uint8_t& outLen);
