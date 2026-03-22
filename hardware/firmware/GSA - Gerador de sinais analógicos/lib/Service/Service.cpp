@@ -43,6 +43,11 @@ bool Service::handleOneTlv(const TlvFrame &tlv, uint8_t *txOut, uint8_t &txLenOu
   }
 }
 
+bool Service::popPendingEvent(uint8_t* txOut, uint8_t& txLenOut)
+{
+  return _analog.popPendingEvent(txOut, txLenOut);
+}
+
 bool Service::handleBuiltinLed(const TlvFrame& tlv, uint8_t* txOut, uint8_t& txLenOut)
 {
   if (tlv.l != 1 || tlv.v == nullptr) {

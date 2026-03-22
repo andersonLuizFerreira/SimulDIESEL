@@ -74,6 +74,47 @@ bool GwI2cBus::transact(uint8_t addr,
     }
 }
 
+bool GwI2cBus::pollEvent(uint8_t addr,
+                         uint8_t* rx, size_t rxMax, size_t& rxLen)
+{
+    rxLen = 0;
+    if (!rx || rxMax < 3) return false;
+
+    GwDeviceEntry e{};
+    if (!GwDeviceTable::get(addr, e)) return false;
+    if (e.bus != GW_BUS_I2C) return false;
+
+    const uint8_t i2cAddr = e.i2cAddr;
+    const size_t requestLen = (rxMax < kGwI2cResponseMax) ? rxMax : kGwI2cResponseMax;
+    size_t got = _w.requestFrom((int)i2cAddr, (int)requestLen, (int)true);
+    if (got < 2) {
+        return false;
+    }
+
+    for (size_t i = 0; i < got; i++) {
+        int v = _w.read();
+        if (v < 0) {
+            _ok = false;
+            return false;
+        }
+        rx[i] = (uint8_t)v;
+    }
+
+    if (rx[0] == 0xFF && rx[1] == 0x00) {
+        return false;
+    }
+
+    const size_t total = (size_t)2 + (size_t)rx[1] + (size_t)1;
+    if (total > rxMax || got < total) {
+        _ok = false;
+        return false;
+    }
+
+    rxLen = total;
+    _ok = true;
+    return true;
+}
+
 bool GwI2cBus::pingTlv(uint8_t i2cAddr, uint8_t& outBoardId)
 {
     // TX: [T=0x00][L=0x00]

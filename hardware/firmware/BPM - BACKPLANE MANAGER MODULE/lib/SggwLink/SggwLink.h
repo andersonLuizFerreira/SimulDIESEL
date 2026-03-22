@@ -42,6 +42,7 @@ public:
 
     /// Envia um evento para o dispositivo.
     bool sendEvent(uint8_t cmd, const uint8_t* payload, uint8_t payloadLen);
+    bool sendResponse(uint8_t cmd, const uint8_t* payload, uint8_t payloadLen);
 
     /// Envia uma resposta de erro para o dispositivo.
     void sendErr(uint8_t rxSeq, uint8_t errCode);

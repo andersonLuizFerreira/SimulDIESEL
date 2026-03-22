@@ -18,6 +18,9 @@ public:
                   uint8_t* rx, size_t rxMax, size_t& rxLen,
                   uint16_t timeoutMs) override;
 
+    bool pollEvent(uint8_t addr,
+                   uint8_t* rx, size_t rxMax, size_t& rxLen);
+
     bool isOk() const override { return _ok; }
 
 private:

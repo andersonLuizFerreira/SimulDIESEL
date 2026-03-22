@@ -12,6 +12,26 @@ void Link::begin() {
   clearError();
 }
 
+void Link::tick() {
+  if (Transport::hasTxPending()) {
+    return;
+  }
+
+  uint8_t txTlv[TLV_MAX_LEN];
+  uint8_t txTlvLen = 0;
+  if (!_svc.popPendingEvent(txTlv, txTlvLen) || txTlvLen < 2) {
+    return;
+  }
+
+  uint8_t out[TLV_MAX_LEN];
+  for (uint8_t i = 0; i < txTlvLen; i++) {
+    out[i] = txTlv[i];
+  }
+
+  out[txTlvLen] = Crc8::calc(out, txTlvLen);
+  _tr.setTx(out, (uint8_t)(txTlvLen + 1));
+}
+
 void Link::setError(uint8_t code, uint8_t lastT) {
   _hasErr = true;
   _errCode = code;

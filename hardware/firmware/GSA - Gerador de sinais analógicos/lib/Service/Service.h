@@ -13,6 +13,7 @@ public:
   void begin();
   void tick();
   bool handleOneTlv(const TlvFrame& tlv, uint8_t* txOut, uint8_t& txLenOut);
+  bool popPendingEvent(uint8_t* txOut, uint8_t& txLenOut);
 
 private:
   bool handleBuiltinLed(const TlvFrame& tlv, uint8_t* txOut, uint8_t& txLenOut);

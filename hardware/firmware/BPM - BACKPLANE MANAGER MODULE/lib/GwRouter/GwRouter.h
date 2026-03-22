@@ -18,6 +18,8 @@ public:
                 uint8_t* respBuf, size_t respMax, size_t& respLen,
                 uint16_t timeoutMs);
 
+    bool pollGsaEvent(uint8_t* respBuf, size_t respMax, size_t& respLen);
+
 private:
     IGwBus& _i2c;
     IGwBus& _spi;

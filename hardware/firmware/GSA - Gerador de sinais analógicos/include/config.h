@@ -17,3 +17,6 @@ static const uint16_t GSA_SIM_IREAD_STEP_MA = 1;
 
 static const uint16_t GSA_EEPROM_SIGNATURE = 0x4753;
 static const uint8_t GSA_EEPROM_VERSION = 1;
+
+static const uint8_t GSA_BUS_SWITCH_DELAY_MS = 1;
+static const uint16_t GSA_BUS_BUSY_TIMEOUT_MS = 50;

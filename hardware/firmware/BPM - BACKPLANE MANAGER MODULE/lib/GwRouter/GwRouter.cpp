@@ -1,5 +1,6 @@
 #include "GwRouter.h"
 #include "GwDeviceTable.h"
+#include "GwI2cBus.h"
 #include "GwTlv.h"
 #include "Sggw.defs.h"
 
@@ -40,4 +41,17 @@ GwErr GwRouter::route(uint8_t cmd,
 
     respLen = rxLen;
     return GWERR_OK;
+}
+
+bool GwRouter::pollGsaEvent(uint8_t* respBuf, size_t respMax, size_t& respLen)
+{
+    respLen = 0;
+
+    GwI2cBus* i2cBus = static_cast<GwI2cBus*>(&_i2c);
+    if (!i2cBus) return false;
+
+    if (!i2cBus->pollEvent(GW_ADDR_GSA, respBuf, respMax, respLen))
+        return false;
+
+    return GwTlv::validatePacket(respBuf, respLen);
 }

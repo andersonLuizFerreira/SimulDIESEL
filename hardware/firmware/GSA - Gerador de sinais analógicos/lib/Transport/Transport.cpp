@@ -28,6 +28,13 @@ void Transport::resumeSlave(uint8_t i2cAddr) {
   Wire.onRequest(onRequestThunk);
 }
 
+bool Transport::hasTxPending() {
+  noInterrupts();
+  bool pending = _txLen != 0;
+  interrupts();
+  return pending;
+}
+
 void Transport::onReceiveThunk(int count) {
   if (!_self) return;
   if (count <= 0) return;

@@ -16,6 +16,12 @@
 #define CMD_FAULT_EVENT        0x30
 #define CMD_FUNCTIONAL_ERROR   0x7F
 
+#define GSA_EVENT_BUSY         0x01
+#define GSA_EVENT_IDLE         0x02
+
+#define GSA_EVENT_STATE_IDLE   0x00
+#define GSA_EVENT_STATE_BUSY   0x01
+
 #define GSA_OFFSET_KIND_VOUT   0x01
 #define GSA_OFFSET_KIND_VREAD  0x02
 #define GSA_OFFSET_KIND_IREAD  0x03

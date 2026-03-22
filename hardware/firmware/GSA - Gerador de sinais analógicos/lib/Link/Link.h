@@ -11,6 +11,7 @@ public:
   Link(Transport& tr, Service& svc);
 
   void begin();
+  void tick();
   void poll();
 
 private:

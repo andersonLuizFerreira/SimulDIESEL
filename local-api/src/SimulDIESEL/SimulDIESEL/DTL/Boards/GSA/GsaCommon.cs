@@ -36,6 +36,32 @@ namespace SimulDIESEL.DTL.Boards.GSA
     {
     }
 
+    public enum GsaBusEventType : byte
+    {
+        Busy = 0x01,
+        Idle = 0x02
+    }
+
+    public enum GsaRemoteState : byte
+    {
+        Idle = 0x00,
+        Busy = 0x01
+    }
+
+    public sealed class GsaBusEvent
+    {
+        public GsaBusEventType EventType { get; set; }
+        public int Channel { get; set; }
+        public GsaRemoteState State { get; set; }
+    }
+
+    public sealed class GsaGatewayErrorResponse
+    {
+        public byte ErrorCode { get; set; }
+        public bool IsBusy { get; set; }
+        public string Message { get; set; }
+    }
+
     public sealed class GsaFunctionalErrorResponse
     {
         public byte RequestType { get; set; }

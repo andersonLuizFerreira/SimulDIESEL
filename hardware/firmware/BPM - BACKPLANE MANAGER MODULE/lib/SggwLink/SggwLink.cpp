@@ -290,6 +290,12 @@ bool SggwLink::sendEvent(uint8_t cmd, const uint8_t *payload, uint8_t payloadLen
     return sendFrame(cmd, (uint8_t)SGGW_FLAG_IS_EVENT, seq, payload, payloadLen, false);
 }
 
+bool SggwLink::sendResponse(uint8_t cmd, const uint8_t *payload, uint8_t payloadLen)
+{
+    const uint8_t seq = nextTxSeq();
+    return sendFrame(cmd, 0, seq, payload, payloadLen, false);
+}
+
 // Envia um quadro de reconhecimento (ACK).
 void SggwLink::sendAck(uint8_t rxSeq)
 {

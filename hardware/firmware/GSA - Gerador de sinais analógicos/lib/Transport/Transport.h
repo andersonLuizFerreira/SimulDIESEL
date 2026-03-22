@@ -6,6 +6,7 @@ class Transport {
 public:
   void begin(uint8_t i2cAddr);
   static void resumeSlave(uint8_t i2cAddr);
+  static bool hasTxPending();
 
   // Chamar no loop para pegar frame recebido (se houver)
   bool popRx(uint8_t* out, uint8_t& outLen);

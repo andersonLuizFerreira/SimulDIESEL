@@ -245,6 +245,50 @@ namespace SimulDIESEL.BLL.Boards.GSA
             return true;
         }
 
+        public static bool TryReadBusEvent(SggwFrame frame, out GsaBusEvent busEvent, out string error)
+        {
+            busEvent = null;
+
+            byte[] data;
+            if (!TryReadTlv(frame, GwProtocol.GsaChannelFaultEventType, 0x03, "evento BUSY/IDLE da GSA", out data, out error))
+                return false;
+
+            GsaBusEventType eventType = (GsaBusEventType)data[0];
+            if (eventType != GsaBusEventType.Busy && eventType != GsaBusEventType.Idle)
+            {
+                error = "Evento BUSY/IDLE da GSA com eventType inválido.";
+                return false;
+            }
+
+            busEvent = new GsaBusEvent
+            {
+                EventType = eventType,
+                Channel = data[1],
+                State = data[2] == (byte)GsaRemoteState.Busy ? GsaRemoteState.Busy : GsaRemoteState.Idle
+            };
+
+            return true;
+        }
+
+        public static bool TryReadGatewayError(SggwFrame frame, out GsaGatewayErrorResponse gatewayError, out string error)
+        {
+            gatewayError = null;
+
+            byte[] data;
+            if (!TryReadTlv(frame, GwProtocol.GatewayErrorType, 0x01, "erro de gateway da BPM para a GSA", out data, out error))
+                return false;
+
+            byte errorCode = data[0];
+            gatewayError = new GsaGatewayErrorResponse
+            {
+                ErrorCode = errorCode,
+                IsBusy = errorCode == GwProtocol.GatewayBusyError,
+                Message = BuildGatewayErrorMessage(errorCode)
+            };
+
+            return true;
+        }
+
         private static bool TryReadTlv(SggwFrame frame, byte expectedType, byte expectedLen, string operationName, out byte[] data, out string error)
         {
             data = null;
@@ -334,6 +378,27 @@ namespace SimulDIESEL.BLL.Boards.GSA
                     return "A GSA rejeitou a operação por não ser permitida no estado atual" + suffix;
                 default:
                     return "A GSA retornou erro funcional desconhecido 0x" + ((byte)errorCode).ToString("X2") + suffix;
+            }
+        }
+
+        private static string BuildGatewayErrorMessage(byte errorCode)
+        {
+            switch (errorCode)
+            {
+                case GwProtocol.GatewayBusyError:
+                    return "A BPM informou que a GSA está BUSY e adiou o comando até o evento IDLE.";
+                case 0xE1:
+                    return "A BPM informou que o endereço da GSA não está mapeado.";
+                case 0xE2:
+                    return "A BPM informou indisponibilidade no barramento da GSA.";
+                case 0xE3:
+                    return "A BPM informou timeout ao falar com a GSA.";
+                case 0xE4:
+                    return "A BPM informou CRC inválido na resposta da GSA.";
+                case 0xE5:
+                    return "A BPM informou frame inválido retornado pela GSA.";
+                default:
+                    return "A BPM retornou erro de gateway desconhecido para a GSA: 0x" + errorCode.ToString("X2") + ".";
             }
         }
     }

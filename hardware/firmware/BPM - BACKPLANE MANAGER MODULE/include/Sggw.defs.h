@@ -10,10 +10,20 @@
 // ============================================================
 // GSA - TLV commands (I2C payload)
 // ============================================================
-#define GSA_CMD_GET_ERR   0x01
-#define GSA_CMD_CLR_ERR   0x02
-#define GSA_CMD_GET_LED   0x11
-#define GSA_CMD_SET_LED   0x12
+#define GSA_CMD_SETPOINT       0x10
+#define GSA_CMD_ENABLE_CH      0x11
+#define GSA_CMD_SET_LED        0x12
+#define GSA_CMD_ENABLE_GLOBAL  0x14
+#define GSA_CMD_FAULT_RESET    0x15
+#define GSA_CMD_OFFSET_SET     0x16
+#define GSA_CMD_OFFSET_SAVE    0x18
+#define GSA_CMD_OFFSET_RESET   0x1A
+#define GSA_CMD_STATUS_CH      0x1B
+#define GSA_CMD_EVENT          0x30
+#define GSA_CMD_FUNC_ERROR     0x7F
+
+#define GSA_EVENT_BUSY         0x01
+#define GSA_EVENT_IDLE         0x02
 
 #define LED_BUILTIN  2
 // ============================================================
@@ -61,6 +71,7 @@
 // ============================================================
 #define SGGW_CMD_ACK                    0xF1
 #define SGGW_CMD_ERR                    0xF2
+#define SGGW_TLV_GATEWAY_ERR            0xFE
 
 // ============================================================
 // Legacy SGGW commands kept for compatibility with the current link flow

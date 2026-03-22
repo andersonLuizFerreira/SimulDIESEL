@@ -40,4 +40,5 @@ void setup() {
 
 void loop() {
   sggwLink.poll();
+  app.tick();
 }

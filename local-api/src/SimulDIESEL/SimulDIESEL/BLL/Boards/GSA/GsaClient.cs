@@ -22,12 +22,17 @@ namespace SimulDIESEL.BLL.Boards.GSA
         }
 
         private const int ResponseTimeoutMs = 2000;
+        private const int IdleEventTimeoutMs = 2000;
+        private const int MaxBusyRetries = 3;
 
         private readonly SdhClient _sdh;
         private readonly SdgwSession _sdgwSession;
         private readonly SemaphoreSlim _requestGate = new SemaphoreSlim(1, 1);
+        private readonly object _busSync = new object();
 
         private PendingGsaRequest _pendingRequest;
+        private TaskCompletionSource<bool> _idleSignal;
+        private GsaRemoteState _remoteState = GsaRemoteState.Idle;
         private bool _disposed;
 
         public GsaClient(SdhClient sdh, SdgwSession sdgwSession)
@@ -40,6 +45,7 @@ namespace SimulDIESEL.BLL.Boards.GSA
         }
 
         public event Action<GsaChannelFaultEvent> ChannelFaultEventReceived;
+        public event Action<GsaBusEvent> BusEventReceived;
 
         public async Task<GsaCommandResult> SetBuiltinLedAsync(bool on)
         {
@@ -254,36 +260,58 @@ namespace SimulDIESEL.BLL.Boards.GSA
             await _requestGate.WaitAsync().ConfigureAwait(false);
             try
             {
-                _pendingRequest = new PendingGsaRequest
+                for (int attempt = 0; attempt <= MaxBusyRetries; attempt++)
                 {
-                    ResponseSource = new TaskCompletionSource<SggwFrame>(TaskCreationOptions.RunContinuationsAsynchronously),
-                    MatchFrame = frame => MatchesExpectedResponse(frame, expectedType, expectedLen, expectedChannel)
-                };
+                    _pendingRequest = new PendingGsaRequest
+                    {
+                        ResponseSource = new TaskCompletionSource<SggwFrame>(TaskCreationOptions.RunContinuationsAsynchronously),
+                        MatchFrame = frame => MatchesExpectedResponse(frame, expectedType, expectedLen, expectedChannel)
+                    };
 
-                SdGwLinkEngine.SendOutcome outcome = await _sdh.SendAsync(
-                    command,
-                    SdGwTxPriority.High,
-                    operationName).ConfigureAwait(false);
+                    SdGwLinkEngine.SendOutcome outcome = await _sdh.SendAsync(
+                        command,
+                        SdGwTxPriority.High,
+                        operationName).ConfigureAwait(false);
 
-                if (outcome != SdGwLinkEngine.SendOutcome.Acked)
-                    return GsaOperationResult<T>.Fail(TranslateOutcome(outcome, operationName), outcome);
+                    if (outcome != SdGwLinkEngine.SendOutcome.Acked)
+                        return GsaOperationResult<T>.Fail(TranslateOutcome(outcome, operationName), outcome);
 
-                SggwFrame responseFrame = await WaitForResponseAsync(_pendingRequest).ConfigureAwait(false);
+                    SggwFrame responseFrame = await WaitForResponseAsync(_pendingRequest).ConfigureAwait(false);
 
-                GsaFunctionalErrorResponse functionalError;
-                string functionalErrorParseMessage;
-                if (GsaParsers.TryReadFunctionalError(responseFrame, out functionalError, out functionalErrorParseMessage))
-                    return GsaOperationResult<T>.FunctionalFail(functionalError, outcome);
+                    GsaGatewayErrorResponse gatewayError;
+                    string gatewayErrorParseMessage;
+                    if (GsaParsers.TryReadGatewayError(responseFrame, out gatewayError, out gatewayErrorParseMessage))
+                    {
+                        if (!gatewayError.IsBusy)
+                            return GsaOperationResult<T>.Fail(gatewayError.Message, outcome);
 
-                T response;
-                string error;
-                if (!parser(responseFrame, out response, out error))
-                    return GsaOperationResult<T>.Fail(error, outcome);
+                        SetRemoteState(GsaRemoteState.Busy);
+                        if (attempt >= MaxBusyRetries)
+                            return GsaOperationResult<T>.Fail(gatewayError.Message, outcome);
 
-                return GsaOperationResult<T>.Succeeded(
-                    response,
-                    outcome,
-                    "Operação concluída com sucesso: " + operationName + ".");
+                        if (!await WaitForIdleEventAsync().ConfigureAwait(false))
+                            return GsaOperationResult<T>.Fail("Timeout aguardando o evento IDLE da GSA após BUSY.", outcome);
+
+                        continue;
+                    }
+
+                    GsaFunctionalErrorResponse functionalError;
+                    string functionalErrorParseMessage;
+                    if (GsaParsers.TryReadFunctionalError(responseFrame, out functionalError, out functionalErrorParseMessage))
+                        return GsaOperationResult<T>.FunctionalFail(functionalError, outcome);
+
+                    T response;
+                    string error;
+                    if (!parser(responseFrame, out response, out error))
+                        return GsaOperationResult<T>.Fail(error, outcome);
+
+                    return GsaOperationResult<T>.Succeeded(
+                        response,
+                        outcome,
+                        "Operação concluída com sucesso: " + operationName + ".");
+                }
+
+                return GsaOperationResult<T>.Fail("A GSA permaneceu BUSY além do número máximo de tentativas.");
             }
             catch (OperationCanceledException)
             {
@@ -326,6 +354,15 @@ namespace SimulDIESEL.BLL.Boards.GSA
 
             if (frame.Cmd != GwProtocol.MakeCompactCommand(GwProtocol.GsaAddress, GwProtocol.GsaTlvTransactOp))
                 return;
+
+            GsaBusEvent busEvent;
+            string busError;
+            if (GsaParsers.TryReadBusEvent(frame, out busEvent, out busError))
+            {
+                SetRemoteState(busEvent.State);
+                BusEventReceived?.Invoke(busEvent);
+                return;
+            }
 
             GsaChannelFaultEvent faultEvent;
             string error;
@@ -379,6 +416,13 @@ namespace SimulDIESEL.BLL.Boards.GSA
                     return true;
 
                 return frame.Payload[3] == expectedChannel.Value;
+            }
+
+            if (frame.Payload.Length >= 3 &&
+                frame.Payload[0] == GwProtocol.GatewayErrorType &&
+                frame.Payload[1] == 0x01)
+            {
+                return true;
             }
 
             return false;
@@ -448,6 +492,40 @@ namespace SimulDIESEL.BLL.Boards.GSA
         {
             if (_disposed)
                 throw new ObjectDisposedException(nameof(GsaClient));
+        }
+
+        private void SetRemoteState(GsaRemoteState state)
+        {
+            lock (_busSync)
+            {
+                _remoteState = state;
+                if (state == GsaRemoteState.Idle && _idleSignal != null)
+                {
+                    _idleSignal.TrySetResult(true);
+                    _idleSignal = null;
+                }
+            }
+        }
+
+        private async Task<bool> WaitForIdleEventAsync()
+        {
+            Task<bool> idleTask;
+            lock (_busSync)
+            {
+                if (_remoteState == GsaRemoteState.Idle)
+                    return true;
+
+                if (_idleSignal == null || _idleSignal.Task.IsCompleted)
+                    _idleSignal = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+                idleTask = _idleSignal.Task;
+            }
+
+            Task finished = await Task.WhenAny(idleTask, Task.Delay(IdleEventTimeoutMs)).ConfigureAwait(false);
+            if (finished != idleTask)
+                return false;
+
+            return await idleTask.ConfigureAwait(false);
         }
 
         public void Dispose()
