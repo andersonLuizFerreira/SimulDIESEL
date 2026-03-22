@@ -1,4 +1,5 @@
 #include "Link.h"
+#include "TlvBuilder.h"
 
 Link::Link(Transport& tr, Service& svc)
 : _tr(tr), _svc(svc),
@@ -54,28 +55,10 @@ bool Link::parseAndValidate(const uint8_t* rx, uint8_t rxLen, TlvFrame& out) {
 }
 
 bool Link::handleLinkCmd(const TlvFrame& tlv, uint8_t* txTlvOut, uint8_t& txTlvLenOut) {
+  (void)tlv;
+  (void)txTlvOut;
   txTlvLenOut = 0;
-
-  switch (tlv.t) {
-
-    case CMD_GET_ERR: {
-      uint8_t code = _hasErr ? _errCode : LINK_ERR_NONE;
-      uint8_t last = _hasErr ? _errLastT : 0;
-
-      txTlvLenOut = TlvBuilder::buildU8U8(CMD_GET_ERR, code, last, txTlvOut, TLV_MAX_LEN);
-      clearError();
-      return true;
-    }
-
-    case CMD_CLR_ERR: {
-      clearError();
-      txTlvLenOut = TlvBuilder::buildEmpty(CMD_CLR_ERR, txTlvOut, TLV_MAX_LEN);
-      return true;
-    }
-
-    default:
-      return false;
-  }
+  return false;
 }
 
 void Link::poll() {
