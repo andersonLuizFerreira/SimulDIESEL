@@ -1,7 +1,14 @@
+#include <Arduino.h>
+
 #include "GatewayApp.h"
 #include "SggwLink.h"
 #include "Sggw.defs.h"
 #include "GwTlv.h"
+
+namespace {
+static const uint32_t GsaBusyPollGuardMs = 20;
+static const uint32_t GsaBusyPollIntervalMs = 10;
+}
 
 void GatewayApp::onCommand(uint8_t cmd,
                            uint8_t /*flags*/,
@@ -47,6 +54,14 @@ void GatewayApp::onCommand(uint8_t cmd,
     uint8_t eventType = 0;
     if (addr == GW_ADDR_GSA && isGsaBusEvent(resp, respLen, &eventType)) {
         _gsaState = (eventType == GSA_EVENT_BUSY) ? GsaRemoteState::Busy : GsaRemoteState::Idle;
+        if (_gsaState == GsaRemoteState::Busy) {
+            const uint32_t now = millis();
+            _gsaBusySinceMs = now;
+            _gsaNextPollAtMs = now + GsaBusyPollGuardMs;
+        } else {
+            _gsaBusySinceMs = 0;
+            _gsaNextPollAtMs = 0;
+        }
         _link.sendEvent(cmd, resp, (uint8_t)respLen);
         if (eventType == GSA_EVENT_BUSY) {
             sendGatewayErrAsResponse(cmd, GWERR_BUSY);
@@ -78,6 +93,13 @@ void GatewayApp::tick()
         return;
     }
 
+    const uint32_t now = millis();
+    if ((int32_t)(now - _gsaNextPollAtMs) < 0) {
+        return;
+    }
+
+    _gsaNextPollAtMs = now + GsaBusyPollIntervalMs;
+
     uint8_t eventPacket[32];
     size_t eventLen = 0;
     if (!_router.pollGsaEvent(eventPacket, sizeof(eventPacket), eventLen)) {
@@ -91,6 +113,13 @@ void GatewayApp::tick()
     }
 
     _gsaState = (eventType == GSA_EVENT_BUSY) ? GsaRemoteState::Busy : GsaRemoteState::Idle;
+    if (_gsaState == GsaRemoteState::Busy) {
+        _gsaBusySinceMs = now;
+        _gsaNextPollAtMs = now + GsaBusyPollGuardMs;
+    } else {
+        _gsaBusySinceMs = 0;
+        _gsaNextPollAtMs = 0;
+    }
     _link.sendEvent(SGGW_CMD_GSA_TLV, eventPacket, (uint8_t)eventLen);
 }
 

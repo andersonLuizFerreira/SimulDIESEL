@@ -12,7 +12,7 @@ class SggwLink;
 class GatewayApp : public IGatewayApp {
 public:
     GatewayApp(SggwLink& link, GwRouter& router)
-    : _link(link), _router(router), _gsaState(GsaRemoteState::Idle) {}
+    : _link(link), _router(router), _gsaState(GsaRemoteState::Idle), _gsaBusySinceMs(0), _gsaNextPollAtMs(0) {}
 
     // O host envia o comando compacto ja resolvido.
     // A BPM trata ADDR 0 localmente e roteia os demais enderecos.
@@ -32,6 +32,8 @@ private:
     SggwLink& _link;
     GwRouter& _router;
     GsaRemoteState _gsaState;
+    uint32_t _gsaBusySinceMs;
+    uint32_t _gsaNextPollAtMs;
 
     void handleGatewayLocal(uint8_t cmd,
                             const uint8_t* data,

@@ -85,6 +85,9 @@ namespace SimulDIESEL.UI.Controls
         public event EventHandler<GsaChannelSetpointChangedEventArgs> SetpointVoltageChanged;
 
         [Category("Behavior")]
+        public event EventHandler<GsaChannelSetpointChangedEventArgs> SetpointVoltageCommitted;
+
+        [Category("Behavior")]
         public event EventHandler<GsaChannelOutputEnabledChangedEventArgs> OutputEnabledChanged;
 
         [Category("Behavior")]
@@ -507,10 +510,14 @@ namespace SimulDIESEL.UI.Controls
 
         private void EndSliderDrag()
         {
+            int channelIndex = _activeSliderIndex;
             _isDraggingSlider = false;
             _activeSliderIndex = -1;
             Capture = false;
             Cursor = Cursors.Default;
+
+            if (channelIndex >= 0 && channelIndex < _channels.Length)
+                OnSetpointVoltageCommitted(channelIndex, _channels[channelIndex].SetpointVoltage);
         }
 
         private void ToggleOutputEnabled(int channelIndex)
@@ -546,9 +553,13 @@ namespace SimulDIESEL.UI.Controls
             if (_editingChannelIndex < 0)
                 return;
 
+            int channelIndex = _editingChannelIndex;
             double parsedValue;
             if (TryParseSetpoint(_setpointEditor.Text, out parsedValue))
-                SetSetpointVoltage(_editingChannelIndex, parsedValue, true);
+            {
+                SetSetpointVoltage(channelIndex, parsedValue, true);
+                OnSetpointVoltageCommitted(channelIndex, _channels[channelIndex].SetpointVoltage);
+            }
 
             _editingChannelIndex = -1;
             _setpointEditor.Visible = false;
@@ -657,6 +668,13 @@ namespace SimulDIESEL.UI.Controls
         private void OnSetpointVoltageChanged(int channelIndex, double value)
         {
             EventHandler<GsaChannelSetpointChangedEventArgs> handler = SetpointVoltageChanged;
+            if (handler != null)
+                handler(this, new GsaChannelSetpointChangedEventArgs(channelIndex + 1, value));
+        }
+
+        private void OnSetpointVoltageCommitted(int channelIndex, double value)
+        {
+            EventHandler<GsaChannelSetpointChangedEventArgs> handler = SetpointVoltageCommitted;
             if (handler != null)
                 handler(this, new GsaChannelSetpointChangedEventArgs(channelIndex + 1, value));
         }

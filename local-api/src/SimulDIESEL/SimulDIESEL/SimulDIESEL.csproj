@@ -55,6 +55,7 @@
     <Compile Include="BLL\Boards\BPM\Comm\Serial\BpmSerialService.cs" />
     <Compile Include="BLL\Boards\BPM\XConn\XConnService.cs" />
     <Compile Include="BLL\Boards\GSA\GsaClient.cs" />
+    <Compile Include="BLL\Boards\GSA\GsaChannelScaling.cs" />
     <Compile Include="BLL\Boards\GSA\GsaCommandResult.cs" />
     <Compile Include="BLL\Boards\GSA\GsaOperationResult.cs" />
     <Compile Include="BLL\Boards\GSA\GsaParsers.cs" />

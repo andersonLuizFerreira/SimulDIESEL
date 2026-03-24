@@ -26,6 +26,11 @@ namespace SimulDIESEL.BLL.FormsLogic.GSA
 
         public event Action<GsaChannelFaultEvent> ChannelFaultEventReceived;
 
+        public bool IsLinked
+        {
+            get { return _isLinked(); }
+        }
+
         public static FrmGsaLogic CreateDefault()
         {
             BpmSerialService service = BpmSerialService.Shared;
