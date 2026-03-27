@@ -52,6 +52,7 @@
     <Compile Include="BLL\Boards\BPM\Backplane\BackplaneService.cs" />
     <Compile Include="BLL\Boards\BPM\Comm\Bluetooth\BpmBluetoothService.cs" />
     <Compile Include="BLL\Boards\BPM\Comm\Network\BpmNetworkService.cs" />
+    <Compile Include="BLL\Boards\BPM\Comm\SdgwHostSession.cs" />
     <Compile Include="BLL\Boards\BPM\Comm\Serial\BpmSerialService.cs" />
     <Compile Include="BLL\Boards\BPM\XConn\XConnService.cs" />
     <Compile Include="BLL\Boards\GSA\GsaClient.cs" />
@@ -73,6 +74,8 @@
     <Compile Include="DAL\Protocols\SDGW\SdgwLinkSupervisor.cs" />
     <Compile Include="DAL\Protocols\SDGW\SdgwLinkEngine.cs" />
     <Compile Include="DAL\Protocols\SDGW\SdgwSession.cs" />
+    <Compile Include="DAL\Transport\TransportConnectionSettings.cs" />
+    <Compile Include="DAL\Transport\TransportKind.cs" />
     <Compile Include="DAL\Transport\Serial\IByteTransport.cs" />
     <Compile Include="DAL\Transport\Serial\SerialConnectionSettings.cs" />
     <Compile Include="DAL\Transport\Serial\SerialPortAdapter.cs" />

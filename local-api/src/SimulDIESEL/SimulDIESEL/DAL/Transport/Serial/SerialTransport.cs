@@ -1,5 +1,6 @@
 using System;
 using System.IO.Ports;
+using SimulDIESEL.DAL.Transport;
 
 namespace SimulDIESEL.DAL.Transport.Serial
 {
@@ -12,6 +13,8 @@ namespace SimulDIESEL.DAL.Transport.Serial
         private readonly object _sync = new object();
         private bool _disposed;
         private bool _connected;
+
+        public TransportKind Kind => TransportKind.Serial;
 
         public bool IsOpen
         {
@@ -36,6 +39,15 @@ namespace SimulDIESEL.DAL.Transport.Serial
         {
             try { return SerialPort.GetPortNames(); }
             catch { return Array.Empty<string>(); }
+        }
+
+        public bool Connect(TransportConnectionSettings settings)
+        {
+            SerialConnectionSettings serialSettings = settings as SerialConnectionSettings;
+            if (serialSettings == null)
+                throw new ArgumentException("Configuração inválida para transporte serial.", nameof(settings));
+
+            return Connect(serialSettings);
         }
 
         public bool Connect(SerialConnectionSettings settings)

@@ -1,9 +1,15 @@
 using System.IO.Ports;
+using SimulDIESEL.DAL.Transport;
 
 namespace SimulDIESEL.DAL.Transport.Serial
 {
-    public sealed class SerialConnectionSettings
+    public sealed class SerialConnectionSettings : TransportConnectionSettings
     {
+        public SerialConnectionSettings()
+            : base(TransportKind.Serial)
+        {
+        }
+
         public string PortName { get; set; }
         public int BaudRate { get; set; }
         public Parity Parity { get; set; } = Parity.None;
