@@ -6,7 +6,8 @@
 
 
 #include "Sggw.defs.h"
-#include "SggwTransport.h"
+#include "ISggwEndpoint.h"
+#include "SggwSessionOwner.h"
 #include "SggwParser.h"
 #include "SggwCobs.h"
 #include "SggwCrc8.h"
@@ -23,7 +24,7 @@ public:
     };
 
     /// Construtor da classe SggwLink.
-    explicit SggwLink(SggwTransport& transport);
+    explicit SggwLink(ISggwEndpoint& transport, SggwSessionOwner& sessionOwner);
 
     /// Ajusta timeout do watchdog de atividade do link. (0 = desabilita)
     void setActivityTimeoutMs(uint16_t ms) { _activityTimeoutMs = ms; }
@@ -62,7 +63,8 @@ private:
     void checkActivityWatchdog();
 
 private:
-    SggwTransport& _tr; ///< Referência para a camada de transporte.
+    ISggwEndpoint& _tr; ///< Referência para a camada de transporte.
+    SggwSessionOwner& _sessionOwner; ///< Guarda o owner único da sessão SGGW.
     SggwParser _parser; ///< Parser para lidar com os quadros recebidos.
     IGatewayApp* _app;   ///< Ponteiro para a aplicação anexada.
 

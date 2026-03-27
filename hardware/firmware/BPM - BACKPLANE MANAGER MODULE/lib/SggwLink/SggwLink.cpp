@@ -3,8 +3,9 @@
 #include "IGatewayApp.h"
 
 // Construtor da classe SggwLink, inicializa as variáveis membro e buffers.
-SggwLink::SggwLink(SggwTransport &transport)
+SggwLink::SggwLink(ISggwEndpoint &transport, SggwSessionOwner& sessionOwner)
     : _tr(transport),
+      _sessionOwner(sessionOwner),
       _parser(),
       _app(nullptr),
       _hs(WaitingBanner),
@@ -16,6 +17,8 @@ SggwLink::SggwLink(SggwTransport &transport)
       _lastActivityMs(0),
       _activityTimeoutMs((uint16_t)SGGW_LINK_ACTIVITY_TIMEOUT_MS)
 {
+    _sessionOwner.tryClaim(_tr.kind());
+
     // Inicializa os buffers de banner e resposta com zeros.
     memset(_bannerBuf, 0, sizeof(_bannerBuf));
     memset(_lastRespBuf, 0, sizeof(_lastRespBuf));
@@ -25,6 +28,8 @@ SggwLink::SggwLink(SggwTransport &transport)
 // Reseta o estado do link e o prepara para operação.
 void SggwLink::begin()
 {
+    _sessionOwner.tryClaim(_tr.kind());
+
     _hs = WaitingBanner; // Define o estado de handshake para WaitingBanner.
     _bannerLen = 0;      // Reseta o comprimento do banner.
 
@@ -46,6 +51,9 @@ void SggwLink::begin()
 // Faz a leitura de dados recebidos e os processa.
 void SggwLink::poll()
 {
+    if (!_sessionOwner.isOwner(_tr.kind()))
+        return;
+
     while (_tr.available() > 0)
     {
         int v = _tr.readByte(); // Lê um byte do transporte.
@@ -165,6 +173,9 @@ void SggwLink::processHandshakeByte(uint8_t b)
 // Envia o banner do dispositivo pelo transporte.
 void SggwLink::sendBanner()
 {
+    if (!_sessionOwner.isOwner(_tr.kind()))
+        return;
+
     _tr.writeBytes((const uint8_t *)SGGW_DEVICE_BANNER, strlen(SGGW_DEVICE_BANNER));
 }
 
@@ -320,6 +331,9 @@ bool SggwLink::sendFrame(uint8_t cmd, uint8_t flags, uint8_t seq,
                          const uint8_t *payload, uint8_t payloadLen,
                          bool cacheAsLastResp)
 {
+    if (!_sessionOwner.isOwner(_tr.kind()))
+        return false;
+
     if (payloadLen > (uint8_t)SGGW_MAX_PAYLOAD)
         return false;
 

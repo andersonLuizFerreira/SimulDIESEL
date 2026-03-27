@@ -2,6 +2,7 @@
 
 #include "Sggw.defs.h"
 #include "SggwTransport.h"
+#include "SggwSessionOwner.h"
 #include <SggwLink.h>
 
 // GatewayCore
@@ -12,7 +13,8 @@
 #include "GwRouter.h"
 
 static SggwTransport transport(Serial);
-static SggwLink sggwLink(transport);
+static SggwSessionOwner sessionOwner(SGGW_ENDPOINT_SERIAL);
+static SggwLink sggwLink(transport, sessionOwner);
 
 // Buses
 static GwI2cBus i2cBus(Wire);
