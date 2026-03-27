@@ -44,6 +44,7 @@
             this.demoGaugesVerticaisToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripConectar = new System.Windows.Forms.ToolStripButton();
+            this.toolStripBluetooth = new System.Windows.Forms.ToolStripButton();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -155,7 +156,8 @@
             // 
             this.toolStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripConectar});
+            this.toolStripConectar,
+            this.toolStripBluetooth});
             this.toolStrip1.Location = new System.Drawing.Point(0, 28);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(857, 47);
@@ -172,6 +174,17 @@
             this.toolStripConectar.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.toolStripConectar.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.toolStripConectar.Click += new System.EventHandler(this.toolStripConectar_Click);
+            // 
+            // toolStripBluetooth
+            // 
+            this.toolStripBluetooth.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripBluetooth.Name = "toolStripBluetooth";
+            this.toolStripBluetooth.Size = new System.Drawing.Size(69, 44);
+            this.toolStripBluetooth.Text = "Bluetooth";
+            this.toolStripBluetooth.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.toolStripBluetooth.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.toolStripBluetooth.ToolTipText = "Conectar via Bluetooth";
+            this.toolStripBluetooth.Click += new System.EventHandler(this.toolStripBluetooth_Click);
             // 
             // DashBoard
             // 
@@ -206,6 +219,7 @@
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripButton toolStripConectar;
+        private System.Windows.Forms.ToolStripButton toolStripBluetooth;
         private System.Windows.Forms.ToolStripStatusLabel tsLabelSerial;
         private System.Windows.Forms.ToolStripStatusLabel tsLedSerial;
         private System.Windows.Forms.ToolStripStatusLabel tsSeparador1;

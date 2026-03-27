@@ -35,7 +35,9 @@ namespace SimulDIESEL.BLL.Boards.BPM
                 IsConnected = _serialService.IsConnected,
                 IsLinked = _serialService.IsLinked,
                 InterfaceName = _serialService.NomeDaInterface,
-                LinkState = _serialService.State.ToString()
+                LinkState = _serialService.State.ToString(),
+                TransportKind = _serialService.SelectedTransportKind,
+                TransportDisplayName = _serialService.ActiveTransportDisplayName
             };
         }
 

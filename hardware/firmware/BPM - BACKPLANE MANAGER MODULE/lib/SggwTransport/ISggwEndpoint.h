@@ -3,6 +3,7 @@
 #include <stddef.h>
 
 enum SggwEndpointKind : uint8_t {
+    SGGW_ENDPOINT_NONE = 0x00,
     SGGW_ENDPOINT_SERIAL = 0x01,
     SGGW_ENDPOINT_BLUETOOTH = 0x02
 };
@@ -21,4 +22,7 @@ public:
 
     virtual void setTextEnabled(bool en) = 0;
     virtual bool isTextEnabled() const = 0;
+
+    virtual bool isConnected() const = 0;
+    virtual bool shouldClaimOwnership() = 0;
 };

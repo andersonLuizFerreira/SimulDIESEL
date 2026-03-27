@@ -31,6 +31,8 @@ public:
     // =========================
     void setTextEnabled(bool en) override { _textEnabled = en; }
     bool isTextEnabled() const override { return _textEnabled; }
+    bool isConnected() const override { return true; }
+    bool shouldClaimOwnership() override { return _ser.available() > 0; }
 
     // wrappers seguros (use estes no seu código ao invés de Serial.print)
     void print(const char* s) {

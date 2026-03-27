@@ -74,6 +74,9 @@
     <Compile Include="DAL\Protocols\SDGW\SdgwLinkSupervisor.cs" />
     <Compile Include="DAL\Protocols\SDGW\SdgwLinkEngine.cs" />
     <Compile Include="DAL\Protocols\SDGW\SdgwSession.cs" />
+    <Compile Include="DAL\Transport\Bluetooth\BluetoothConnectionSettings.cs" />
+    <Compile Include="DAL\Transport\Bluetooth\BluetoothTransport.cs" />
+    <Compile Include="DAL\Transport\SwitchableTransport.cs" />
     <Compile Include="DAL\Transport\TransportConnectionSettings.cs" />
     <Compile Include="DAL\Transport\TransportKind.cs" />
     <Compile Include="DAL\Transport\Serial\IByteTransport.cs" />
@@ -128,6 +131,12 @@
     </Compile>
     <Compile Include="UI\frmGSA_UI.Designer.cs">
       <DependentUpon>frmGSA_UI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\frmBluetoothConnect.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\frmBluetoothConnect.Designer.cs">
+      <DependentUpon>frmBluetoothConnect.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\frmPortaSerial_UI.cs">
       <SubType>Form</SubType>

@@ -1,6 +1,7 @@
 using System;
 using System.IO.Ports;
 using SimulDIESEL.BLL.Boards.BPM.Comm.Serial;
+using SimulDIESEL.DAL.Transport;
 using SimulDIESEL.DTL.Boards.BPM;
 
 namespace SimulDIESEL.BLL.FormsLogic.BPM
@@ -38,6 +39,11 @@ namespace SimulDIESEL.BLL.FormsLogic.BPM
             return BpmSerialService.ListarPortas();
         }
 
+        public string[] ListarBluetoothPortas()
+        {
+            return BpmSerialService.ListarBluetoothPortas();
+        }
+
         public BpmStatusDto GetStatus()
         {
             return _serialService.Bpm.GetStatus();
@@ -66,6 +72,19 @@ namespace SimulDIESEL.BLL.FormsLogic.BPM
                 dataBits: 8,
                 stopBits: StopBits.One,
                 handshake: Handshake.None);
+        }
+
+        public bool ConnectBluetooth(string portName, string deviceName, int baudRate = 115200)
+        {
+            if (string.IsNullOrWhiteSpace(portName))
+                throw new ArgumentException("Porta COM Bluetooth e obrigatoria.", nameof(portName));
+
+            return _serialService.ConnectBluetooth(portName, deviceName, baudRate);
+        }
+
+        public TransportKind GetSelectedTransportKind()
+        {
+            return _serialService.SelectedTransportKind;
         }
 
         public void Disconnect()

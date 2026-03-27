@@ -79,6 +79,7 @@ private:
     uint8_t _lastRxSeq;    ///< Número de sequência do último quadro recebido.
     uint8_t _lastRespBuf[SGGW_MAX_LAST_RESPONSE]; ///< Buffer para a última resposta.
     size_t  _lastRespLen;                         ///< Comprimento da última resposta.
+    SggwEndpointKind _activeEndpointKind;        ///< Owner atual do link durante a sessao.
 
 private:
     /// Controla o LED_BUILTIN do ESP32 para indicar o estado do link.

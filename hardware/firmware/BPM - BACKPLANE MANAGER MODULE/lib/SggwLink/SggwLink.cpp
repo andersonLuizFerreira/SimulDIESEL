@@ -14,11 +14,10 @@ SggwLink::SggwLink(ISggwEndpoint &transport, SggwSessionOwner& sessionOwner)
       _haveLastResp(false),
       _lastRxSeq(0),
       _lastRespLen(0),
+      _activeEndpointKind(SGGW_ENDPOINT_NONE),
       _lastActivityMs(0),
       _activityTimeoutMs((uint16_t)SGGW_LINK_ACTIVITY_TIMEOUT_MS)
 {
-    _sessionOwner.tryClaim(_tr.kind());
-
     // Inicializa os buffers de banner e resposta com zeros.
     memset(_bannerBuf, 0, sizeof(_bannerBuf));
     memset(_lastRespBuf, 0, sizeof(_lastRespBuf));
@@ -28,10 +27,9 @@ SggwLink::SggwLink(ISggwEndpoint &transport, SggwSessionOwner& sessionOwner)
 // Reseta o estado do link e o prepara para operação.
 void SggwLink::begin()
 {
-    _sessionOwner.tryClaim(_tr.kind());
-
     _hs = WaitingBanner; // Define o estado de handshake para WaitingBanner.
     _bannerLen = 0;      // Reseta o comprimento do banner.
+    _activeEndpointKind = SGGW_ENDPOINT_NONE;
 
     _txSeq = (uint8_t)SGGW_SEQ_START; // Reseta a sequência de transmissão.
 
@@ -51,8 +49,16 @@ void SggwLink::begin()
 // Faz a leitura de dados recebidos e os processa.
 void SggwLink::poll()
 {
-    if (!_sessionOwner.isOwner(_tr.kind()))
+    const SggwEndpointKind endpointKind = _tr.kind();
+    if (endpointKind != SGGW_ENDPOINT_NONE)
+        _activeEndpointKind = endpointKind;
+
+    if (endpointKind == SGGW_ENDPOINT_NONE || !_sessionOwner.isOwner(endpointKind))
+    {
+        checkActivityWatchdog();
+        setLedState();
         return;
+    }
 
     while (_tr.available() > 0)
     {
@@ -173,7 +179,7 @@ void SggwLink::processHandshakeByte(uint8_t b)
 // Envia o banner do dispositivo pelo transporte.
 void SggwLink::sendBanner()
 {
-    if (!_sessionOwner.isOwner(_tr.kind()))
+    if (_activeEndpointKind == SGGW_ENDPOINT_NONE || !_sessionOwner.isOwner(_activeEndpointKind))
         return;
 
     _tr.writeBytes((const uint8_t *)SGGW_DEVICE_BANNER, strlen(SGGW_DEVICE_BANNER));
@@ -331,7 +337,7 @@ bool SggwLink::sendFrame(uint8_t cmd, uint8_t flags, uint8_t seq,
                          const uint8_t *payload, uint8_t payloadLen,
                          bool cacheAsLastResp)
 {
-    if (!_sessionOwner.isOwner(_tr.kind()))
+    if (_activeEndpointKind == SGGW_ENDPOINT_NONE || !_sessionOwner.isOwner(_activeEndpointKind))
         return false;
 
     if (payloadLen > (uint8_t)SGGW_MAX_PAYLOAD)
@@ -380,5 +386,11 @@ bool SggwLink::sendFrame(uint8_t cmd, uint8_t flags, uint8_t seq,
 // Faz logout e reseta o link para o estado inicial.
 void SggwLink::logout()
 {
+    if (_activeEndpointKind != SGGW_ENDPOINT_NONE)
+    {
+        _sessionOwner.release(_activeEndpointKind);
+        _activeEndpointKind = SGGW_ENDPOINT_NONE;
+    }
+
     begin(); // Reseta para WaitingBanner e limpa os buffers.
 }

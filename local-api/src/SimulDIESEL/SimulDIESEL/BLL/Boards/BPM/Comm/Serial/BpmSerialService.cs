@@ -4,6 +4,8 @@ using SimulDIESEL.BLL.Boards.BPM.Backplane;
 using SimulDIESEL.BLL.Boards.BPM.XConn;
 using SimulDIESEL.BLL.Boards.GSA;
 using SimulDIESEL.DAL.Protocols.SDGW;
+using SimulDIESEL.DAL.Transport;
+using SimulDIESEL.DAL.Transport.Bluetooth;
 using SimulDIESEL.DAL.Transport.Serial;
 
 namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
@@ -17,7 +19,7 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
     {
         private static readonly Lazy<BpmSerialService> SharedInstance = new Lazy<BpmSerialService>(() => new BpmSerialService());
 
-        private readonly SerialTransport _transport;
+        private readonly SwitchableTransport _transport;
         private readonly Comm.SdgwHostSession _session;
         private bool _disposed;
 
@@ -25,6 +27,7 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
         {
             Disconnected,
             SerialConnected,
+            BluetoothConnected,
             Draining,
             BannerSent,
             Linked,
@@ -38,7 +41,24 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
         public event Action NomeDaInterfaceChanged;
 
         public LinkState State { get; private set; } = LinkState.Disconnected;
-        public string NomeDaInterface => _session != null ? _session.InterfaceName : "Nenhum";
+        public string NomeDaInterface
+        {
+            get
+            {
+                if (_session == null)
+                    return "Nenhum";
+
+                if (!string.IsNullOrWhiteSpace(_session.InterfaceName) && _session.InterfaceName != "Nenhum")
+                    return _session.InterfaceName;
+
+                if (IsBluetoothOpen)
+                    return string.IsNullOrWhiteSpace(_transport.EndpointDisplayName)
+                        ? "Bluetooth"
+                        : _transport.EndpointDisplayName;
+
+                return "Nenhum";
+            }
+        }
 
         public SdgwSession Sdgw => _session != null ? _session.Sdgw : null;
 
@@ -54,13 +74,16 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
 
         public static BpmSerialService Shared => SharedInstance.Value;
 
+        public TransportKind SelectedTransportKind => _transport != null ? _transport.SelectedKind : TransportKind.Serial;
+        public string ActiveTransportDisplayName => _transport != null ? _transport.EndpointDisplayName : "Nenhum";
         public bool IsLinked => _session != null && _session.IsLinked;
         public bool IsConnected => _session != null && _session.IsConnected;
-        public bool IsSerialOpen => IsConnected;
+        public bool IsSerialOpen => IsConnected && SelectedTransportKind == TransportKind.Serial;
+        public bool IsBluetoothOpen => IsConnected && SelectedTransportKind == TransportKind.Bluetooth;
 
         public BpmSerialService()
         {
-            _transport = new SerialTransport();
+            _transport = new SwitchableTransport();
             _session = new Comm.SdgwHostSession(_transport);
 
             _session.ConnectionChanged += OnSessionConnectionChanged;
@@ -71,7 +94,7 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
 
             Backplane = new BackplaneService();
             XConn = new XConnService();
-            Bluetooth = new Comm.Bluetooth.BpmBluetoothService();
+            Bluetooth = new Comm.Bluetooth.BpmBluetoothService(this);
             Network = new Comm.Network.BpmNetworkService();
             Gsa = new GsaClient(Sdh, Sdgw);
             Bpm = new BpmClient(Sdh, this, Backplane, XConn);
@@ -80,6 +103,11 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
         public static string[] ListarPortas()
         {
             return SerialTransport.ListPorts();
+        }
+
+        public static string[] ListarBluetoothPortas()
+        {
+            return BluetoothTransport.ListPorts();
         }
 
         public bool Connect(
@@ -95,15 +123,34 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
             if (_disposed)
                 throw new ObjectDisposedException(nameof(BpmSerialService));
 
-            return _transport.Connect(
-                portName: portName,
-                baudRate: baudRate,
-                parity: parity,
-                dataBits: dataBits,
-                stopBits: stopBits,
-                handshake: handshake,
-                dtrEnable: dtrEnable,
-                rtsEnable: rtsEnable);
+            return _transport.Connect(new SerialConnectionSettings
+            {
+                PortName = portName,
+                BaudRate = baudRate,
+                Parity = parity,
+                DataBits = dataBits,
+                StopBits = stopBits,
+                Handshake = handshake,
+                DtrEnable = dtrEnable,
+                RtsEnable = rtsEnable,
+                EndpointDisplayName = portName
+            });
+        }
+
+        public bool ConnectBluetooth(string portName, string deviceName, int baudRate = 115200)
+        {
+            if (_disposed)
+                throw new ObjectDisposedException(nameof(BpmSerialService));
+
+            return _transport.Connect(new BluetoothConnectionSettings
+            {
+                PortName = portName,
+                DeviceName = deviceName,
+                BaudRate = baudRate,
+                EndpointDisplayName = string.IsNullOrWhiteSpace(deviceName)
+                    ? "Bluetooth (" + portName + ")"
+                    : deviceName + " (" + portName + ")"
+            });
         }
 
         public void Disconnect()
@@ -174,7 +221,9 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
             switch (state)
             {
                 case Comm.SdgwHostSession.SessionState.TransportConnected:
-                    return LinkState.SerialConnected;
+                    return Shared.SelectedTransportKind == TransportKind.Bluetooth
+                        ? LinkState.BluetoothConnected
+                        : LinkState.SerialConnected;
                 case Comm.SdgwHostSession.SessionState.Draining:
                     return LinkState.Draining;
                 case Comm.SdgwHostSession.SessionState.BannerSent:

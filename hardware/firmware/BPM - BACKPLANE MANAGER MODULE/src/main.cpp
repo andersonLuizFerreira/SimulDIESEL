@@ -2,6 +2,8 @@
 
 #include "Sggw.defs.h"
 #include "SggwTransport.h"
+#include "SggwBluetoothEndpoint.h"
+#include "SggwEndpointMux.h"
 #include "SggwSessionOwner.h"
 #include <SggwLink.h>
 
@@ -12,9 +14,11 @@
 #include "GwSpiBus.h"
 #include "GwRouter.h"
 
-static SggwTransport transport(Serial);
-static SggwSessionOwner sessionOwner(SGGW_ENDPOINT_SERIAL);
-static SggwLink sggwLink(transport, sessionOwner);
+static SggwTransport serialTransport(Serial);
+static SggwBluetoothEndpoint bluetoothTransport("SimulDIESEL-BPM");
+static SggwSessionOwner sessionOwner(SGGW_ENDPOINT_NONE);
+static SggwEndpointMux transportMux(sessionOwner, serialTransport, bluetoothTransport);
+static SggwLink sggwLink(transportMux, sessionOwner);
 
 // Buses
 static GwI2cBus i2cBus(Wire);
@@ -30,8 +34,10 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
 
-  transport.begin();
-  transport.setTextEnabled(true);
+  serialTransport.begin();
+  serialTransport.setTextEnabled(true);
+  bluetoothTransport.begin();
+  bluetoothTransport.setTextEnabled(true);
 
   i2cBus.begin(400000);
   spiBus.begin(8000000);

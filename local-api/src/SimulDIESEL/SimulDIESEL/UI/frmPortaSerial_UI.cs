@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using SimulDIESEL.BLL.FormsLogic.BPM;
+using SimulDIESEL.DAL.Transport;
 using SimulDIESEL.DTL.Boards.BPM;
 
 namespace SimulDIESEL.UI
@@ -88,8 +89,10 @@ namespace SimulDIESEL.UI
         private void AtualizarEstadoFormulario()
         {
             BpmStatusDto status = _logic.GetStatus();
+            bool serialAtivo = status.IsConnected && status.TransportKind == TransportKind.Serial;
+            bool outraSessaoAtiva = status.IsConnected && status.TransportKind != TransportKind.Serial;
 
-            if (status.IsConnected)
+            if (serialAtivo)
             {
                 cboPortas.Enabled = false;
                 cboVelocidade.Enabled = false;
@@ -102,6 +105,18 @@ namespace SimulDIESEL.UI
 
                 ssStatus.Text = "Conectado";
                 ssStatus.ForeColor = Color.Green;
+            }
+            else if (outraSessaoAtiva)
+            {
+                cboPortas.Enabled = false;
+                cboVelocidade.Enabled = false;
+                btnConectar.Enabled = false;
+                btnConectar.Text = "Conectar";
+
+                ssPorta.Text = status.TransportDisplayName;
+                ssVel.Text = "";
+                ssStatus.Text = "Sessao ativa via " + status.TransportKind;
+                ssStatus.ForeColor = Color.DarkOrange;
             }
             else
             {
@@ -128,6 +143,16 @@ namespace SimulDIESEL.UI
         private void btnConectar_Click(object sender, EventArgs e)
         {
             BpmStatusDto status = _logic.GetStatus();
+
+            if (status.IsConnected && status.TransportKind != TransportKind.Serial)
+            {
+                MessageBox.Show(
+                    "Ja existe uma sessao ativa. Desconecte o transporte atual antes de usar a Serial.",
+                    "Conexao Serial",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
 
             if (!status.IsConnected)
             {
