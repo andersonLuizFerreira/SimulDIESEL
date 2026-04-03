@@ -1,0 +1,624 @@
+=====================================================
+RESUMO INICIAL
+=====================================================
+- Caminho raiz analisado: C:\PROJETOS\SimulDIESEL\hardware\firmware\GSA - Gerador de sinais analógicos
+- Quantidade total de pastas com arquivos .h/.cpp: 6
+- Quantidade total de arquivos .h/.cpp encontrados: 16
+- Principais arquivos de entrada do firmware: include\config.h, include\defs.h, lib\AnalogService\AnalogService.cpp, lib\AnalogService\AnalogService.h, lib\LedService\LedService.cpp, lib\LedService\LedService.h, lib\Link\crc8.h, lib\Link\Link.cpp, lib\Link\Link.h, lib\Service\Service.cpp, lib\Service\Service.h, lib\Tlv\Tlv.h, lib\Tlv\TlvBuilder.h, lib\Transport\Transport.cpp, lib\Transport\Transport.h, src\main.cpp
+- Observações estruturais iniciais: Dump reduzido para leitura do legado de código-fonte real da GSA. Esta versão inclui apenas arquivos .h e .cpp localizados em include, lib e src, sem artefatos binários ou arquivos gerados de build.
+
+=====================================================
+ÁRVORE DE PASTAS E ARQUIVOS
+=====================================================
+GSA - Gerador de sinais analógicos\\
++--- include\\
+|    +--- config.h
+|    \--- defs.h
++--- lib\\
+|    +--- AnalogService\\
+|    |    +--- AnalogService.cpp
+|    |    \--- AnalogService.h
+|    +--- LedService\\
+|    |    +--- LedService.cpp
+|    |    \--- LedService.h
+|    +--- Link\\
+|    |    +--- crc8.h
+|    |    +--- Link.cpp
+|    |    \--- Link.h
+|    +--- Service\\
+|    |    +--- Service.cpp
+|    |    \--- Service.h
+|    +--- Tlv\\
+|    |    +--- Tlv.h
+|    |    \--- TlvBuilder.h
+|    \--- Transport\\
+|         +--- Transport.cpp
+|         \--- Transport.h
++--- src\\
+|    \--- main.cpp
+
+=====================================================
+INVENTÁRIO ESTRUTURADO
+=====================================================
+- caminho relativo: include\config.h
+- tipo/ extensão: .h
+- tamanho aproximado: 0 B
+- observação curta: Arquivo-fonte incluído neste dump reduzido
+
+- caminho relativo: include\defs.h
+- tipo/ extensão: .h
+- tamanho aproximado: 471 B
+- observação curta: Arquivo-fonte incluído neste dump reduzido
+
+- caminho relativo: lib\AnalogService\AnalogService.cpp
+- tipo/ extensão: .cpp
+- tamanho aproximado: 0 B
+- observação curta: Arquivo-fonte incluído neste dump reduzido
+
+- caminho relativo: lib\AnalogService\AnalogService.h
+- tipo/ extensão: .h
+- tamanho aproximado: 0 B
+- observação curta: Arquivo-fonte incluído neste dump reduzido
+
+- caminho relativo: lib\LedService\LedService.cpp
+- tipo/ extensão: .cpp
+- tamanho aproximado: 307 B
+- observação curta: Arquivo-fonte incluído neste dump reduzido
+
+- caminho relativo: lib\LedService\LedService.h
+- tipo/ extensão: .h
+- tamanho aproximado: 191 B
+- observação curta: Arquivo-fonte incluído neste dump reduzido
+
+- caminho relativo: lib\Link\crc8.h
+- tipo/ extensão: .h
+- tamanho aproximado: 453 B
+- observação curta: Arquivo-fonte incluído neste dump reduzido
+
+- caminho relativo: lib\Link\Link.cpp
+- tipo/ extensão: .cpp
+- tamanho aproximado: 2,28 KB
+- observação curta: Arquivo-fonte incluído neste dump reduzido
+
+- caminho relativo: lib\Link\Link.h
+- tipo/ extensão: .h
+- tamanho aproximado: 565 B
+- observação curta: Arquivo-fonte incluído neste dump reduzido
+
+- caminho relativo: lib\Service\Service.cpp
+- tipo/ extensão: .cpp
+- tamanho aproximado: 745 B
+- observação curta: Arquivo-fonte incluído neste dump reduzido
+
+- caminho relativo: lib\Service\Service.h
+- tipo/ extensão: .h
+- tamanho aproximado: 287 B
+- observação curta: Arquivo-fonte incluído neste dump reduzido
+
+- caminho relativo: lib\Tlv\Tlv.h
+- tipo/ extensão: .h
+- tamanho aproximado: 163 B
+- observação curta: Arquivo-fonte incluído neste dump reduzido
+
+- caminho relativo: lib\Tlv\TlvBuilder.h
+- tipo/ extensão: .h
+- tamanho aproximado: 625 B
+- observação curta: Arquivo-fonte incluído neste dump reduzido
+
+- caminho relativo: lib\Transport\Transport.cpp
+- tipo/ extensão: .cpp
+- tamanho aproximado: 1,69 KB
+- observação curta: Arquivo-fonte incluído neste dump reduzido
+
+- caminho relativo: lib\Transport\Transport.h
+- tipo/ extensão: .h
+- tamanho aproximado: 658 B
+- observação curta: Arquivo-fonte incluído neste dump reduzido
+
+- caminho relativo: src\main.cpp
+- tipo/ extensão: .cpp
+- tamanho aproximado: 390 B
+- observação curta: Arquivo-fonte incluído neste dump reduzido
+
+=====================================================
+CONTEÚDO DOS ARQUIVOS
+=====================================================
+
+=====================================================
+FILE: include\config.h
+=====================================================
+<ARQUIVO VAZIO>
+
+=====================================================
+FILE: include\defs.h
+=====================================================
+#pragma once
+#include <stdint.h>
+
+#define I2C_GSA_ADDR  0x23
+#define TLV_MAX_LEN   32   // inclui CRC no final
+
+// Comandos (TLV T)
+#define CMD_GET_ERR     0x01
+#define CMD_CLR_ERR     0x02
+
+#define CMD_GET_LED     0x11
+#define CMD_SET_LED     0x12
+
+#define LED_PIN  LED_BUILTIN
+
+// Erros do Link (armazenados e lidos por GET_ERR)
+#define LINK_ERR_NONE         0x00
+#define LINK_ERR_BAD_LEN      0x01
+#define LINK_ERR_BAD_TLV      0x02
+#define LINK_ERR_BAD_CRC      0x03
+
+=====================================================
+FILE: lib\AnalogService\AnalogService.cpp
+=====================================================
+<ARQUIVO VAZIO>
+
+=====================================================
+FILE: lib\AnalogService\AnalogService.h
+=====================================================
+<ARQUIVO VAZIO>
+
+=====================================================
+FILE: lib\LedService\LedService.cpp
+=====================================================
+#include "LedService.h"
+
+void LedService::begin() {
+  pinMode(LED_PIN, OUTPUT);
+  _state = 0;
+  digitalWrite(LED_PIN, LOW);
+}
+
+int LedService::get() const {
+  return _state;
+}
+
+int LedService::set(int state) {
+  _state = (state != 0) ? 1 : 0;
+  digitalWrite(LED_PIN, _state ? HIGH : LOW);
+  return _state;
+}
+
+=====================================================
+FILE: lib\LedService\LedService.h
+=====================================================
+#pragma once
+#include <Arduino.h>
+#include "defs.h"
+
+class LedService {
+public:
+  void begin();
+
+  int get() const;
+  int set(int state);   // 0 = OFF, !=0 = ON
+
+private:
+  int _state = 0;
+};
+
+=====================================================
+FILE: lib\Link\crc8.h
+=====================================================
+#pragma once
+#include <stdint.h>
+#include <stddef.h>
+
+class Crc8 {
+public:
+  // CRC-8/ATM: poly 0x07, init 0x00, xorout 0x00
+  static uint8_t calc(const uint8_t* data, size_t len) {
+    uint8_t crc = 0x00;
+    for (size_t i = 0; i < len; i++) {
+      crc ^= data[i];
+      for (uint8_t b = 0; b < 8; b++) {
+        if (crc & 0x80) crc = (uint8_t)((crc << 1) ^ 0x07);
+        else           crc = (uint8_t)(crc << 1);
+      }
+    }
+    return crc;
+  }
+};
+
+=====================================================
+FILE: lib\Link\Link.cpp
+=====================================================
+#include "Link.h"
+
+Link::Link(Transport& tr, Service& svc)
+: _tr(tr), _svc(svc),
+  _errCode(LINK_ERR_NONE),
+  _errLastT(0),
+  _hasErr(false)
+{}
+
+void Link::begin() {
+  clearError();
+}
+
+void Link::setError(uint8_t code, uint8_t lastT) {
+  _hasErr = true;
+  _errCode = code;
+  _errLastT = lastT;
+}
+
+void Link::clearError() {
+  _hasErr = false;
+  _errCode = LINK_ERR_NONE;
+  _errLastT = 0;
+}
+
+bool Link::parseAndValidate(const uint8_t* rx, uint8_t rxLen, TlvFrame& out) {
+  if (!rx || rxLen < 3) {
+    setError(LINK_ERR_BAD_LEN, 0);
+    return false;
+  }
+
+  uint8_t t = rx[0];
+  uint8_t l = rx[1];
+
+  uint8_t expected = (uint8_t)(2 + l + 1);
+  if (expected != rxLen) {
+    setError(LINK_ERR_BAD_LEN, t);
+    return false;
+  }
+
+  out.t = t;
+  out.l = l;
+  out.v = (l > 0) ? &rx[2] : nullptr;
+
+  uint8_t crcRx = rx[rxLen - 1];
+  uint8_t crcCalc = Crc8::calc(rx, rxLen - 1);
+
+  if (crcCalc != crcRx) {
+    setError(LINK_ERR_BAD_CRC, t);
+    return false;
+  }
+
+  return true;
+}
+
+bool Link::handleLinkCmd(const TlvFrame& tlv, uint8_t* txTlvOut, uint8_t& txTlvLenOut) {
+  txTlvLenOut = 0;
+
+  switch (tlv.t) {
+
+    case CMD_GET_ERR: {
+      uint8_t code = _hasErr ? _errCode : LINK_ERR_NONE;
+      uint8_t last = _hasErr ? _errLastT : 0;
+
+      txTlvLenOut = TlvBuilder::buildU8U8(CMD_GET_ERR, code, last, txTlvOut, TLV_MAX_LEN);
+      clearError();
+      return true;
+    }
+
+    case CMD_CLR_ERR: {
+      clearError();
+      txTlvLenOut = TlvBuilder::buildEmpty(CMD_CLR_ERR, txTlvOut, TLV_MAX_LEN);
+      return true;
+    }
+
+    default:
+      return false;
+  }
+}
+
+void Link::poll() {
+  uint8_t rxBuf[TLV_MAX_LEN];
+  uint8_t rxLen = 0;
+
+  if (!_tr.popRx(rxBuf, rxLen)) return;
+
+  TlvFrame tlv;
+  if (!parseAndValidate(rxBuf, rxLen, tlv)) {
+    return;
+  }
+
+  uint8_t txTlv[TLV_MAX_LEN];
+  uint8_t txTlvLen = 0;
+
+  if (!handleLinkCmd(tlv, txTlv, txTlvLen)) {
+    if (!_svc.handleOneTlv(tlv, txTlv, txTlvLen)) {
+      setError(LINK_ERR_BAD_TLV, tlv.t);
+      txTlvLen = TlvBuilder::buildEmpty(tlv.t, txTlv, TLV_MAX_LEN);
+    }
+  }
+
+  if (txTlvLen >= 2) {
+    if ((uint8_t)(txTlvLen + 1) > TLV_MAX_LEN) {
+      setError(LINK_ERR_BAD_LEN, tlv.t);
+      return;
+    }
+
+    uint8_t out[TLV_MAX_LEN];
+    for (uint8_t i = 0; i < txTlvLen; i++) out[i] = txTlv[i];
+    out[txTlvLen] = Crc8::calc(out, txTlvLen);
+
+    _tr.setTx(out, txTlvLen + 1);
+  }
+}
+
+=====================================================
+FILE: lib\Link\Link.h
+=====================================================
+#pragma once
+#include <stdint.h>
+#include "defs.h"
+#include "Tlv.h"
+#include "crc8.h"
+#include "Transport.h"
+#include "Service.h"
+
+class Link {
+public:
+  Link(Transport& tr, Service& svc);
+
+  void begin();
+  void poll();
+
+private:
+  void setError(uint8_t code, uint8_t lastT);
+  void clearError();
+
+  bool parseAndValidate(const uint8_t* rx, uint8_t rxLen, TlvFrame& out);
+  bool handleLinkCmd(const TlvFrame& tlv, uint8_t* txTlvOut, uint8_t& txTlvLenOut);
+
+private:
+  Transport& _tr;
+  Service& _svc;
+
+  uint8_t _errCode;
+  uint8_t _errLastT;
+  bool    _hasErr;
+};
+
+=====================================================
+FILE: lib\Service\Service.cpp
+=====================================================
+#include "Service.h"
+
+Service::Service(LedService &led)
+    : _led(led)
+{
+}
+
+bool Service::handleOneTlv(const TlvFrame &tlv, uint8_t *txOut, uint8_t &txLenOut)
+{
+  if (!txOut)
+    return false;
+  txLenOut = 0;
+
+  switch (tlv.t)
+  {
+    case CMD_SET_LED: {
+      if (tlv.l != 1 || tlv.v == nullptr) {
+        return false;
+      }
+
+      int applied = _led.set(tlv.v[0]);
+      txLenOut = TlvBuilder::buildU8(CMD_SET_LED, (uint8_t)applied, txOut, TLV_MAX_LEN);
+      return true;
+    }
+
+    case CMD_GET_LED: {
+      if (tlv.l != 0) {
+        return false;
+      }
+
+      uint8_t st = (uint8_t)_led.get();
+      txLenOut = TlvBuilder::buildU8(CMD_GET_LED, st, txOut, TLV_MAX_LEN);
+      return true;
+    }
+
+    default:
+      return false;
+  }
+}
+
+=====================================================
+FILE: lib\Service\Service.h
+=====================================================
+#pragma once
+#include <stdint.h>
+#include "LedService.h"
+#include "Tlv.h"
+#include "TlvBuilder.h"
+#include "defs.h"
+
+class Service {
+public:
+  explicit Service(LedService& led);
+  bool handleOneTlv(const TlvFrame& tlv, uint8_t* txOut, uint8_t& txLenOut);
+
+private:
+  LedService& _led;
+};
+
+=====================================================
+FILE: lib\Tlv\Tlv.h
+=====================================================
+#pragma once
+#include <stdint.h>
+
+struct TlvFrame {
+  uint8_t t = 0;
+  uint8_t l = 0;
+  const uint8_t* v = nullptr; // aponta para dentro do buffer RX (sem CRC)
+};
+
+=====================================================
+FILE: lib\Tlv\TlvBuilder.h
+=====================================================
+#pragma once
+#include <stdint.h>
+
+class TlvBuilder {
+public:
+  static uint8_t buildEmpty(uint8_t t, uint8_t* out, uint8_t outMax) {
+    if (!out || outMax < 2) return 0;
+    out[0] = t;
+    out[1] = 0;
+    return 2;
+  }
+
+  static uint8_t buildU8(uint8_t t, uint8_t v0, uint8_t* out, uint8_t outMax) {
+    if (!out || outMax < 3) return 0;
+    out[0] = t;
+    out[1] = 1;
+    out[2] = v0;
+    return 3;
+  }
+
+  static uint8_t buildU8U8(uint8_t t, uint8_t v0, uint8_t v1, uint8_t* out, uint8_t outMax) {
+    if (!out || outMax < 4) return 0;
+    out[0] = t;
+    out[1] = 2;
+    out[2] = v0;
+    out[3] = v1;
+    return 4;
+  }
+};
+
+=====================================================
+FILE: lib\Transport\Transport.cpp
+=====================================================
+#include "Transport.h"
+#include "crc8.h"
+
+Transport* Transport::_self = nullptr;
+
+volatile uint8_t Transport::_rxBuf[TLV_MAX_LEN];
+volatile uint8_t Transport::_rxLen = 0;
+volatile bool    Transport::_rxPending = false;
+
+volatile uint8_t Transport::_txBuf[TLV_MAX_LEN];
+volatile uint8_t Transport::_txLen = 0;
+
+void Transport::begin(uint8_t i2cAddr) {
+  _self = this;
+  _rxLen = 0;
+  _rxPending = false;
+  _txLen = 0;
+
+  Wire.begin(i2cAddr);                  // UNO como SLAVE
+  Wire.onReceive(onReceiveThunk);
+  Wire.onRequest(onRequestThunk);
+}
+
+void Transport::onReceiveThunk(int count) {
+  if (!_self) return;
+  if (count <= 0) return;
+
+  if (count > (int)TLV_MAX_LEN) count = TLV_MAX_LEN;
+
+  _rxLen = 0;
+  while (count-- > 0) {
+    _rxBuf[_rxLen++] = (uint8_t)Wire.read();
+  }
+  _rxPending = true;
+}
+
+void Transport::onRequestThunk() {
+  if (!_self) return;
+
+  // Se não tiver resposta preparada, devolve TLV 0xFF vazio com CRC.
+  if (_txLen == 0) {
+    _txBuf[0] = 0xFF;
+    _txBuf[1] = 0;
+    _txBuf[2] = Crc8::calc((const uint8_t*)_txBuf, 2);
+    _txLen = 3;
+  }
+
+  Wire.write((const uint8_t*)_txBuf, _txLen);
+
+  // Limpa para não reenviar a mesma resposta indefinidamente
+  _txLen = 0;
+}
+
+bool Transport::popRx(uint8_t* out, uint8_t& outLen) {
+  if (!_rxPending) return false;
+
+  noInterrupts();
+  uint8_t n = _rxLen;
+  if (n > TLV_MAX_LEN) n = TLV_MAX_LEN;
+  for (uint8_t i = 0; i < n; i++) out[i] = _rxBuf[i];
+  _rxPending = false;
+  interrupts();
+
+  outLen = n;
+  return true;
+}
+
+void Transport::setTx(const uint8_t* data, uint8_t len) {
+  if (!data) return;
+  if (len > TLV_MAX_LEN) len = TLV_MAX_LEN;
+
+  noInterrupts();
+  for (uint8_t i = 0; i < len; i++) _txBuf[i] = data[i];
+  _txLen = len;
+  interrupts();
+}
+
+=====================================================
+FILE: lib\Transport\Transport.h
+=====================================================
+#pragma once
+#include <Arduino.h>
+#include <Wire.h>
+#include "defs.h"
+
+class Transport {
+public:
+  void begin(uint8_t i2cAddr);
+
+  // Chamar no loop para pegar frame recebido (se houver)
+  bool popRx(uint8_t* out, uint8_t& outLen);
+
+  // Prepara resposta para o próximo requestFrom() do master
+  void setTx(const uint8_t* data, uint8_t len);
+
+private:
+  static void onReceiveThunk(int count);
+  static void onRequestThunk();
+
+  static volatile uint8_t _rxBuf[TLV_MAX_LEN];
+  static volatile uint8_t _rxLen;
+  static volatile bool    _rxPending;
+
+  static volatile uint8_t _txBuf[TLV_MAX_LEN];
+  static volatile uint8_t _txLen;
+
+  static Transport* _self;
+};
+
+=====================================================
+FILE: src\main.cpp
+=====================================================
+#include <Arduino.h>
+#include "defs.h"
+
+#include "Transport.h"
+#include "LedService.h"
+#include "Service.h"
+#include "Link.h"
+
+static Transport  g_transport;
+static LedService g_led;
+static Service    g_service(g_led);
+static Link       g_link(g_transport, g_service);
+
+void setup() {
+  g_led.begin();
+  g_transport.begin(I2C_GSA_ADDR);
+  g_link.begin();
+}
+
+void loop() {
+  g_link.poll();
+}
+
