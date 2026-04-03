@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <Arduino.h>
 
 static const uint8_t GSA_CHANNEL_COUNT = 16;
 static const uint8_t GSA_CHANNEL_FIRST = 1;
@@ -18,5 +19,18 @@ static const uint16_t GSA_SIM_IREAD_STEP_MA = 1;
 static const uint16_t GSA_EEPROM_SIGNATURE = 0x4753;
 static const uint8_t GSA_EEPROM_VERSION = 1;
 
-static const uint8_t GSA_BUS_SWITCH_DELAY_MS = 1;
-static const uint16_t GSA_BUS_BUSY_TIMEOUT_MS = 50;
+// Pinagem oficial GSA <-> BPM.
+// I2C fisico com a BPM: Wire / A4-A5 (slave).
+// I2C logico com TCA9548 + MCP4725: SoftwareWire / D2-D3 (master).
+static const uint8_t GSA_PHYSICAL_I2C_SDA_PIN = A4;
+static const uint8_t GSA_PHYSICAL_I2C_SCL_PIN = A5;
+static const uint8_t GSA_LOGICAL_I2C_SDA_PIN = 2;
+static const uint8_t GSA_LOGICAL_I2C_SCL_PIN = 3;
+static const uint8_t GSA_IRQ_PIN = 4;
+static const uint8_t GSA_TCA_RESET_PIN = 8;
+
+static const uint16_t GSA_LOGICAL_I2C_DELAY_US = 5;
+static const uint8_t GSA_TCA_RESET_PULSE_MS = 1;
+static const uint8_t GSA_TCA_RESET_SETTLE_MS = 1;
+static const uint8_t GSA_PHYSICAL_OP_QUEUE_SIZE = 24;
+static const uint8_t GSA_EVENT_QUEUE_SIZE = 24;

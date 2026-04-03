@@ -1,15 +1,35 @@
-#include "Tca9548Service.h"
+#include <Arduino.h>
 
-#include <Wire.h>
+#include "config.h"
+#include "Tca9548Service.h"
 
 namespace {
 static const uint8_t TCA9548_ADDR = 0x70;
 }
 
-bool Tca9548Service::selectChannel(uint8_t channel) {
-  Wire.beginTransmission(TCA9548_ADDR);
-  Wire.write(switchMaskForChannel(channel));
-  return Wire.endTransmission(true) == 0;
+Tca9548Service::Tca9548Service(SoftwareWire& bus)
+  : _bus(bus)
+{
+}
+
+void Tca9548Service::begin() {
+  pinMode(GSA_TCA_RESET_PIN, OUTPUT);
+  digitalWrite(GSA_TCA_RESET_PIN, LOW);
+  delay(GSA_TCA_RESET_PULSE_MS);
+  digitalWrite(GSA_TCA_RESET_PIN, HIGH);
+  delay(GSA_TCA_RESET_SETTLE_MS);
+}
+
+bool Tca9548Service::selectChannel(uint8_t channel, uint8_t* ackCodeOut) {
+  _bus.beginTransmission(TCA9548_ADDR);
+  _bus.write(switchMaskForChannel(channel));
+
+  uint8_t ackCode = _bus.endTransmission();
+  if (ackCodeOut) {
+    *ackCodeOut = ackCode;
+  }
+
+  return ackCode == 0;
 }
 
 uint8_t Tca9548Service::switchIndexForChannel(uint8_t channel) {

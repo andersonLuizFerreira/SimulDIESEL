@@ -2,326 +2,345 @@
 
 ## Objetivo
 
-Este documento formaliza o contrato vigente da GSA na documentação oficial do projeto.
+Este documento formaliza o contrato vigente da GSA entre host, BPM e firmware da board.
 
-Ele descreve:
+## Arquitetura oficial
 
-- o papel do SDH no host;
-- o subconjunto efetivamente implementado hoje para a GSA;
-- o contrato TLV binário usado entre gateway e board;
-- as regras funcionais observadas e assumidas pelo host;
-- o conflito histórico do type `0x12` e sua resolução pela migração de `channel.status` para `0x1B`.
+O fluxo atual da GSA é dividido em duas etapas distintas:
 
-## Escopo e papel de cada camada
+1. etapa lógica e síncrona:
+   - host -> BPM -> GSA
+   - TLV curto no barramento físico I2C
+   - resposta imediata apenas confirma recepção e aceite do comando
+2. etapa física e assíncrona:
+   - GSA atua no barramento I2C lógico interno
+   - acessa `TCA9548A` + `MCP4725`
+   - sinaliza conclusão via IRQ
+   - BPM busca e encaminha o evento `0x31`
 
-No estado atual do projeto:
+## Barramentos
 
-- o `SDH` continua sendo o envelope semântico do host;
-- o host converte `SDH -> SDGW compacto` antes do envio;
-- a BPM/gateway roteia a transação para a GSA;
-- a GSA consome e responde por TLV binário curto com `CRC8-ATM`.
+### Barramento físico
 
-O caminho operacional vigente para a GSA é:
+- BPM = `master`
+- GSA = `slave`
+- endereço da GSA = `0x23`
+- BPM ESP32 `SDA=D21`, `SCL=D22`
+- GSA Nano `SDA=A4`, `SCL=A5`
 
-    UI / FormsLogic
-        -> GsaClient
-        -> SdhClient
-        -> SdhToSdgwMapper
-        -> SdgwSession
-        -> SDGW compacto
-        -> BPM / gateway
-        -> TLV GSA
+### Barramento lógico da GSA
 
-## Histórico resumido
+- GSA = `master`
+- `TCA9548A = 0x70`
+- `MCP4725 = 0x60 / 0x61`
+- GSA Nano `SDA=D2`, `SCL=D3`
+- reset dedicado do `TCA9548A` em `D8`
 
-### Suporte já existente antes da expansão
+### IRQ e reset
 
-Antes da expansão atual, o único comando GSA suportado de forma inequívoca no host era:
+- IRQ GSA -> BPM: GSA Nano `D4` -> BPM ESP32 `D19`
+- IRQ ativo em `LOW`, open-drain por software e pull-up externo `3,3 V`
+- reset da GSA controlado pela BPM em `D23`
 
-    sdh/1 GSA.led set state=on
-    sdh/1 GSA.led set state=off
+O firmware oficial não usa mais troca de papel `slave/master` no mesmo barramento com a BPM.
 
-Além disso, o host já suportava:
-
-    sdh/1 BPM.gateway ping
-
-### Expansão implementada agora no host
-
-O host C# passou a suportar também:
-
-    sdh/1 GSA.channel.setpoint set channel=<1..16> value=<0..255>
-    sdh/1 GSA.channel.enable set channel=<1..16> state=on|off
-    sdh/1 GSA.channels.enable set state=on|off
-    sdh/1 GSA.channel.status get channel=<1..16>
-    sdh/1 GSA.channels.status get
-    sdh/1 GSA.channel.fault reset channel=<1..16>
-    sdh/1 GSA.channel.offset set channel=<1..16> kind=vout|vread|iread value=<int16>
-    sdh/1 GSA.channel.offset get channel=<1..16> kind=vout|vread|iread
-    sdh/1 GSA.channel.offset save channel=<1..16>
-    sdh/1 GSA.channel.offset reset channel=<1..16>
-    sdh/1 GSA.offset reset
-
-## Modelo funcional da GSA
+## Modelo funcional
 
 ### Canais
 
-- existem `16` canais;
-- canais `1..8` operam na faixa `0..5 V`;
-- canais `9..16` operam na faixa `0..12 V`;
-- o setpoint transportado no protocolo é sempre `0..255` em `1 byte`;
-- a conversão de setpoint lógico para tensão real é responsabilidade da board.
-
-### Status
-
-O status por canal devolve:
-
-- `setpoint`
-- `vout`
-- `iread`
-- `enabled`
-- `fault`
-
-Regras:
-
-- status deve responder mesmo com o canal em `OFF`;
-- status deve retornar valores reais lidos;
-- o host não deve zerar artificialmente leituras só porque o canal está desligado.
-
-### Enable e fault
-
-Regras funcionais:
-
-- `setpoint set` é permitido com canal `OFF`;
-- `setpoint set` é permitido com `fault latched`;
-- `enable on` por canal deve falhar se houver `fault latched`;
-- `channels.enable on` liga apenas canais sem fault;
-- `channels.enable off` desliga todos;
-- desligar globalmente não limpa fault;
-- o fault é latched;
-- existe `fault reset` por canal;
-- existe evento assíncrono apenas para `fault`.
-
-### Offsets
-
-Kinds suportados:
-
-- `vout`
-- `vread`
-- `iread`
-
-Regras:
-
-- offset é `int16` com sinal;
-- serialização binária é little-endian;
-- unidades:
-  - `vout` = `mV`
-  - `vread` = `mV`
-  - `iread` = `mA`
-- `offset set` altera RAM;
-- `offset save` grava EEPROM;
-- `offset reset` por canal restaura default e já grava EEPROM;
-- `GSA.offset reset` restaura defaults globais e já grava EEPROM.
-
-## Contrato SDH da GSA
-
-### LED builtin
-
-    sdh/1 GSA.led set state=on
-    sdh/1 GSA.led set state=off
-
-### Setpoint por canal
-
-    sdh/1 GSA.channel.setpoint set channel=6 value=128
-
-### Enable por canal
-
-    sdh/1 GSA.channel.enable set channel=6 state=on
-    sdh/1 GSA.channel.enable set channel=6 state=off
-
-### Enable global
-
-    sdh/1 GSA.channels.enable set state=on
-    sdh/1 GSA.channels.enable set state=off
+- `16` canais
+- canais `1..8` em `0..5 V`
+- canais `9..16` em `0..12 V`
+- setpoint lógico em `0..255`
+- shadow RAM por canal
 
 ### Status por canal
 
-    sdh/1 GSA.channel.status get channel=6
+Payload:
 
-### Status global
+```text
+[channel][setpoint_raw][vout_raw][iread_raw][enabled][fault]
+```
 
-    sdh/1 GSA.channels.status get
+Semântica:
 
-### Fault reset por canal
+- `vout_raw` = bruto `0..255`
+- `iread_raw` = bruto `0..255`
+- `enabled` = saída efetivamente ativa
+- `fault` = booleano latched
 
-    sdh/1 GSA.channel.fault reset channel=6
+### Política de falha física
 
-### Offsets por canal
+Se o `TCA9548A` ou o `MCP4725` não responderem:
 
-    sdh/1 GSA.channel.offset set channel=6 kind=vout value=-500
-    sdh/1 GSA.channel.offset get channel=6 kind=vout
-    sdh/1 GSA.channel.offset save channel=6
-    sdh/1 GSA.channel.offset reset channel=6
+- a resposta síncrona do comando original não passa a carregar esse erro;
+- o shadow do canal é preservado;
+- o enable é preservado;
+- a saída não é zerada por política automática;
+- não há retry automático;
+- o resultado é comunicado pelo evento `0x31`.
 
-### Reset global de offsets
+## Mapeamento elétrico obrigatório
 
-    sdh/1 GSA.offset reset
+- canal `1`  -> `SC0` + `0x61`
+- canal `2`  -> `SC0` + `0x60`
+- canal `3`  -> `SC1` + `0x61`
+- canal `4`  -> `SC1` + `0x60`
+- canal `5`  -> `SC2` + `0x61`
+- canal `6`  -> `SC2` + `0x60`
+- canal `7`  -> `SC3` + `0x61`
+- canal `8`  -> `SC3` + `0x60`
+- canal `9`  -> `SC4` + `0x61`
+- canal `10` -> `SC4` + `0x60`
+- canal `11` -> `SC5` + `0x61`
+- canal `12` -> `SC5` + `0x60`
+- canal `13` -> `SC6` + `0x61`
+- canal `14` -> `SC6` + `0x60`
+- canal `15` -> `SC7` + `0x61`
+- canal `16` -> `SC7` + `0x60`
 
-## Contrato TLV binário da GSA
+## Contrato SDH vigente
 
-Todos os comandos GSA usam:
+### LED builtin
 
-    Cmd = GwProtocol.MakeCompactCommand(GwProtocol.GsaAddress, GwProtocol.GsaTlvTransactOp)
+```text
+sdh/1 GSA.led set state=on
+sdh/1 GSA.led set state=off
+```
+
+### Setpoint por canal
+
+```text
+sdh/1 GSA.channel.setpoint set channel=6 value=128
+```
+
+### Enable por canal
+
+```text
+sdh/1 GSA.channel.enable set channel=6 state=on
+sdh/1 GSA.channel.enable set channel=6 state=off
+```
+
+### Enable global
+
+```text
+sdh/1 GSA.channels.enable set state=on
+sdh/1 GSA.channels.enable set state=off
+```
+
+### Status por canal
+
+```text
+sdh/1 GSA.channel.status get channel=6
+```
+
+### Fault reset
+
+```text
+sdh/1 GSA.channel.fault reset channel=6
+```
+
+### Offsets
+
+```text
+sdh/1 GSA.channel.offset set channel=6 kind=vout value=-500
+sdh/1 GSA.channel.offset save channel=6
+sdh/1 GSA.offset reset
+```
+
+## Contrato TLV binário
 
 Formato base:
 
-    [type][len][data...][crc]
+```text
+[type][len][data...][crc]
+```
 
 CRC:
 
 - `CRC8-ATM` sobre `[type][len][data...]`
 
-### Types
+### Types vigentes
 
-- `GwProtocol.GsaSetLedType` = LED builtin
-- `0x10` = `GsaChannelSetpointType`
-- `0x11` = `GsaChannelEnableType`
-- `0x13` = `GsaChannelsStatusType`
-- `0x14` = `GsaChannelsEnableType`
-- `0x15` = `GsaChannelFaultResetType`
-- `0x16` = `GsaChannelOffsetSetType`
-- `0x17` = `GsaChannelOffsetGetType`
-- `0x18` = `GsaChannelOffsetSaveType`
-- `0x19` = `GsaChannelOffsetResetType`
-- `0x1A` = `GsaOffsetResetType`
-- `0x1B` = `GsaChannelStatusType`
-- `0x30` = `GsaChannelFaultEventType`
-- `0x7F` = `GsaErrorType`
-
-### Offset kinds
-
-- `0x01` = `vout`
-- `0x02` = `vread`
-- `0x03` = `iread`
+- `0x10` = setpoint de canal
+- `0x11` = enable de canal
+- `0x12` = LED builtin legado
+- `0x14` = enable global
+- `0x15` = fault reset de canal
+- `0x16` = offset set
+- `0x18` = offset save EEPROM
+- `0x1A` = offset reset global
+- `0x1B` = status de canal
+- `0x30` = evento assíncrono de fault
+- `0x31` = evento assíncrono de resultado físico
+- `0x7F` = erro funcional
 
 ### 1. Channel Setpoint Set
 
 Request:
 
-    [0x10][0x02][channel][value][crc]
+```text
+[0x10][0x02][channel][value][crc]
+```
 
-Response:
+Response síncrona:
 
-    [0x10][0x02][channel][appliedValue][crc]
+```text
+[0x10][0x02][channel][acceptedValue][crc]
+```
+
+Semântica:
+
+- a resposta indica apenas que o comando foi aceito para processamento;
+- o resultado físico final vem depois no evento `0x31`.
 
 ### 2. Channel Enable Set
 
 Request:
 
-    [0x11][0x02][channel][state][crc]
+```text
+[0x11][0x02][channel][state][crc]
+```
 
-Response:
+Response síncrona:
 
-    [0x11][0x02][channel][appliedState][crc]
+```text
+[0x11][0x02][channel][appliedState][crc]
+```
 
-### 3. Channel Status Get
-
-Request:
-
-    [0x1B][0x01][channel][crc]
-
-Response:
-
-    [0x1B][0x06][channel][setpoint][vout][iread][enabled][fault][crc]
-
-### 4. Channels Status Get
+### 3. LED Builtin
 
 Request:
 
-    [0x13][0x00][crc]
+```text
+[0x12][0x01][state][crc]
+```
 
 Response:
 
-    [0x13][0x60][16 blocos de 6 bytes][crc]
+```text
+[0x12][0x01][state_aplicado][crc]
+```
 
-Bloco:
-
-    [channel][setpoint][vout][iread][enabled][fault]
-
-### 5. Channels Enable Set
+### 4. Global Enable
 
 Request:
 
-    [0x14][0x01][state][crc]
+```text
+[0x14][0x01][state][crc]
+```
 
-Response:
+Response síncrona:
 
-    [0x14][0x02][requestedState][affectedCount][crc]
+```text
+[0x14][0x01][state_aplicado][crc]
+```
 
-### 6. Channel Fault Reset
+Para `enable global`, a GSA emite um evento `0x31` por canal efetivamente processado.
 
-Request:
-
-    [0x15][0x01][channel][crc]
-
-Response:
-
-    [0x15][0x02][channel][faultState][crc]
-
-### 7. Channel Offset Set
+### 5. Channel Fault Reset
 
 Request:
 
-    [0x16][0x04][channel][kind][offset_lo][offset_hi][crc]
+```text
+[0x15][0x01][channel][crc]
+```
 
 Response:
 
-    [0x16][0x04][channel][kind][offset_lo][offset_hi][crc]
+```text
+[0x15][0x02][channel][faultState][crc]
+```
 
-### 8. Channel Offset Get
+### 6. Channel Offset Set
 
 Request:
 
-    [0x17][0x02][channel][kind][crc]
+```text
+[0x16][0x04][channel][kind][offset_lo][offset_hi][crc]
+```
 
 Response:
 
-    [0x17][0x04][channel][kind][offset_lo][offset_hi][crc]
+```text
+[0x16][0x04][channel][kind][offset_lo][offset_hi][crc]
+```
 
-### 9. Channel Offset Save
+### 7. Channel Offset Save
 
 Request:
 
-    [0x18][0x01][channel][crc]
+```text
+[0x18][0x01][channel][crc]
+```
 
 Response:
 
-    [0x18][0x01][channel][crc]
+```text
+[0x18][0x02][channel][saveResult][crc]
+```
 
-### 10. Channel Offset Reset
+### 8. Global Offset Reset
 
 Request:
 
-    [0x19][0x01][channel][crc]
+```text
+[0x1A][0x00][crc]
+```
 
 Response:
 
-    [0x19][0x01][channel][crc]
+```text
+[0x1A][0x01][resetResult][crc]
+```
 
-### 11. Global Offset Reset
+### 9. Channel Status
 
 Request:
 
-    [0x1A][0x00][crc]
+```text
+[0x1B][0x01][channel][crc]
+```
 
 Response:
 
-    [0x1A][0x01][affectedChannels][crc]
+```text
+[0x1B][0x06][channel][setpoint][vout][iread][enabled][fault][crc]
+```
 
-### 12. Functional Error
+### 10. Evento de fault
+
+Payload:
+
+```text
+[0x30][0x06][channel][setpoint][vout][iread][enabled][fault][crc]
+```
+
+### 11. Evento de resultado físico
+
+Payload:
+
+```text
+[0x31][0x03][origin_type][channel][status][crc]
+```
+
+Status:
+
+- `0x01` = operação OK
+- `0x02` = falha. `TCA9548A` não respondeu
+- `0x03` = falha. `MCP4725` não respondeu
+
+Regra:
+
+- o `0x31` é emitido sempre, inclusive em sucesso.
+
+### 12. Erro funcional
 
 Response:
 
-    [0x7F][0x03][requestType][channel][errorCode][crc]
+```text
+[0x7F][0x03][requestType][channel][errorCode][crc]
+```
 
 Error codes:
 
@@ -330,75 +349,38 @@ Error codes:
 - `0x03` = state inválido
 - `0x04` = kind inválido
 - `0x05` = fault latched
-- `0x06` = EEPROM write failed
+- `0x06` = falha EEPROM
 - `0x07` = comando não suportado
 - `0x08` = payload inválido
 - `0x09` = CRC TLV inválido
 - `0x0A` = condição física ainda em fault
 - `0x0B` = operação não permitida no estado atual
 
-### 13. Fault Event
-
-Payload:
-
-    [0x30][0x06][channel][setpoint][vout][iread][enabled][fault][crc]
-
-## Conflito histórico do type `0x12`
-
-Houve um conflito histórico importante no contrato da GSA:
-
-- o host já preservava `GwProtocol.GsaSetLedType = 0x12` para o LED builtin;
-- uma fase intermediária da expansão da GSA também chegou a documentar `0x12` para `GsaChannelStatusType`.
-
-Esse conflito foi resolvido no contrato oficial atual:
-
-- `0x12` permanece dedicado ao LED builtin legado;
-- `0x1B` passa a ser o type oficial de `GSA.channel.status`.
-
-### Consequência para host e firmware
-
-Com a migração de `channel.status` para `0x1B`:
-
-- o host não precisa mais resolver `channel.status` por `len`;
-- o parser do LED builtin continua preservado sem regressão;
-- o firmware da GSA passa a operar com contrato TLV sem ambiguidade para status por canal.
-
-### Regra documental vigente
-
-A documentação oficial deve tratar como contrato atual:
-
-- `0x12` = LED builtin legado
-- `0x1B` = `GSA.channel.status`
-
-Referências antigas que associem `channel.status` ao `0x12` devem ser lidas apenas como histórico superado.
-
-## Papel do host e da board
+## Papel de cada camada
 
 ### Host
 
-Responsabilidades do host:
+- valida o comando SDH;
+- serializa para SDGW compacto;
+- consome a resposta síncrona;
+- consome os eventos `0x30` e `0x31`.
 
-- validar comandos SDH;
-- serializar comandos semânticos para SDGW compacto;
-- mapear payload TLV binário da GSA;
-- correlacionar resposta funcional;
-- interpretar erro funcional;
-- publicar evento assíncrono de fault para camadas acima.
+### BPM
 
-### Board
+- roteia o TLV para a GSA;
+- recebe IRQ;
+- busca o evento assíncrono;
+- reencaminha o evento no fluxo reverso SDGW.
 
-Responsabilidades da GSA:
+### GSA
 
-- aplicar setpoint no domínio físico da board;
-- converter `0..255` para a faixa elétrica real do canal;
-- manter fault latched;
-- devolver status real mesmo com canal `OFF`;
-- armazenar offsets em RAM/EEPROM conforme a operação.
+- valida o TLV recebido;
+- mantém shadow RAM, offsets e EEPROM;
+- executa a operação física no barramento interno;
+- emite `0x31` com o resultado elétrico.
 
-## Referências
+## Observação histórica
 
-- `docs/04-firmware/boards/03-gsa.md`
-- `docs/05-software-dashboard/04-sdh-host-architecture.md`
-- `docs/12-documentacao-tecnica/03-contratos-software.md`
+O modelo BUSY/IDLE com troca de papel `slave/master` no mesmo barramento I2C foi abandonado e não deve mais ser tratado como arquitetura oficial da GSA.
 
 [Retornar ao README principal](../README.md)

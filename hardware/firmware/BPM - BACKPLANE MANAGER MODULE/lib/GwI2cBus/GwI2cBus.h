@@ -11,6 +11,10 @@ public:
         _w.setClock(hz);
     }
 
+    void begin(int sdaPin, int sclPin, uint32_t hz = 400000) {
+        _w.begin(sdaPin, sclPin, hz);
+    }
+
     bool pingTlv(uint8_t i2cAddr, uint8_t& outBoardId);
 
     bool transact(uint8_t addr,

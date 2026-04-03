@@ -1,186 +1,120 @@
 #include "BusArbiterService.h"
 
-#include <Arduino.h>
-#include <Wire.h>
-
 #include "config.h"
 #include "defs.h"
-#include "Transport.h"
 
 namespace {
-uint16_t channelFullScaleMv(uint8_t channel) {
-  return (channel <= 8) ? GSA_LOW_RANGE_MAX_MV : GSA_HIGH_RANGE_MAX_MV;
+uint16_t channelFullScaleMillivolts(uint8_t channel) {
+  return (channel <= 8U) ? GSA_LOW_RANGE_MAX_MV : GSA_HIGH_RANGE_MAX_MV;
 }
 }
 
-BusArbiterService::BusArbiterService(Tca9548Service& tca9548, Mcp4725Service& mcp4725)
-  : _tca9548(tca9548),
+BusArbiterService::BusArbiterService(SoftwareWire& logicalBus, Tca9548Service& tca9548, Mcp4725Service& mcp4725)
+  : _logicalBus(logicalBus),
+    _tca9548(tca9548),
     _mcp4725(mcp4725),
-    _state(GsaBusState::IdleSlave),
-    _busySinceMs(0),
-    _taskPending(false),
-    _taskCount(0),
-    _taskEventChannel(0),
-    _eventPending(false),
-    _eventPayloadLen(0)
+    _pendingHead(0),
+    _pendingTail(0),
+    _pendingCount(0),
+    _completedHead(0),
+    _completedTail(0),
+    _completedCount(0)
 {
 }
 
 void BusArbiterService::begin() {
-  _state = GsaBusState::IdleSlave;
-  _busySinceMs = 0;
-  _taskPending = false;
-  _taskCount = 0;
-  _taskEventChannel = 0;
-  _eventPending = false;
-  _eventPayloadLen = 0;
+  _pendingHead = 0;
+  _pendingTail = 0;
+  _pendingCount = 0;
+  _completedHead = 0;
+  _completedTail = 0;
+  _completedCount = 0;
+
+  _tca9548.begin();
+  _logicalBus.setTimeout(20U);
+  _logicalBus.setClock(100000UL);
+  _logicalBus.begin();
 }
 
 void BusArbiterService::tick() {
-  if (!_taskPending) {
+  if (_pendingCount == 0U) {
     return;
   }
 
-  if (Transport::hasTxPending()) {
-    if (hasTimedOut()) {
-      recoverToSlave(_taskEventChannel);
-    }
-    return;
-  }
+  GsaPhysicalOperation operation = _pendingOperations[_pendingHead];
+  _pendingHead = (uint8_t)((_pendingHead + 1U) % GSA_PHYSICAL_OP_QUEUE_SIZE);
+  _pendingCount--;
 
-  if (hasTimedOut()) {
-    recoverToSlave(_taskEventChannel);
-    return;
-  }
-
-  delay(GSA_BUS_SWITCH_DELAY_MS);
-  Wire.end();
-  delay(GSA_BUS_SWITCH_DELAY_MS);
-  Wire.begin();
-
-  bool ok = true;
-  for (uint8_t index = 0; index < _taskCount; index++) {
-    uint8_t channel = _taskChannels[index];
-    ok = ok && _tca9548.selectChannel(channel);
-    if (!ok) {
-      break;
-    }
-
-    if (_taskSetpointsRaw[index] == 0) {
-      ok = ok && _mcp4725.disableChannel(channel);
-    } else {
-      ok = ok && executeSetpoint(channel, _taskMillivolts[index]);
-    }
-
-    if (!ok) {
-      break;
-    }
-  }
-
-  (void)ok;
-  Wire.end();
-  delay(GSA_BUS_SWITCH_DELAY_MS);
-  Transport::resumeSlave(I2C_GSA_ADDR);
-
-  finishBusy(_taskEventChannel);
+  pushCompletedResult(operation, executeOperation(operation));
 }
 
-bool BusArbiterService::queueSetpoint(uint8_t channel, uint8_t setpointRaw, uint16_t millivolts) {
-  return queueBatch(&channel, &setpointRaw, 1, channel) &&
-         ((_taskMillivolts[0] = millivolts), true);
+bool BusArbiterService::canQueue(uint8_t operationCount) const {
+  return operationCount <= (uint8_t)(GSA_PHYSICAL_OP_QUEUE_SIZE - _pendingCount);
 }
 
-bool BusArbiterService::queueDisable(uint8_t channel) {
-  uint8_t setpointRaw = 0;
-  return queueBatch(&channel, &setpointRaw, 1, channel);
-}
-
-bool BusArbiterService::queueBatch(const uint8_t* channels, const uint8_t* setpointsRaw, uint8_t count, uint8_t eventChannel) {
-  if (_state != GsaBusState::IdleSlave || _taskPending || !channels || !setpointsRaw || count == 0 || count > 16) {
+bool BusArbiterService::queueOperation(const GsaPhysicalOperation& operation) {
+  if (!canQueue(1U)) {
     return false;
   }
 
-  for (uint8_t index = 0; index < count; index++) {
-    _taskChannels[index] = channels[index];
-    _taskSetpointsRaw[index] = setpointsRaw[index];
-    _taskMillivolts[index] = (uint16_t)(((uint32_t)setpointsRaw[index] * channelFullScaleMv(channels[index]) + 127U) / 255U);
-  }
-
-  _taskCount = count;
-  _taskEventChannel = eventChannel;
-  _taskPending = true;
-  beginBusy(eventChannel);
+  _pendingOperations[_pendingTail] = operation;
+  _pendingTail = (uint8_t)((_pendingTail + 1U) % GSA_PHYSICAL_OP_QUEUE_SIZE);
+  _pendingCount++;
   return true;
 }
 
-bool BusArbiterService::popPendingEvent(uint8_t* payloadOut, uint8_t& payloadLenOut) {
-  if (!_eventPending || !payloadOut) {
-    payloadLenOut = 0;
+bool BusArbiterService::popCompletedOperation(GsaPhysicalOperationResult& resultOut) {
+  if (_completedCount == 0U) {
     return false;
   }
 
-  for (uint8_t index = 0; index < _eventPayloadLen; index++) {
-    payloadOut[index] = _eventPayload[index];
-  }
-
-  payloadLenOut = _eventPayloadLen;
-  _eventPending = false;
-  _eventPayloadLen = 0;
+  resultOut = _completedOperations[_completedHead];
+  _completedHead = (uint8_t)((_completedHead + 1U) % GSA_PHYSICAL_OP_QUEUE_SIZE);
+  _completedCount--;
   return true;
 }
 
-bool BusArbiterService::isBusy() const {
-  return _state == GsaBusState::BusyMaster;
-}
-
-GsaBusState BusArbiterService::state() const {
-  return _state;
-}
-
-bool BusArbiterService::executeSetpoint(uint8_t channel, uint16_t millivolts) {
-  (void)millivolts;
-  for (uint8_t index = 0; index < _taskCount; index++) {
-    if (_taskChannels[index] == channel) {
-      return _mcp4725.writeChannel(channel, _taskSetpointsRaw[index]);
-    }
+uint8_t BusArbiterService::executeOperation(const GsaPhysicalOperation& operation) {
+  uint8_t ackCode = 0xFF;
+  if (!_tca9548.selectChannel(operation.channel, &ackCode)) {
+    return GSA_PHYSICAL_STATUS_TCA_NO_ACK;
   }
 
-  return false;
+  if (!_mcp4725.probeChannel(operation.channel, &ackCode)) {
+    return GSA_PHYSICAL_STATUS_MCP_NO_ACK;
+  }
+
+  bool ok = operation.disableOutput
+    ? _mcp4725.disableChannel(operation.channel, &ackCode)
+    : _mcp4725.writeChannel(operation.channel, rawToOutputMillivolts(operation.channel, operation.requestedSetpointRaw), &ackCode);
+
+  if (!ok) {
+    return GSA_PHYSICAL_STATUS_MCP_NO_ACK;
+  }
+
+  return GSA_PHYSICAL_STATUS_OK;
 }
 
-void BusArbiterService::beginBusy(uint8_t channel) {
-  _state = GsaBusState::BusyMaster;
-  _busySinceMs = millis();
-  _eventPending = false;
-  _eventPayloadLen = 0;
-
-  _eventPayload[0] = GSA_EVENT_BUSY;
-  _eventPayload[1] = channel;
-  _eventPayload[2] = GSA_EVENT_STATE_BUSY;
+uint16_t BusArbiterService::rawToOutputMillivolts(uint8_t channel, uint8_t setpointRaw) const {
+  uint32_t scaled = ((uint32_t)setpointRaw * (uint32_t)channelFullScaleMillivolts(channel)) + 127U;
+  return (uint16_t)(scaled / 255U);
 }
 
-void BusArbiterService::finishBusy(uint8_t channel) {
-  _taskPending = false;
-  _taskCount = 0;
-  _taskEventChannel = 0;
-  _state = GsaBusState::IdleSlave;
-  _busySinceMs = 0;
+void BusArbiterService::pushCompletedResult(const GsaPhysicalOperation& operation, uint8_t status) {
+  if (_completedCount >= GSA_PHYSICAL_OP_QUEUE_SIZE) {
+    return;
+  }
 
-  _eventPayload[0] = GSA_EVENT_IDLE;
-  _eventPayload[1] = channel;
-  _eventPayload[2] = GSA_EVENT_STATE_IDLE;
-  _eventPayloadLen = 3;
-  _eventPending = true;
-}
+  GsaPhysicalOperationResult& result = _completedOperations[_completedTail];
+  result.originType = operation.originType;
+  result.channel = operation.channel;
+  result.status = status;
+  result.requestedSetpointRaw = operation.requestedSetpointRaw;
+  result.applySetpoint = operation.applySetpoint;
+  result.requestedEnable = operation.requestedEnable;
+  result.applyEnable = operation.applyEnable;
+  result.clearFault = operation.clearFault;
 
-void BusArbiterService::recoverToSlave(uint8_t channel) {
-  Wire.end();
-  delay(GSA_BUS_SWITCH_DELAY_MS);
-  Transport::resumeSlave(I2C_GSA_ADDR);
-  finishBusy(channel);
-}
-
-bool BusArbiterService::hasTimedOut() const {
-  return _state == GsaBusState::BusyMaster &&
-         (uint32_t)(millis() - _busySinceMs) > (uint32_t)GSA_BUS_BUSY_TIMEOUT_MS;
+  _completedTail = (uint8_t)((_completedTail + 1U) % GSA_PHYSICAL_OP_QUEUE_SIZE);
+  _completedCount++;
 }

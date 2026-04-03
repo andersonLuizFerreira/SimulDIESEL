@@ -1,11 +1,10 @@
 #include "AnalogService.h"
 
-#include "config.h"
 #include "TlvBuilder.h"
 
 namespace {
 uint16_t channelMaxVoltageMv(uint8_t channel) {
-  return (channel <= 8) ? GSA_LOW_RANGE_MAX_MV : GSA_HIGH_RANGE_MAX_MV;
+  return (channel <= 8U) ? GSA_LOW_RANGE_MAX_MV : GSA_HIGH_RANGE_MAX_MV;
 }
 
 int32_t simulatedPhysicalVoutMv(uint8_t channel) {
@@ -32,7 +31,10 @@ void writeI16Le(uint8_t* out, int16_t value) {
 
 AnalogService::AnalogService(EepromService& eeprom, BusArbiterService& busArbiter)
   : _eeprom(eeprom),
-    _busArbiter(busArbiter)
+    _busArbiter(busArbiter),
+    _eventHead(0),
+    _eventTail(0),
+    _eventCount(0)
 {
 }
 
@@ -41,6 +43,9 @@ void AnalogService::begin() {
   _eeprom.loadOffsets(persistedOffsets, GSA_CHANNEL_COUNT);
 
   bool normalizedOffsets = false;
+  _eventHead = 0;
+  _eventTail = 0;
+  _eventCount = 0;
 
   for (uint8_t index = 0; index < GSA_CHANNEL_COUNT; index++) {
     _channels[index].setpointRaw = 0;
@@ -60,7 +65,6 @@ void AnalogService::begin() {
 
   _busArbiter.begin();
   refreshAllTelemetry();
-  _pendingEvent.pending = false;
 
   if (normalizedOffsets) {
     persistOffsets();
@@ -69,6 +73,7 @@ void AnalogService::begin() {
 
 void AnalogService::tick() {
   _busArbiter.tick();
+  processCompletedHardwareOperations();
   refreshAllTelemetry();
 }
 
@@ -104,25 +109,24 @@ bool AnalogService::handleTlv(const TlvFrame& tlv, uint8_t* txOut, uint8_t& txLe
 }
 
 bool AnalogService::popPendingEvent(uint8_t* txOut, uint8_t& txLenOut) {
-  uint8_t busPayload[6] = { 0 };
-  uint8_t busPayloadLen = 0;
-  if (_busArbiter.popPendingEvent(busPayload, busPayloadLen)) {
-    txLenOut = TlvBuilder::build(CMD_FAULT_EVENT, busPayload, busPayloadLen, txOut, TLV_MAX_LEN);
-    return txLenOut != 0;
-  }
-
-  if (!_pendingEvent.pending) {
+  if (_eventCount == 0U) {
     txLenOut = 0;
     return false;
   }
 
-  txLenOut = TlvBuilder::build(_pendingEvent.type, _pendingEvent.payload, _pendingEvent.payloadLen, txOut, TLV_MAX_LEN);
+  GsaEvent& event = _events[_eventHead];
+  txLenOut = TlvBuilder::build(event.type, event.payload, event.payloadLen, txOut, TLV_MAX_LEN);
   if (txLenOut == 0) {
     return false;
   }
 
-  _pendingEvent.pending = false;
+  _eventHead = (uint8_t)((_eventHead + 1U) % GSA_EVENT_QUEUE_SIZE);
+  _eventCount--;
   return true;
+}
+
+bool AnalogService::hasPendingEvent() const {
+  return _eventCount != 0U;
 }
 
 bool AnalogService::handleSetpoint(const TlvFrame& tlv, uint8_t* txOut, uint8_t& txLenOut) {
@@ -138,24 +142,24 @@ bool AnalogService::handleSetpoint(const TlvFrame& tlv, uint8_t* txOut, uint8_t&
   }
 
   GsaChannelState& state = _channels[index];
-  bool changed = state.setpointRaw != newValue;
-
-  if (!state.effectiveEnable || !changed) {
+  if (!state.effectiveEnable) {
     state.setpointRaw = newValue;
     refreshChannelTelemetry((uint8_t)index);
+  } else if (state.setpointRaw != newValue) {
+    GsaPhysicalOperation operation = {};
+    operation.originType = CMD_SETPOINT;
+    operation.channel = channel;
+    operation.requestedSetpointRaw = newValue;
+    operation.applySetpoint = true;
 
-    uint8_t payload[2] = { channel, state.setpointRaw };
-    txLenOut = TlvBuilder::build(CMD_SETPOINT, payload, sizeof(payload), txOut, TLV_MAX_LEN);
-    return txLenOut != 0;
+    if (!queuePhysicalOperation(operation)) {
+      return buildFunctionalError(CMD_SETPOINT, channel, GSA_ERROR_OPERATION_NOT_ALLOWED, txOut, txLenOut);
+    }
   }
 
-  if (!queueHardwareWriteForChannel(channel, newValue)) {
-    return buildBusEventResponse(GSA_EVENT_BUSY, channel, GSA_EVENT_STATE_BUSY, txOut, txLenOut);
-  }
-
-  state.setpointRaw = newValue;
-  refreshChannelTelemetry((uint8_t)index);
-  return buildBusEventResponse(GSA_EVENT_BUSY, channel, GSA_EVENT_STATE_BUSY, txOut, txLenOut);
+  uint8_t payload[2] = { channel, newValue };
+  txLenOut = TlvBuilder::build(CMD_SETPOINT, payload, sizeof(payload), txOut, TLV_MAX_LEN);
+  return txLenOut != 0;
 }
 
 bool AnalogService::handleEnableChannel(const TlvFrame& tlv, uint8_t* txOut, uint8_t& txLenOut) {
@@ -176,30 +180,28 @@ bool AnalogService::handleEnableChannel(const TlvFrame& tlv, uint8_t* txOut, uin
   }
 
   GsaChannelState& state = _channels[index];
-  if (requestedState == 1 && state.faultLatched) {
-    state.requestedEnable = false;
-    state.effectiveEnable = false;
+  if (requestedState == 1U && state.faultLatched) {
     return buildFunctionalError(CMD_ENABLE_CHANNEL, channel, GSA_ERROR_FAULT_LATCHED, txOut, txLenOut);
   }
 
-  bool desiredEnable = requestedState != 0;
-  if (state.effectiveEnable == desiredEnable) {
-    uint8_t payload[2] = { channel, (uint8_t)(state.effectiveEnable ? 1 : 0) };
-    txLenOut = TlvBuilder::build(CMD_ENABLE_CHANNEL, payload, sizeof(payload), txOut, TLV_MAX_LEN);
-    return txLenOut != 0;
+  bool desiredEnable = requestedState != 0U;
+  if (state.effectiveEnable != desiredEnable) {
+    GsaPhysicalOperation operation = {};
+    operation.originType = CMD_ENABLE_CHANNEL;
+    operation.channel = channel;
+    operation.requestedSetpointRaw = state.setpointRaw;
+    operation.requestedEnable = desiredEnable;
+    operation.applyEnable = true;
+    operation.disableOutput = !desiredEnable;
+
+    if (!queuePhysicalOperation(operation)) {
+      return buildFunctionalError(CMD_ENABLE_CHANNEL, channel, GSA_ERROR_OPERATION_NOT_ALLOWED, txOut, txLenOut);
+    }
   }
 
-  bool queued = desiredEnable
-    ? queueHardwareWriteForChannel(channel, state.setpointRaw)
-    : queueHardwareDisableForChannel(channel);
-
-  if (!queued) {
-    return buildBusEventResponse(GSA_EVENT_BUSY, channel, GSA_EVENT_STATE_BUSY, txOut, txLenOut);
-  }
-
-  state.requestedEnable = desiredEnable;
-  state.effectiveEnable = desiredEnable;
-  return buildBusEventResponse(GSA_EVENT_BUSY, channel, GSA_EVENT_STATE_BUSY, txOut, txLenOut);
+  uint8_t payload[2] = { channel, requestedState };
+  txLenOut = TlvBuilder::build(CMD_ENABLE_CHANNEL, payload, sizeof(payload), txOut, TLV_MAX_LEN);
+  return txLenOut != 0;
 }
 
 bool AnalogService::handleEnableGlobal(const TlvFrame& tlv, uint8_t* txOut, uint8_t& txLenOut) {
@@ -212,38 +214,31 @@ bool AnalogService::handleEnableGlobal(const TlvFrame& tlv, uint8_t* txOut, uint
     return buildFunctionalError(CMD_ENABLE_GLOBAL, 0, GSA_ERROR_INVALID_STATE, txOut, txLenOut);
   }
 
-  uint8_t channels[GSA_CHANNEL_COUNT] = { 0 };
-  uint8_t setpoints[GSA_CHANNEL_COUNT] = { 0 };
-  uint8_t batchCount = 0;
+  GsaPhysicalOperation operations[GSA_CHANNEL_COUNT];
+  uint8_t operationCount = 0;
 
   for (uint8_t index = 0; index < GSA_CHANNEL_COUNT; index++) {
     GsaChannelState& state = _channels[index];
-    bool desiredEnable = requestedState != 0 && !state.faultLatched;
+    bool desiredEnable = requestedState != 0U && !state.faultLatched;
     if (state.effectiveEnable == desiredEnable) {
       continue;
     }
 
-    channels[batchCount] = (uint8_t)(index + 1);
-    setpoints[batchCount] = desiredEnable ? state.setpointRaw : 0;
-    batchCount++;
+    GsaPhysicalOperation& operation = operations[operationCount++];
+    operation.originType = CMD_ENABLE_GLOBAL;
+    operation.channel = (uint8_t)(index + 1U);
+    operation.requestedSetpointRaw = state.setpointRaw;
+    operation.requestedEnable = desiredEnable;
+    operation.applyEnable = true;
+    operation.disableOutput = !desiredEnable;
   }
 
-  if (batchCount > 0 && !queueHardwareBatch(channels, setpoints, batchCount, 0)) {
-    return buildBusEventResponse(GSA_EVENT_BUSY, 0, GSA_EVENT_STATE_BUSY, txOut, txLenOut);
+  if (!queuePhysicalOperations(operations, operationCount)) {
+    return buildFunctionalError(CMD_ENABLE_GLOBAL, 0, GSA_ERROR_OPERATION_NOT_ALLOWED, txOut, txLenOut);
   }
 
-  for (uint8_t index = 0; index < GSA_CHANNEL_COUNT; index++) {
-    GsaChannelState& state = _channels[index];
-    bool desiredEnable = requestedState != 0 && !state.faultLatched;
-    state.requestedEnable = desiredEnable;
-    state.effectiveEnable = desiredEnable;
-  }
-
-  if (batchCount > 0) {
-    return buildBusEventResponse(GSA_EVENT_BUSY, 0, GSA_EVENT_STATE_BUSY, txOut, txLenOut);
-  }
-
-  txLenOut = TlvBuilder::buildU8(CMD_ENABLE_GLOBAL, requestedState, txOut, TLV_MAX_LEN);
+  uint8_t payload[2] = { requestedState, operationCount };
+  txLenOut = TlvBuilder::build(CMD_ENABLE_GLOBAL, payload, sizeof(payload), txOut, TLV_MAX_LEN);
   return txLenOut != 0;
 }
 
@@ -259,20 +254,25 @@ bool AnalogService::handleFaultReset(const TlvFrame& tlv, uint8_t* txOut, uint8_
   }
 
   GsaChannelState& state = _channels[index];
-  if (!state.faultLatched && !state.requestedEnable && !state.effectiveEnable) {
-    uint8_t payload[2] = { channel, 0 };
-    txLenOut = TlvBuilder::build(CMD_FAULT_RESET, payload, sizeof(payload), txOut, TLV_MAX_LEN);
-    return txLenOut != 0;
+  if (state.faultLatched || state.effectiveEnable) {
+    GsaPhysicalOperation operation = {};
+    operation.originType = CMD_FAULT_RESET;
+    operation.channel = channel;
+    operation.requestedEnable = false;
+    operation.applyEnable = true;
+    operation.clearFault = true;
+    operation.disableOutput = true;
+
+    if (!queuePhysicalOperation(operation)) {
+      return buildFunctionalError(CMD_FAULT_RESET, channel, GSA_ERROR_OPERATION_NOT_ALLOWED, txOut, txLenOut);
+    }
+  } else {
+    state.faultLatched = false;
   }
 
-  if (!queueHardwareDisableForChannel(channel)) {
-    return buildBusEventResponse(GSA_EVENT_BUSY, channel, GSA_EVENT_STATE_BUSY, txOut, txLenOut);
-  }
-
-  state.faultLatched = false;
-  state.requestedEnable = false;
-  state.effectiveEnable = false;
-  return buildBusEventResponse(GSA_EVENT_BUSY, channel, GSA_EVENT_STATE_BUSY, txOut, txLenOut);
+  uint8_t payload[2] = { channel, 0 };
+  txLenOut = TlvBuilder::build(CMD_FAULT_RESET, payload, sizeof(payload), txOut, TLV_MAX_LEN);
+  return txLenOut != 0;
 }
 
 bool AnalogService::handleOffsetSet(const TlvFrame& tlv, uint8_t* txOut, uint8_t& txLenOut) {
@@ -377,12 +377,6 @@ bool AnalogService::handleStatus(const TlvFrame& tlv, uint8_t* txOut, uint8_t& t
   return buildChannelStatus(channel, txOut, txLenOut);
 }
 
-bool AnalogService::buildBusEventResponse(uint8_t eventType, uint8_t channel, uint8_t state, uint8_t* txOut, uint8_t& txLenOut) const {
-  uint8_t payload[3] = { eventType, channel, state };
-  txLenOut = TlvBuilder::build(CMD_FAULT_EVENT, payload, sizeof(payload), txOut, TLV_MAX_LEN);
-  return txLenOut != 0;
-}
-
 bool AnalogService::buildFunctionalError(uint8_t requestType, uint8_t channel, uint8_t errorCode, uint8_t* txOut, uint8_t& txLenOut) const {
   uint8_t payload[3] = { requestType, channel, errorCode };
   txLenOut = TlvBuilder::build(CMD_FUNCTIONAL_ERROR, payload, sizeof(payload), txOut, TLV_MAX_LEN);
@@ -404,17 +398,66 @@ bool AnalogService::buildChannelStatus(uint8_t channel, uint8_t* txOut, uint8_t&
   return txLenOut != 0;
 }
 
-bool AnalogService::queueHardwareWriteForChannel(uint8_t channel, uint8_t setpointRaw) {
-  return queueHardwareBatch(&channel, &setpointRaw, 1, channel);
+bool AnalogService::queuePhysicalOperation(const GsaPhysicalOperation& operation) {
+  return _busArbiter.queueOperation(operation);
 }
 
-bool AnalogService::queueHardwareDisableForChannel(uint8_t channel) {
-  uint8_t setpointRaw = 0;
-  return queueHardwareBatch(&channel, &setpointRaw, 1, channel);
+bool AnalogService::queuePhysicalOperations(const GsaPhysicalOperation* operations, uint8_t operationCount) {
+  if (operationCount == 0U) {
+    return true;
+  }
+
+  if (!operations || !_busArbiter.canQueue(operationCount)) {
+    return false;
+  }
+
+  for (uint8_t index = 0; index < operationCount; index++) {
+    if (!_busArbiter.queueOperation(operations[index])) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
-bool AnalogService::queueHardwareBatch(const uint8_t* channels, const uint8_t* setpointsRaw, uint8_t count, uint8_t eventChannel) {
-  return _busArbiter.queueBatch(channels, setpointsRaw, count, eventChannel);
+void AnalogService::processCompletedHardwareOperations() {
+  GsaPhysicalOperationResult result = {};
+  while (_busArbiter.popCompletedOperation(result)) {
+    applyCompletedOperation(result);
+
+    uint8_t payload[3] = {
+      result.originType,
+      result.channel,
+      result.status
+    };
+    enqueueEvent(CMD_PHYSICAL_EVENT, payload, sizeof(payload));
+  }
+}
+
+void AnalogService::applyCompletedOperation(const GsaPhysicalOperationResult& result) {
+  if (result.channel < GSA_CHANNEL_FIRST || result.channel > GSA_CHANNEL_LAST) {
+    return;
+  }
+
+  if (result.status != GSA_PHYSICAL_STATUS_OK) {
+    return;
+  }
+
+  GsaChannelState& state = _channels[result.channel - 1U];
+  if (result.applySetpoint) {
+    state.setpointRaw = result.requestedSetpointRaw;
+  }
+
+  if (result.applyEnable) {
+    state.requestedEnable = result.requestedEnable;
+    state.effectiveEnable = result.requestedEnable;
+  }
+
+  if (result.clearFault) {
+    state.faultLatched = false;
+  }
+
+  refreshChannelTelemetry((uint8_t)(result.channel - 1U));
 }
 
 bool AnalogService::evaluateTelemetry(uint8_t channel, const GsaChannelOffsets& offsets, uint8_t& voutRaw, uint8_t& ireadRaw) const {
@@ -491,8 +534,6 @@ void AnalogService::setChannelFaultLatched(uint8_t channelIndex, bool faultLatch
   if (faultLatched) {
     _channels[channelIndex].requestedEnable = false;
     _channels[channelIndex].effectiveEnable = false;
-  } else {
-    _channels[channelIndex].effectiveEnable = _channels[channelIndex].requestedEnable;
   }
 
   if (!previousState && faultLatched) {
@@ -506,15 +547,33 @@ void AnalogService::queueFaultEvent(uint8_t channelIndex) {
   }
 
   const GsaChannelState& state = _channels[channelIndex];
-  _pendingEvent.type = CMD_FAULT_EVENT;
-  _pendingEvent.payloadLen = 6;
-  _pendingEvent.payload[0] = (uint8_t)(channelIndex + 1);
-  _pendingEvent.payload[1] = state.setpointRaw;
-  _pendingEvent.payload[2] = state.voutRaw;
-  _pendingEvent.payload[3] = state.ireadRaw;
-  _pendingEvent.payload[4] = (uint8_t)(state.effectiveEnable ? 1 : 0);
-  _pendingEvent.payload[5] = (uint8_t)(state.faultLatched ? 1 : 0);
-  _pendingEvent.pending = true;
+  uint8_t payload[6] = {
+    (uint8_t)(channelIndex + 1U),
+    state.setpointRaw,
+    state.voutRaw,
+    state.ireadRaw,
+    (uint8_t)(state.effectiveEnable ? 1 : 0),
+    (uint8_t)(state.faultLatched ? 1 : 0)
+  };
+
+  enqueueEvent(CMD_FAULT_EVENT, payload, sizeof(payload));
+}
+
+bool AnalogService::enqueueEvent(uint8_t type, const uint8_t* payload, uint8_t payloadLen) {
+  if (!payload || payloadLen > sizeof(_events[0].payload) || _eventCount >= GSA_EVENT_QUEUE_SIZE) {
+    return false;
+  }
+
+  GsaEvent& event = _events[_eventTail];
+  event.type = type;
+  event.payloadLen = payloadLen;
+  for (uint8_t index = 0; index < payloadLen; index++) {
+    event.payload[index] = payload[index];
+  }
+
+  _eventTail = (uint8_t)((_eventTail + 1U) % GSA_EVENT_QUEUE_SIZE);
+  _eventCount++;
+  return true;
 }
 
 int8_t AnalogService::channelToIndex(uint8_t channel) const {
@@ -526,7 +585,7 @@ int8_t AnalogService::channelToIndex(uint8_t channel) const {
 }
 
 bool AnalogService::isValidState(uint8_t state) const {
-  return state == 0 || state == 1;
+  return state == 0U || state == 1U;
 }
 
 bool AnalogService::isValidOffsetKind(uint8_t kind) const {
@@ -536,9 +595,9 @@ bool AnalogService::isValidOffsetKind(uint8_t kind) const {
 }
 
 GsaChannelState& AnalogService::channelState(uint8_t channel) {
-  return _channels[channel - 1];
+  return _channels[channel - 1U];
 }
 
 const GsaChannelState& AnalogService::channelState(uint8_t channel) const {
-  return _channels[channel - 1];
+  return _channels[channel - 1U];
 }

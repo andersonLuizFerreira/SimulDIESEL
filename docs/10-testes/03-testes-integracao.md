@@ -38,9 +38,11 @@ Caso de teste: alterar o estado do LED embutido da GSA.
 4. o `SdGwTxScheduler` envia em prioridade `High`
 5. o `SdGwLinkEngine` aguarda `ACK`
 6. a BPM valida o frame e roteia a transação para a GSA
-7. a GSA responde em TLV
-8. a BPM devolve a resposta ao host como evento SDGW
-9. o `GsaClient` valida a resposta e confere o estado aplicado
+7. a GSA devolve a resposta TLV síncrona
+8. a BPM devolve essa resposta ao host
+9. a GSA conclui a etapa física, aciona IRQ e publica `0x31`
+10. a BPM busca o evento e o reencaminha ao host
+11. o `GsaClient` valida a resposta síncrona e o evento físico final
 
 ## Evidências atuais de robustez
 
@@ -66,6 +68,7 @@ Hoje:
 
 - o caso GSA LED é o principal cenário ponta a ponta já exercitado
 - ainda faltam roteiros equivalentes para setpoint, status, offsets e fault event da GSA
+- o roteiro oficial precisa validar também o caminho físico `D21/D22`, `D4/D19` e `D23`
 - ainda não há cobertura equivalente para múltiplas boards em paralelo
 - a recepção funcional ainda é baseada em `SggwFrame`
 

@@ -6,8 +6,25 @@
 #include "GwTlv.h"
 
 namespace {
-static const uint32_t GsaBusyPollGuardMs = 20;
-static const uint32_t GsaBusyPollIntervalMs = 10;
+static const uint8_t MaxEventsPerDrain = 24;
+}
+
+GatewayApp* GatewayApp::_self = nullptr;
+
+GatewayApp::GatewayApp(SggwLink& link, GwRouter& router)
+    : _link(link),
+      _router(router),
+      _gsaIrqLatched(false)
+{
+}
+
+void GatewayApp::begin()
+{
+    _self = this;
+    _gsaIrqLatched = false;
+
+    pinMode(GSA_IRQ_PIN, INPUT);
+    attachInterrupt(digitalPinToInterrupt(GSA_IRQ_PIN), onGsaIrqThunk, FALLING);
 }
 
 void GatewayApp::onCommand(uint8_t cmd,
@@ -16,8 +33,6 @@ void GatewayApp::onCommand(uint8_t cmd,
                            const uint8_t* data,
                            uint8_t dataLen)
 {
-    // O host resolve SDH para o formato compacto [ADDR:4][OP:4].
-    // A BPM apenas trata ADDR local ou roteia o restante para a baby board.
     const uint8_t addr = GW_CMD_ADDR(cmd);
 
     if (addr == GW_ADDR_BPM) {
@@ -26,12 +41,6 @@ void GatewayApp::onCommand(uint8_t cmd,
     }
 
     if (addr == GW_ADDR_BROADCAST) {
-        // broadcast (sem resposta) - opcional implementar depois
-        return;
-    }
-
-    if (addr == GW_ADDR_GSA && _gsaState == GsaRemoteState::Busy) {
-        sendGatewayErrAsResponse(cmd, GWERR_BUSY);
         return;
     }
 
@@ -45,27 +54,8 @@ void GatewayApp::onCommand(uint8_t cmd,
         return;
     }
 
-    // O gateway apenas valida o pacote interno da baby board e o encaminha.
     if (!GwTlv::validatePacket(resp, respLen)) {
         sendGatewayErrAsResponse(cmd, GWERR_BAD_FRAME);
-        return;
-    }
-
-    uint8_t eventType = 0;
-    if (addr == GW_ADDR_GSA && isGsaBusEvent(resp, respLen, &eventType)) {
-        _gsaState = (eventType == GSA_EVENT_BUSY) ? GsaRemoteState::Busy : GsaRemoteState::Idle;
-        if (_gsaState == GsaRemoteState::Busy) {
-            const uint32_t now = millis();
-            _gsaBusySinceMs = now;
-            _gsaNextPollAtMs = now + GsaBusyPollGuardMs;
-        } else {
-            _gsaBusySinceMs = 0;
-            _gsaNextPollAtMs = 0;
-        }
-        _link.sendEvent(cmd, resp, (uint8_t)respLen);
-        if (eventType == GSA_EVENT_BUSY) {
-            sendGatewayErrAsResponse(cmd, GWERR_BUSY);
-        }
         return;
     }
 
@@ -83,66 +73,42 @@ void GatewayApp::handleGatewayLocal(uint8_t cmd,
         _link.sendResponse(cmd, &ok, 1);
         return;
     }
-
-    // desconhecido: opcional ignorar
 }
 
 void GatewayApp::tick()
 {
-    if (_gsaState != GsaRemoteState::Busy) {
+    if (!_gsaIrqLatched && digitalRead(GSA_IRQ_PIN) != LOW) {
         return;
     }
 
-    const uint32_t now = millis();
-    if ((int32_t)(now - _gsaNextPollAtMs) < 0) {
-        return;
-    }
-
-    _gsaNextPollAtMs = now + GsaBusyPollIntervalMs;
-
-    uint8_t eventPacket[32];
-    size_t eventLen = 0;
-    if (!_router.pollGsaEvent(eventPacket, sizeof(eventPacket), eventLen)) {
-        return;
-    }
-
-    uint8_t eventType = 0;
-    if (!isGsaBusEvent(eventPacket, eventLen, &eventType)) {
-        _link.sendEvent(SGGW_CMD_GSA_TLV, eventPacket, (uint8_t)eventLen);
-        return;
-    }
-
-    _gsaState = (eventType == GSA_EVENT_BUSY) ? GsaRemoteState::Busy : GsaRemoteState::Idle;
-    if (_gsaState == GsaRemoteState::Busy) {
-        _gsaBusySinceMs = now;
-        _gsaNextPollAtMs = now + GsaBusyPollGuardMs;
-    } else {
-        _gsaBusySinceMs = 0;
-        _gsaNextPollAtMs = 0;
-    }
-    _link.sendEvent(SGGW_CMD_GSA_TLV, eventPacket, (uint8_t)eventLen);
+    drainPendingGsaEvents();
 }
 
-bool GatewayApp::isGsaBusEvent(const uint8_t* payload, size_t payloadLen, uint8_t* eventTypeOut) const
+void GatewayApp::onGsaIrqThunk()
 {
-    if (!payload || payloadLen < 6) {
-        return false;
+    if (_self != nullptr) {
+        _self->onGsaIrq();
+    }
+}
+
+void GatewayApp::onGsaIrq()
+{
+    _gsaIrqLatched = true;
+}
+
+void GatewayApp::drainPendingGsaEvents()
+{
+    for (uint8_t index = 0; index < MaxEventsPerDrain; index++) {
+        uint8_t eventPacket[32];
+        size_t eventLen = 0;
+        if (!_router.pollGsaEvent(eventPacket, sizeof(eventPacket), eventLen)) {
+            break;
+        }
+
+        _link.sendEvent(SGGW_CMD_GSA_TLV, eventPacket, (uint8_t)eventLen);
     }
 
-    if (payload[0] != GSA_CMD_EVENT || payload[1] != 0x03) {
-        return false;
-    }
-
-    uint8_t eventType = payload[2];
-    if (eventType != GSA_EVENT_BUSY && eventType != GSA_EVENT_IDLE) {
-        return false;
-    }
-
-    if (eventTypeOut) {
-        *eventTypeOut = eventType;
-    }
-
-    return true;
+    _gsaIrqLatched = (digitalRead(GSA_IRQ_PIN) == LOW);
 }
 
 void GatewayApp::sendGatewayErrAsResponse(uint8_t cmd, GwErr err)

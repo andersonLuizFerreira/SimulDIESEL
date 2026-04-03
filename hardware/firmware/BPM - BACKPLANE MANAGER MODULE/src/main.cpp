@@ -33,16 +33,19 @@ static GatewayApp app(sggwLink, router);
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
+  pinMode(GSA_RESET_PIN, OUTPUT);
+  digitalWrite(GSA_RESET_PIN, HIGH);
 
   serialTransport.begin();
   serialTransport.setTextEnabled(true);
   bluetoothTransport.begin();
   bluetoothTransport.setTextEnabled(true);
 
-  i2cBus.begin(400000);
+  i2cBus.begin(BPM_GSA_I2C_SDA_PIN, BPM_GSA_I2C_SCL_PIN, 400000);
   spiBus.begin(8000000);
 
   sggwLink.attachApp(&app);
+  app.begin();
   sggwLink.begin();
 }
 

@@ -2,44 +2,63 @@
 
 ## Estado atual
 
-A estrutura do repositório e a presença de um gateway com tabela de dispositivos indicam que o hardware foi concebido de forma modular, com placas filhas ou periféricos conectados ao backplane. O exemplo concreto mais claro no código é o `GSA`, acessado como dispositivo remoto via barramento e tratado como serviço independente.
+O hardware foi concebido de forma modular, com a BPM atuando como gateway e as baby boards encapsulando funções específicas de simulação e interface física.
 
-As baby boards, no contexto atual do projeto, cumprem dois papéis:
-
-- encapsular funções específicas de simulação ou interface física;
-- permitir expansão do sistema sem alteração estrutural do software local.
+O exemplo mais completo hoje é a GSA.
 
 ## Funcionamento técnico
 
-O comportamento esperado de uma baby board já aparece cristalizado no firmware:
+O padrão de integração observado no projeto é:
 
-1. o gateway identifica o destino por endereço lógico;
-2. a tabela de dispositivos informa o barramento adequado;
-3. o barramento entrega uma mensagem curta ao periférico;
-4. o periférico responde dentro de um contrato simples e validado.
+1. o host fala com a BPM pela serial;
+2. a BPM resolve o endereço lógico de destino;
+3. a BPM entrega uma mensagem curta para a baby board;
+4. a baby board responde com um contrato simples e validado;
+5. eventos assíncronos retornam pelo caminho reverso via BPM.
 
-No caso do `GSA`, a placa atua como escravo `I2C` no endereço `0x23` e usa uma pilha curta:
+## Caso oficial da GSA
 
-```text
-I2C callback -> Transport -> Link -> Service -> LedService
-```
+A GSA hoje é a referência concreta do modelo de baby board com duas camadas internas:
 
-Essa decomposição deixa claro que uma baby board não precisa conhecer o protocolo do host. Ela precisa conhecer apenas o contrato interno do barramento que o gateway encaminha.
+### Pinagem oficial BPM <-> GSA
 
-## Limitações
+- I2C físico BPM ESP32 `D21/D22` <-> GSA Nano `A4/A5`
+- I2C lógico interno da GSA em `D2/D3`
+- IRQ físico GSA -> BPM em `D4` -> `D19`
+- reset do `TCA9548A` em `D8` na GSA
+- reset da GSA controlado pela BPM em `D23`
 
-Nem todas as baby boards sugeridas pela árvore de hardware possuem descrição textual ou firmware analisável no repositório atual. A tabela de dispositivos do gateway contém entradas suficientes para provar a intenção modular, mas não descreve sozinha função elétrica completa, revisão de placa ou conjunto de sensores/atuadores de cada módulo.
+### Camada lógica
 
-## Evolução prevista
+- `Transport`
+- `Link`
+- `Service`
+- `LedService`
+- `AnalogService`
+- `EepromService`
 
-Para que a documentação de baby boards fique completa, a evolução recomendada é publicar para cada placa:
+Essa camada recebe os comandos TLV da BPM e mantém o shadow RAM dos canais.
 
-- finalidade funcional;
-- barramento usado;
-- endereço físico ou critérios de seleção;
-- serviços expostos ao gateway;
-- limites de operação observáveis em firmware e hardware.
+### Camada eletrônica
 
-Enquanto essa consolidação não acontece, o GSA permanece como referência mais concreta do padrão de integração de placas filhas.
+- `BusArbiterService`
+- `Tca9548Service`
+- `Mcp4725Service`
+
+Essa camada executa a atuação física real no barramento I2C interno da própria GSA.
+
+### Sinalização assíncrona
+
+Quando a etapa física termina, a GSA:
+
+- gera um TLV assíncrono `0x31`;
+- sinaliza a BPM por IRQ físico;
+- deixa a BPM buscar e encaminhar o evento ao host.
+
+## Observações
+
+- a baby board não precisa conhecer o protocolo textual do host;
+- a BPM continua concentrando o protocolo de sessão e o roteamento;
+- no caso da GSA, o modelo BUSY/IDLE anterior foi abandonado em favor de dois barramentos independentes + IRQ.
 
 [Retornar ao README principal](../README.md)

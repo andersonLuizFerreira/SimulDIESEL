@@ -13,12 +13,14 @@ Do ponto de vista arquitetural, o backplane sustenta:
 
 ## Funcionamento técnico
 
-Mesmo sem uma pinagem textual consolidada, o comportamento do firmware mostra o que o backplane precisa viabilizar:
+Com a pinagem BPM <-> GSA agora consolidada no repositório, o backplane precisa viabilizar explicitamente:
 
 ```text
 ESP32 Gateway
   -> linhas seriais para o host
-  -> barramento I2C para periféricos endereçados
+  -> I2C fisico em D21/D22 para a GSA
+  -> IRQ GSA -> BPM em D4 -> D19
+  -> reset dedicado da GSA em D23
   -> barramento SPI para dispositivos selecionados por chip-select
 ```
 
@@ -28,7 +30,7 @@ Há também evidência de que a solução foi pensada para expansão incremental
 
 ## Limitações
 
-O repositório atual não apresenta, na documentação oficial ou nos arquivos textuais do hardware, uma descrição consolidada de conectores, tensões, proteção elétrica, topologia mecânica ou revisões de placa do backplane. Por isso, este documento descreve com segurança apenas o papel sistêmico sustentado pelo código e pelos artefatos de placa existentes.
+O repositório ainda não apresenta, na documentação oficial ou nos arquivos textuais do hardware, uma descrição consolidada de conectores, tensões, proteção elétrica, topologia mecânica ou revisões de placa do backplane. Por isso, este documento descreve com segurança o papel sistêmico e a pinagem crítica BPM <-> GSA sustentados pelo código, mas não substitui um esquemático elétrico final do backplane.
 
 ## Evolução prevista
 

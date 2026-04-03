@@ -10,25 +10,50 @@ BPM
 
 ## Responsabilidade principal no firmware
 
-A BPM é a board principal do enlace host/gateway e concentra:
-
-- handshake inicial da conexão serial
-- sessão binária SDGW com o host
-- aplicação local do gateway
-- roteamento para as baby boards
-- recursos locais da própria BPM
+Ser o gateway físico entre host e baby boards, mantendo a sessão SDGW na serial e roteando o tráfego curto para as boards remotas.
 
 ## Papel atual no sistema
 
-No estado atual do projeto, a BPM é o ponto de terminação física e lógica do link usado pelo host C#.
+No estado atual do projeto, a BPM:
 
-Ela:
+- recebe o bootstrap textual do host;
+- entra em `Linked`;
+- valida e processa frames SDGW;
+- trata comandos locais da própria BPM;
+- roteia comandos compactos para a GSA e demais boards;
+- encaminha eventos assíncronos vindos das boards para o host.
 
-- recebe o bootstrap textual
-- entra em `Linked`
-- valida frames SDGW
-- trata comandos locais da BPM
-- roteia comandos compactos para GSA e demais boards
+## Papel da BPM na nova arquitetura da GSA
+
+Com a arquitetura oficial nova da GSA, a BPM não arbitra mais BUSY/IDLE por polling.
+
+O comportamento vigente é:
+
+1. a BPM envia o comando TLV para a GSA no barramento físico;
+2. recebe da GSA apenas o ACK lógico síncrono do comando;
+3. aguarda a IRQ física da GSA;
+4. quando a IRQ entra em `LOW`, lê um TLV assíncrono encapsulado da GSA;
+5. encaminha esse TLV no fluxo reverso SDGW como evento.
+
+## Pinagem oficial da BPM para a GSA
+
+- I2C físico com a GSA: `D21` = SDA, `D22` = SCL
+- entrada de IRQ da GSA: `D19`
+- reset dedicado da GSA: `D23`
+
+## IRQ da GSA
+
+Definições vigentes na BPM:
+
+- entrada de IRQ da GSA em `D19`
+- ativo em `LOW`
+- leitura por interrupção e drenagem no loop principal
+
+A BPM não interpreta a regra de negócio da operação analógica. Ela apenas:
+
+- detecta a IRQ;
+- busca o evento;
+- reencaminha o payload ao host.
 
 ## Sessão host/gateway
 
@@ -36,7 +61,9 @@ Ela:
 
 Estado inicial do firmware:
 
-    WaitingBanner
+```text
+WaitingBanner
+```
 
 Fluxo:
 
@@ -47,89 +74,41 @@ Fluxo:
 
 ### Keepalive atual
 
-A BPM não depende mais exclusivamente de `PING 0x55`.
+A BPM continua alinhada ao host:
 
-Comportamento atual:
+- qualquer frame SDGW válido renova a sessão;
+- `PING 0x55` permanece suportado, mas não é a única prova de vida;
+- timeout de atividade da sessão = `4000 ms`.
 
-- qualquer frame SDGW válido recebido renova a atividade da sessão
-- essa renovação acontece logo após a validação estrutural do frame
-- `PING` continua suportado, mas é apenas mais um frame válido possível
-
-Timeout atual:
-
-- atividade do link: `4000 ms`
-
-Se não houver atividade SDGW válida dentro dessa janela:
-
-- a BPM encerra a sessão binária
-- volta para `WaitingBanner`
-
-## Papel do gateway local
-
-A BPM trata dois grupos de comandos:
+## Roteamento local
 
 ### Comandos locais
 
-Exemplo atual:
+Exemplo:
 
 - `BPM.gateway ping`
 
-O host resolve esse comando para o formato SDGW compacto local da BPM antes do envio.
-
 ### Comandos roteados
 
-Exemplo atual:
+Exemplos:
 
 - `GSA.led set state=on|off`
+- `GSA.channel.setpoint set channel=<1..16> value=<0..255>`
+- `GSA.channel.enable set channel=<1..16> state=on|off`
 
-Nesse caso, a BPM:
+No caso roteado, a BPM:
 
-1. recebe o comando SDGW compacto do host
-2. identifica o endereço lógico de destino
-3. usa `GwRouter` para selecionar o barramento
-4. envia TLV curto para a baby board
-5. devolve a resposta ao host como evento SDGW
-
-## Timeouts operacionais atuais
-
-Valores relevantes da BPM atual:
-
-- timeout de atividade da sessão SDGW: `4000 ms`
-- timeout do router/gateway para a baby board: `100 ms`
-
-Esses dois tempos são parte importante do alinhamento recente com o host.
-
-## Alinhamento com o host atual
-
-O host atual usa:
-
-- `BpmSerialService`
-- `SdGwTxScheduler`
-- `SdGwLinkSupervisor`
-
-Esse host considera o link vivo por RX SDGW válido e agenda ping apenas sob silêncio.
-
-A BPM foi ajustada para o mesmo conceito:
-
-- atividade válida mantém a sessão
-- tráfego funcional não deve provocar logout artificial por falta de ping explícito
-
-## Casos observados no código atual
-
-Targets semânticos atualmente exercitados no host:
-
-- `BPM.gateway`
-- `GSA.led`
-
-Do ponto de vista do firmware, isso chega como:
-
-- comando compacto local da BPM
-- comando compacto roteado para a GSA
+1. recebe o comando SDGW compacto do host;
+2. identifica o endereço lógico de destino;
+3. usa `GwRouter` para selecionar o barramento;
+4. envia o TLV curto para a board remota;
+5. devolve a resposta síncrona ao host;
+6. em paralelo, encaminha eventos assíncronos quando a board sinaliza IRQ.
 
 ## Observações
 
-- o wire format SDGW permanece compatível com o host atual
-- a BPM continua sendo a dona do gateway físico e do roteamento
-- o parser SDH textual ainda não é a interface de entrada ativa do firmware; o host resolve SDH para SDGW compacto antes do envio
+- o wire format SDGW permanece compatível com o host atual;
+- a BPM continua sendo dona do gateway físico e do roteamento;
+- o fluxo ativo da GSA não usa mais o modelo BUSY/IDLE com retry ou polling semântico.
 
 [Retornar ao README principal](../../README.md)

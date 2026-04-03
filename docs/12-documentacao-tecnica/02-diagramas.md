@@ -43,14 +43,18 @@ Os diagramas abaixo sintetizam a arquitetura comprovada pelo código. Eles não 
 ### Diagrama de sequência do enlace
 
 ```text
-Host                Gateway                GSA
- |                     |                    |
- |-- banner ---------->|                    |
- |<-- "SimulDIESEL..."-|                    |
- |-- frame SGGW ------>|                    |
- |                     |-- TLV ----------->|
- |                     |<-- TLV -----------|
- |<-- resposta SGGW ---|                    |
+Host                BPM ESP32                   GSA Nano
+ |                     |                           |
+ |-- banner ---------->|                           |
+ |<-- "SimulDIESEL..."-|                           |
+ |-- frame SGGW ------>|                           |
+ |                     |-- TLV por D21/D22 ----->|
+ |                     |<-- TLV síncrono ---------|
+ |<-- resposta SGGW ---|                           |
+ |                     |<-- IRQ em D19 -----------|
+ |                     |-- fetch de evento ------>|
+ |                     |<-- TLV 0x31 -------------|
+ |<-- evento SGGW -----|                           |
 ```
 
 ### Diagrama de estados do host
@@ -84,7 +88,7 @@ I2C IRQ/Callback
 
 ## Limitações
 
-Os diagramas aqui descritos representam o que o código confirma hoje. Eles não trazem pinagem detalhada, topologia física final do backplane nem uma matriz completa de todos os dispositivos possíveis, porque essa informação não está consolidada textualmente no repositório atual.
+Os diagramas aqui descritos representam o que o código confirma hoje. A pinagem crítica BPM <-> GSA já está consolidada na documentação oficial, mas estes diagramas ainda não substituem esquemas elétricos completos, topologia mecânica final do backplane nem uma matriz completa de todos os dispositivos possíveis.
 
 ## Evolução prevista
 

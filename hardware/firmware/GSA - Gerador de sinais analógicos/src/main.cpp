@@ -1,5 +1,7 @@
 #include <Arduino.h>
+#include <SoftwareWire.h>
 #include "defs.h"
+#include "config.h"
 
 #include "AnalogService.h"
 #include "BusArbiterService.h"
@@ -14,9 +16,10 @@
 static Transport     g_transport;
 static LedService    g_led;
 static EepromService g_eeprom;
-static Tca9548Service g_tca9548;
-static Mcp4725Service g_mcp4725;
-static BusArbiterService g_busArbiter(g_tca9548, g_mcp4725);
+static SoftwareWire  g_logicalI2c(GSA_LOGICAL_I2C_SDA_PIN, GSA_LOGICAL_I2C_SCL_PIN, false);
+static Tca9548Service g_tca9548(g_logicalI2c);
+static Mcp4725Service g_mcp4725(g_logicalI2c);
+static BusArbiterService g_busArbiter(g_logicalI2c, g_tca9548, g_mcp4725);
 static AnalogService g_analog(g_eeprom, g_busArbiter);
 static Service       g_service(g_led, g_analog);
 static Link          g_link(g_transport, g_service);

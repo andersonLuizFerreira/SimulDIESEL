@@ -28,9 +28,9 @@ namespace SimulDIESEL.DTL.Protocols.SDGW
         public const byte GsaChannelOffsetResetType = 0x19;
         public const byte GsaOffsetResetType = 0x1A;
         public const byte GsaChannelFaultEventType = 0x30;
+        public const byte GsaPhysicalOperationEventType = 0x31;
         public const byte GsaErrorType = 0x7F;
         public const byte GatewayErrorType = 0xFE;
-        public const byte GatewayBusyError = 0xE6;
 
         public const byte GsaOffsetKindVout = 0x01;
         public const byte GsaOffsetKindVread = 0x02;

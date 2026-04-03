@@ -78,25 +78,26 @@ namespace SimulDIESEL
             if (status.IsConnected)
             {
                 MessageBox.Show(
-                    "Ja existe uma sessao ativa via " + status.TransportKind + ". Desconecte antes de iniciar o Bluetooth.",
+                    "A Serial esta ativa. Desconecte a Serial antes de conectar via Bluetooth.",
                     "Conexao Bluetooth",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
                 return;
             }
 
-            var frmBluetooth = frmBluetoothConnect.Instance;
+            var result = _bpmLogic.ConnectBluetoothPadrao();
+            AtualizarBotoesConexao();
+            AtualizarIndicadores();
+            AtualizarNomeDaInterface();
 
-            if (frmBluetooth.Visible)
+            if (!result.Success)
             {
-                frmBluetooth.BringToFront();
-                frmBluetooth.Activate();
-                return;
+                MessageBox.Show(
+                    result.Message,
+                    "Conexao Bluetooth",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
             }
-
-            frmBluetooth.MdiParent = this;
-            frmBluetooth.StartPosition = FormStartPosition.CenterParent;
-            frmBluetooth.Show();
         }
 
         private void AtualizarBotoesConexao()
@@ -110,25 +111,28 @@ namespace SimulDIESEL
             toolStripConectar.Image = serialAtivo
                 ? Properties.Resources.Conectado
                 : Properties.Resources.Desconectado;
-            toolStripConectar.ToolTipText = "Conectar via Serial";
+            toolStripConectar.Enabled = !bluetoothAtivo;
+            toolStripConectar.ToolTipText = bluetoothAtivo
+                ? "Desconecte o Bluetooth antes de usar a Serial"
+                : (serialAtivo ? "Desconectar Serial" : "Conectar via Serial");
 
             toolStripBluetooth.Text = bluetoothAtivo ? "Desconectar BT" : "Bluetooth";
             toolStripBluetooth.Image = CreateBluetoothImage(bluetoothAtivo);
-            toolStripBluetooth.ToolTipText = "Conectar via Bluetooth";
+            toolStripBluetooth.Enabled = !serialAtivo;
+            toolStripBluetooth.ToolTipText = serialAtivo
+                ? "Desconecte a Serial antes de usar o Bluetooth"
+                : (bluetoothAtivo ? "Desconectar Bluetooth" : "Conectar via Bluetooth");
         }
 
         private void AtualizarIndicadores()
         {
             BpmStatusDto status = _bpmLogic.GetStatus();
-            bool bluetoothAtivo = status.IsConnected && status.TransportKind == TransportKind.Bluetooth;
 
             tsLedSerial.Image = status.IsConnected
                 ? Properties.Resources.LedGreenBright_18x18
                 : Properties.Resources.LedRedDark_18x18;
 
-            tsLabelSerial.Text = bluetoothAtivo
-                ? "Status do Bluetooth: " + (status.IsConnected ? "Conectado" : "Desconectado")
-                : "Status da Serial: " + (status.IsConnected ? "Conectado" : "Desconectado");
+            tsLabelSerial.Text = "Status do Transporte: " + (status.IsConnected ? "Conectado" : "Desconectado");
 
             if (!status.IsConnected)
             {

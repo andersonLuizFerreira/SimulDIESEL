@@ -73,8 +73,8 @@
             // tsLabelSerial
             // 
             this.tsLabelSerial.Name = "tsLabelSerial";
-            this.tsLabelSerial.Size = new System.Drawing.Size(114, 20);
-            this.tsLabelSerial.Text = "Status da Serial:";
+            this.tsLabelSerial.Size = new System.Drawing.Size(151, 20);
+            this.tsLabelSerial.Text = "Status do Transporte:";
             // 
             // tsLedSerial
             // 

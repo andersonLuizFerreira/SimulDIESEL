@@ -24,6 +24,7 @@ namespace SimulDIESEL.UI
 
             _logic = FrmGsaLogic.CreateDefault();
             _logic.ChannelFaultEventReceived += Logic_ChannelFaultEventReceived;
+            _logic.PhysicalOperationEventReceived += Logic_PhysicalOperationEventReceived;
 
             _gsaControls.SetpointVoltageChanged += GsaControls_SetpointVoltageChanged;
             _gsaControls.SetpointVoltageCommitted += GsaControls_SetpointVoltageCommitted;
@@ -51,6 +52,7 @@ namespace SimulDIESEL.UI
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             _logic.ChannelFaultEventReceived -= Logic_ChannelFaultEventReceived;
+            _logic.PhysicalOperationEventReceived -= Logic_PhysicalOperationEventReceived;
             _gsaControls.SetpointVoltageChanged -= GsaControls_SetpointVoltageChanged;
             _gsaControls.SetpointVoltageCommitted -= GsaControls_SetpointVoltageCommitted;
             _gsaControls.OutputEnabledChanged -= GsaControls_OutputEnabledChanged;
@@ -81,6 +83,7 @@ namespace SimulDIESEL.UI
             }
 
             SetBuiltinLedCheckboxState(false);
+            SetPhysicalResultMessage("Resultado físico: aguardando operação da GSA.", true);
         }
 
         private void ApplyChannelState(int channel)
@@ -206,6 +209,25 @@ namespace SimulDIESEL.UI
             ApplySnapshot(faultEvent, true);
         }
 
+        private void Logic_PhysicalOperationEventReceived(GsaPhysicalOperationEvent physicalEvent)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(() => Logic_PhysicalOperationEventReceived(physicalEvent)));
+                return;
+            }
+
+            if (physicalEvent == null)
+                return;
+
+            SetPhysicalResultMessage(BuildPhysicalResultText(physicalEvent), physicalEvent.IsSuccess);
+
+            if (physicalEvent.Channel >= 1 && physicalEvent.Channel <= _channels.Length)
+            {
+                _ = RefreshChannelAsync(physicalEvent.Channel, false);
+            }
+        }
+
         private async Task SendChannelSetpointAsync(int channel)
         {
             ChannelUiState state = _channels[channel - 1];
@@ -282,6 +304,47 @@ namespace SimulDIESEL.UI
                 MessageBoxIcon.Warning);
         }
 
+        private void SetPhysicalResultMessage(string text, bool success)
+        {
+            _physicalResultLabel.Text = string.IsNullOrWhiteSpace(text)
+                ? "Resultado físico: aguardando operação da GSA."
+                : text;
+            _physicalResultLabel.ForeColor = success
+                ? System.Drawing.Color.FromArgb(96, 215, 173)
+                : System.Drawing.Color.FromArgb(239, 125, 125);
+        }
+
+        private static string BuildPhysicalResultText(GsaPhysicalOperationEvent physicalEvent)
+        {
+            string operationName = DescribeOriginType(physicalEvent.OriginType);
+            string statusText = physicalEvent.IsSuccess
+                ? "OK"
+                : (physicalEvent.Status == GsaPhysicalOperationStatus.TcaNoAck ? "falha TCA9548" : "falha MCP4725");
+
+            return string.Format(
+                "Resultado físico: {0} no canal {1} -> {2}.",
+                operationName,
+                physicalEvent.Channel,
+                statusText);
+        }
+
+        private static string DescribeOriginType(byte originType)
+        {
+            switch (originType)
+            {
+                case 0x10:
+                    return "setpoint";
+                case 0x11:
+                    return "enable";
+                case 0x14:
+                    return "enable global";
+                case 0x15:
+                    return "fault reset";
+                default:
+                    return "TLV 0x" + originType.ToString("X2");
+            }
+        }
+
         private sealed class ChannelUiState
         {
             public double SetpointVoltage;
@@ -289,6 +352,11 @@ namespace SimulDIESEL.UI
             public double MeasuredCurrent;
             public bool OutputEnabled;
             public bool FaultActive;
+        }
+
+        private void _gsaControls_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

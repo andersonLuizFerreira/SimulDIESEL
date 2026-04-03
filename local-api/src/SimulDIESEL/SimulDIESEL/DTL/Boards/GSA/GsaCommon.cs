@@ -22,6 +22,13 @@ namespace SimulDIESEL.DTL.Boards.GSA
         OperationNotAllowedInCurrentState = 0x0B
     }
 
+    public enum GsaPhysicalOperationStatus : byte
+    {
+        Ok = 0x01,
+        TcaNoAck = 0x02,
+        McpNoAck = 0x03
+    }
+
     public class GsaChannelSnapshot
     {
         public int Channel { get; set; }
@@ -36,29 +43,22 @@ namespace SimulDIESEL.DTL.Boards.GSA
     {
     }
 
-    public enum GsaBusEventType : byte
+    public sealed class GsaPhysicalOperationEvent
     {
-        Busy = 0x01,
-        Idle = 0x02
-    }
-
-    public enum GsaRemoteState : byte
-    {
-        Idle = 0x00,
-        Busy = 0x01
-    }
-
-    public sealed class GsaBusEvent
-    {
-        public GsaBusEventType EventType { get; set; }
+        public byte OriginType { get; set; }
         public int Channel { get; set; }
-        public GsaRemoteState State { get; set; }
+        public GsaPhysicalOperationStatus Status { get; set; }
+        public string Message { get; set; }
+
+        public bool IsSuccess
+        {
+            get { return Status == GsaPhysicalOperationStatus.Ok; }
+        }
     }
 
     public sealed class GsaGatewayErrorResponse
     {
         public byte ErrorCode { get; set; }
-        public bool IsBusy { get; set; }
         public string Message { get; set; }
     }
 

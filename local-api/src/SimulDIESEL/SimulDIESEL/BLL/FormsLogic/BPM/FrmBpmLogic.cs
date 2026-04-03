@@ -1,5 +1,6 @@
 using System;
 using System.IO.Ports;
+using SimulDIESEL.BLL.Boards.BPM;
 using SimulDIESEL.BLL.Boards.BPM.Comm.Serial;
 using SimulDIESEL.DAL.Transport;
 using SimulDIESEL.DTL.Boards.BPM;
@@ -44,6 +45,16 @@ namespace SimulDIESEL.BLL.FormsLogic.BPM
             return BpmSerialService.ListarBluetoothPortas();
         }
 
+        public BluetoothDeviceDto[] ListarBluetoothDispositivos()
+        {
+            return _serialService.Bluetooth.ListarDispositivos();
+        }
+
+        public BpmCommandResult ConnectBluetoothPadrao(int baudRate = 115200)
+        {
+            return _serialService.Bluetooth.ConnectDefault(baudRate);
+        }
+
         public BpmStatusDto GetStatus()
         {
             return _serialService.Bpm.GetStatus();
@@ -52,7 +63,25 @@ namespace SimulDIESEL.BLL.FormsLogic.BPM
         public string GetInterfaceDisplayName()
         {
             BpmStatusDto status = GetStatus();
-            return status.IsLinked ? status.InterfaceName : "Nenhum";
+
+            if (!status.IsConnected)
+                return "Nenhum";
+
+            if (status.TransportKind == TransportKind.Bluetooth)
+            {
+                string bluetoothName = !string.IsNullOrWhiteSpace(status.TransportDisplayName)
+                    ? status.TransportDisplayName
+                    : status.InterfaceName;
+                return "Bluetooth - " + bluetoothName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(status.TransportDisplayName))
+                return status.TransportDisplayName;
+
+            if (!string.IsNullOrWhiteSpace(status.InterfaceName))
+                return status.InterfaceName;
+
+            return "Nenhum";
         }
 
         public bool Connect(string portName, int baudRate)
@@ -80,6 +109,17 @@ namespace SimulDIESEL.BLL.FormsLogic.BPM
                 throw new ArgumentException("Porta COM Bluetooth e obrigatoria.", nameof(portName));
 
             return _serialService.ConnectBluetooth(portName, deviceName, baudRate);
+        }
+
+        public bool ConnectBluetooth(BluetoothDeviceDto device, int baudRate = 115200)
+        {
+            if (device == null)
+                throw new ArgumentNullException(nameof(device));
+
+            if (string.IsNullOrWhiteSpace(device.PortName))
+                throw new ArgumentException("O dispositivo selecionado nao possui porta SPP utilizavel no host.", nameof(device));
+
+            return _serialService.Bluetooth.Connect(device, baudRate);
         }
 
         public TransportKind GetSelectedTransportKind()

@@ -6,16 +6,14 @@
 #include "GwRouter.h"
 #include "GwErr.h"
 
-// Forward declaration para evitar include circular
 class SggwLink;
 
 class GatewayApp : public IGatewayApp {
 public:
-    GatewayApp(SggwLink& link, GwRouter& router)
-    : _link(link), _router(router), _gsaState(GsaRemoteState::Idle), _gsaBusySinceMs(0), _gsaNextPollAtMs(0) {}
+    GatewayApp(SggwLink& link, GwRouter& router);
 
-    // O host envia o comando compacto ja resolvido.
-    // A BPM trata ADDR 0 localmente e roteia os demais enderecos.
+    void begin();
+
     void onCommand(uint8_t cmd,
                    uint8_t flags,
                    uint8_t seq,
@@ -24,21 +22,20 @@ public:
     void tick();
 
 private:
-    enum class GsaRemoteState {
-        Idle,
-        Busy
-    };
-
-    SggwLink& _link;
-    GwRouter& _router;
-    GsaRemoteState _gsaState;
-    uint32_t _gsaBusySinceMs;
-    uint32_t _gsaNextPollAtMs;
+    static void onGsaIrqThunk();
+    void onGsaIrq();
+    void drainPendingGsaEvents();
 
     void handleGatewayLocal(uint8_t cmd,
                             const uint8_t* data,
                             uint8_t dataLen);
 
-    bool isGsaBusEvent(const uint8_t* payload, size_t payloadLen, uint8_t* eventTypeOut = nullptr) const;
     void sendGatewayErrAsResponse(uint8_t cmd, GwErr err);
+
+private:
+    SggwLink& _link;
+    GwRouter& _router;
+    volatile bool _gsaIrqLatched;
+
+    static GatewayApp* _self;
 };

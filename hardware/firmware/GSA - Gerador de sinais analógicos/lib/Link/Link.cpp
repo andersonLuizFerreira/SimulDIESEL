@@ -10,16 +10,19 @@ Link::Link(Transport& tr, Service& svc)
 
 void Link::begin() {
   clearError();
+  Transport::setIrqActive(false);
 }
 
 void Link::tick() {
   if (Transport::hasTxPending()) {
+    Transport::setIrqActive(Transport::hasAsyncEventTxPending() || _svc.hasPendingEvent());
     return;
   }
 
   uint8_t txTlv[TLV_MAX_LEN];
   uint8_t txTlvLen = 0;
   if (!_svc.popPendingEvent(txTlv, txTlvLen) || txTlvLen < 2) {
+    Transport::setIrqActive(false);
     return;
   }
 
@@ -29,7 +32,8 @@ void Link::tick() {
   }
 
   out[txTlvLen] = Crc8::calc(out, txTlvLen);
-  _tr.setTx(out, (uint8_t)(txTlvLen + 1));
+  _tr.setTx(out, (uint8_t)(txTlvLen + 1), true);
+  Transport::setIrqActive(true);
 }
 
 void Link::setError(uint8_t code, uint8_t lastT) {
@@ -112,6 +116,6 @@ void Link::poll() {
     for (uint8_t i = 0; i < txTlvLen; i++) out[i] = txTlv[i];
     out[txTlvLen] = Crc8::calc(out, txTlvLen);
 
-    _tr.setTx(out, txTlvLen + 1);
+    _tr.setTx(out, txTlvLen + 1, false);
   }
 }

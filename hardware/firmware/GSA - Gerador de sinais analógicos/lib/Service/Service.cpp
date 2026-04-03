@@ -48,6 +48,11 @@ bool Service::popPendingEvent(uint8_t* txOut, uint8_t& txLenOut)
   return _analog.popPendingEvent(txOut, txLenOut);
 }
 
+bool Service::hasPendingEvent() const
+{
+  return _analog.hasPendingEvent();
+}
+
 bool Service::handleBuiltinLed(const TlvFrame& tlv, uint8_t* txOut, uint8_t& txLenOut)
 {
   if (tlv.l != 1 || tlv.v == nullptr) {

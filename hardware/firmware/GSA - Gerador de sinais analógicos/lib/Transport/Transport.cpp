@@ -2,6 +2,7 @@
 #include <Wire.h>
 
 #include "Transport.h"
+#include "config.h"
 #include "crc8.h"
 
 Transport* Transport::_self = nullptr;
@@ -12,12 +13,17 @@ volatile bool    Transport::_rxPending = false;
 
 volatile uint8_t Transport::_txBuf[TLV_MAX_LEN];
 volatile uint8_t Transport::_txLen = 0;
+volatile bool    Transport::_txIsAsyncEvent = false;
+bool             Transport::_irqActive = false;
 
 void Transport::begin(uint8_t i2cAddr) {
   _self = this;
   _rxLen = 0;
   _rxPending = false;
   _txLen = 0;
+  _txIsAsyncEvent = false;
+
+  setIrqActive(false);
 
   resumeSlave(i2cAddr);
 }
@@ -33,6 +39,29 @@ bool Transport::hasTxPending() {
   bool pending = _txLen != 0;
   interrupts();
   return pending;
+}
+
+bool Transport::hasAsyncEventTxPending() {
+  noInterrupts();
+  bool pending = (_txLen != 0) && _txIsAsyncEvent;
+  interrupts();
+  return pending;
+}
+
+void Transport::setIrqActive(bool active) {
+  if (_irqActive == active) {
+    return;
+  }
+
+  if (active) {
+    pinMode(GSA_IRQ_PIN, OUTPUT);
+    digitalWrite(GSA_IRQ_PIN, LOW);
+  } else {
+    digitalWrite(GSA_IRQ_PIN, LOW);
+    pinMode(GSA_IRQ_PIN, INPUT);
+  }
+
+  _irqActive = active;
 }
 
 void Transport::onReceiveThunk(int count) {
@@ -57,12 +86,14 @@ void Transport::onRequestThunk() {
     _txBuf[1] = 0;
     _txBuf[2] = Crc8::calc((const uint8_t*)_txBuf, 2);
     _txLen = 3;
+    _txIsAsyncEvent = false;
   }
 
   Wire.write((const uint8_t*)_txBuf, _txLen);
 
   // Limpa para não reenviar a mesma resposta indefinidamente
   _txLen = 0;
+  _txIsAsyncEvent = false;
 }
 
 bool Transport::popRx(uint8_t* out, uint8_t& outLen) {
@@ -79,12 +110,13 @@ bool Transport::popRx(uint8_t* out, uint8_t& outLen) {
   return true;
 }
 
-void Transport::setTx(const uint8_t* data, uint8_t len) {
+void Transport::setTx(const uint8_t* data, uint8_t len, bool isAsyncEvent) {
   if (!data) return;
   if (len > TLV_MAX_LEN) len = TLV_MAX_LEN;
 
   noInterrupts();
   for (uint8_t i = 0; i < len; i++) _txBuf[i] = data[i];
   _txLen = len;
+  _txIsAsyncEvent = isAsyncEvent;
   interrupts();
 }

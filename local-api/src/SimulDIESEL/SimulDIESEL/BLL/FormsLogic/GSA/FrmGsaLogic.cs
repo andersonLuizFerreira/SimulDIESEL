@@ -22,9 +22,11 @@ namespace SimulDIESEL.BLL.FormsLogic.GSA
             _isLinked = isLinked ?? throw new ArgumentNullException(nameof(isLinked));
 
             _gsaClient.ChannelFaultEventReceived += OnChannelFaultEventReceived;
+            _gsaClient.PhysicalOperationEventReceived += OnPhysicalOperationEventReceived;
         }
 
         public event Action<GsaChannelFaultEvent> ChannelFaultEventReceived;
+        public event Action<GsaPhysicalOperationEvent> PhysicalOperationEventReceived;
 
         public bool IsLinked
         {
@@ -170,6 +172,11 @@ namespace SimulDIESEL.BLL.FormsLogic.GSA
             ChannelFaultEventReceived?.Invoke(faultEvent);
         }
 
+        private void OnPhysicalOperationEventReceived(GsaPhysicalOperationEvent physicalEvent)
+        {
+            PhysicalOperationEventReceived?.Invoke(physicalEvent);
+        }
+
         private static Task<GsaOperationResult<T>> FailWhenNotLinked<T>()
             where T : class
         {
@@ -182,6 +189,7 @@ namespace SimulDIESEL.BLL.FormsLogic.GSA
                 return;
 
             _gsaClient.ChannelFaultEventReceived -= OnChannelFaultEventReceived;
+            _gsaClient.PhysicalOperationEventReceived -= OnPhysicalOperationEventReceived;
             _disposed = true;
         }
     }

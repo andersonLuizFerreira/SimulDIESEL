@@ -6,6 +6,10 @@
 // I2C - Baby boards
 // ============================================================
 #define I2C_GSA_ADDR  0x23   // endereco fisico padrao do GSA no barramento I2C
+#define BPM_GSA_I2C_SDA_PIN   21
+#define BPM_GSA_I2C_SCL_PIN   22
+#define GSA_IRQ_PIN           19
+#define GSA_RESET_PIN         23
 
 // ============================================================
 // GSA - TLV commands (I2C payload)
@@ -19,11 +23,9 @@
 #define GSA_CMD_OFFSET_SAVE    0x18
 #define GSA_CMD_OFFSET_RESET   0x1A
 #define GSA_CMD_STATUS_CH      0x1B
-#define GSA_CMD_EVENT          0x30
+#define GSA_CMD_FAULT_EVENT    0x30
+#define GSA_CMD_PHYSICAL_EVENT 0x31
 #define GSA_CMD_FUNC_ERROR     0x7F
-
-#define GSA_EVENT_BUSY         0x01
-#define GSA_EVENT_IDLE         0x02
 
 #define LED_BUILTIN  2
 // ============================================================

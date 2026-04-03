@@ -21,7 +21,9 @@ Energia aplicada
   -> host reconhece banner
   -> ping confirma sessão
   -> requisição roteada confirma barramento
-  -> resposta do periférico confirma hardware remoto
+  -> ACK síncrono confirma recepção na GSA
+  -> IRQ em D4 -> D19
+  -> evento 0x31 confirma a etapa física
 ```
 
 ### O que cada teste comprova
@@ -29,7 +31,8 @@ Energia aplicada
 - handshake serial: gateway energizado e firmware em execução;
 - `ping`: enlace host/gateway operante;
 - comando roteado: `GwRouter` e `GwDeviceTable` coerentes com o hardware presente;
-- resposta de periférico: integridade do barramento físico e do firmware remoto;
+- resposta síncrona da GSA: integridade do barramento físico `D21/D22` <-> `A4/A5` e do firmware remoto;
+- `IRQ + 0x31`: integridade do caminho assíncrono `D4` -> `D19` e da etapa física interna da GSA;
 - atuação local, como LED: efeito elétrico visível ou mensurável na placa.
 
 ### Falhas típicas separáveis pelo fluxo
@@ -50,7 +53,7 @@ O repositório não contém critérios formais de aceitação elétrica, mediç�
 Os testes de hardware devem evoluir para incluir:
 
 - checklists por placa e por revisão;
-- validação de alimentação e reset;
+- validação de alimentação e reset, incluindo `D23` para reset da GSA e `D8` para reset do `TCA9548A`;
 - testes dedicados por barramento;
 - registros de bancada com resultados reproduzíveis.
 

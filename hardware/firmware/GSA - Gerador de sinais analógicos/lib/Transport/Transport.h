@@ -7,12 +7,14 @@ public:
   void begin(uint8_t i2cAddr);
   static void resumeSlave(uint8_t i2cAddr);
   static bool hasTxPending();
+  static bool hasAsyncEventTxPending();
+  static void setIrqActive(bool active);
 
   // Chamar no loop para pegar frame recebido (se houver)
   bool popRx(uint8_t* out, uint8_t& outLen);
 
   // Prepara resposta para o próximo requestFrom() do master
-  void setTx(const uint8_t* data, uint8_t len);
+  void setTx(const uint8_t* data, uint8_t len, bool isAsyncEvent = false);
 
 private:
   static void onReceiveThunk(int count);
@@ -24,6 +26,8 @@ private:
 
   static volatile uint8_t _txBuf[TLV_MAX_LEN];
   static volatile uint8_t _txLen;
+  static volatile bool    _txIsAsyncEvent;
+  static bool             _irqActive;
 
   static Transport* _self;
 };
