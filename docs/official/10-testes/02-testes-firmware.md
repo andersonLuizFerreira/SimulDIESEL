@@ -1,4 +1,5 @@
 ⬅ [Retornar para Testes de Bancada](../08-casos-de-uso/03-testes-bancada.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Testes de Firmware
 
@@ -61,8 +62,13 @@ Os testes de firmware podem amadurecer por meio de:
 - testes por dispositivo da tabela do gateway;
 - registros automáticos de falha por timeout, `ACK` e erro de payload.
 
+## Glossário
+
+- **Caso de uso**: fluxo funcional documentado para operação, simulação, diagnóstico ou teste.
+- **GSA**: board de geração de sinais analógicos hoje mais madura na árvore oficial.
+- **Evento**: mensagem assíncrona publicada durante ou após uma operação.
+- **Validação**: verificação de comportamento esperado em bancada.
+
 ## Próximas camadas
 
 - Esta é uma página terminal deste ramo da documentação.
-
-

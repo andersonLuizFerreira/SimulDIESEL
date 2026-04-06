@@ -5,6 +5,18 @@
 void GwSpiBus::csLow(int cs){ digitalWrite(cs, LOW); }
 void GwSpiBus::csHigh(int cs){ digitalWrite(cs, HIGH); }
 
+void GwSpiBus::begin(uint32_t hz, int8_t sckPin, int8_t misoPin, int8_t mosiPin)
+{
+    _hz = hz;
+    _sckPin = sckPin;
+    _misoPin = misoPin;
+    _mosiPin = mosiPin;
+
+    // Inicializa o barramento SPI com pinagem explicita para evitar o
+    // mapeamento padrao do ESP32, que conflita com o reset global em GPIO23.
+    _spi.begin(_sckPin, _misoPin, _mosiPin, -1);
+}
+
 bool GwSpiBus::transact(uint8_t addr,
                         const uint8_t* tx, size_t txLen,
                         uint8_t* rx, size_t rxMax, size_t& rxLen,

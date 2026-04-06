@@ -1,4 +1,5 @@
 ⬅ [Retornar para Diagnóstico de Falhas](02-diagnostico.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Testes de Bancada
 
@@ -92,10 +93,16 @@ Os testes de bancada podem evoluir para:
 - checklists de diagnóstico por camada
 - ampliação para novos comandos além da GSA
 
+## Glossário
+
+- **Caso de uso**: fluxo funcional documentado para operação, simulação, diagnóstico ou teste.
+- **GSA**: board de geração de sinais analógicos hoje mais madura na árvore oficial.
+- **Evento**: mensagem assíncrona publicada durante ou após uma operação.
+- **Validação**: verificação de comportamento esperado em bancada.
+- **SDGW**: nomenclatura oficial vigente do enlace host/gateway: SimulDiesel GateWay.
+
 ## Próximas camadas
 
 - [Testes de Hardware](../10-testes/01-testes-hardware.md)
 - [Testes de Firmware](../10-testes/02-testes-firmware.md)
 - [Testes de Integração](../10-testes/03-testes-integracao.md)
-
-

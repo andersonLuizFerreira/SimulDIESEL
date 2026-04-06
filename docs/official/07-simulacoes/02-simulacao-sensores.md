@@ -1,4 +1,5 @@
 ⬅ [Retornar para Simulação de Módulos](01-simulacao-modulos.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Simulação de Sensores
 
@@ -74,7 +75,14 @@ Para o contrato vigente da GSA, consultar:
 
 - `docs/official/06-protocolos/06-gsa-sdh-tlv.md`
 
+## Glossário
+
+- **Caso de uso**: fluxo funcional documentado para operação, simulação, diagnóstico ou teste.
+- **GSA**: board de geração de sinais analógicos hoje mais madura na árvore oficial.
+- **Evento**: mensagem assíncrona publicada durante ou após uma operação.
+- **Validação**: verificação de comportamento esperado em bancada.
+- **TLV**: Type-Length-Value, formato interno de payload usado em transações específicas.
+
 ## Próximas camadas
 
 - Esta é uma página terminal deste ramo da documentação.
-

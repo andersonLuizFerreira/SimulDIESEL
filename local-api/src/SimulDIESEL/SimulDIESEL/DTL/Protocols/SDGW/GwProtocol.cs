@@ -12,7 +12,7 @@ namespace SimulDIESEL.DTL.Protocols.SDGW
         public const byte BpmPingOp = 0x0;
         public const byte GsaTlvTransactOp = 0x0;
 
-        // O LED builtin legado permanece em 0x12.
+        // O LED builtin permanece em 0x12 por contrato.
         // O status por canal foi migrado para 0x1B para remover a
         // ambiguidade histórica do contrato TLV da GSA.
         public const byte GsaSetLedType = 0x12;

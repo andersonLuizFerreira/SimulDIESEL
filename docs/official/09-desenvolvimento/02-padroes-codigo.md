@@ -1,4 +1,5 @@
 ⬅ [Retornar para Organização do Repositório](01-organizacao-repositorio.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Padrões de Código
 
@@ -57,7 +58,13 @@ Os padrões que merecem consolidação formal são:
 - política comum de códigos de erro;
 - critérios de teste para cada camada antes da integração.
 
+## Glossário
+
+- **Repositório**: estrutura de diretórios e arquivos versionados do projeto.
+- **Branch**: linha de desenvolvimento isolada dentro do Git.
+- **Commit**: registro versionado de uma mudança aplicada ao repositório.
+- **Padrão**: convenção adotada para manter consistência técnica.
+
 ## Próximas camadas
 
 - [Fluxo Git](03-fluxo-git.md)
-

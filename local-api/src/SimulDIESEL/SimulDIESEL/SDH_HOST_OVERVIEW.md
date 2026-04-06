@@ -228,7 +228,7 @@ Com isso, o host deixa de depender de distinção por `len` para `channel.status
 ## Limitações atuais
 
 - o host ainda trabalha com uma sessão SDGW por vez
-- a recepção funcional ainda entrega `SggwFrame`, não um envelope SDH completo
+- a recepção funcional ainda entrega frame lógico do enlace, não um envelope SDH completo
 - o catálogo SDH suportado ainda é parcial em relação ao modelo documental geral, mas a GSA já não está mais restrita ao LED builtin
 - `BpmSerialService.Shared` ainda é um ponto global transitório, mantido por compatibilidade de composição com a UI atual
 

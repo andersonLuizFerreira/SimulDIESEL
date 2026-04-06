@@ -29,6 +29,7 @@ void Transport::begin(uint8_t i2cAddr) {
 }
 
 void Transport::resumeSlave(uint8_t i2cAddr) {
+  // No ATmega328P, Wire usa o barramento físico fixo em A4/A5.
   Wire.begin(i2cAddr);
   Wire.onReceive(onReceiveThunk);
   Wire.onRequest(onRequestThunk);
@@ -80,7 +81,8 @@ void Transport::onReceiveThunk(int count) {
 void Transport::onRequestThunk() {
   if (!_self) return;
 
-  // Se não tiver resposta preparada, devolve TLV 0xFF vazio com CRC.
+  // Se ainda não houver resposta pronta, devolve o TLV vazio de "sem dados".
+  // Isso permite que a BPM mantenha a coleta assíncrona sem bloquear a GSA.
   if (_txLen == 0) {
     _txBuf[0] = 0xFF;
     _txBuf[1] = 0;
@@ -91,7 +93,7 @@ void Transport::onRequestThunk() {
 
   Wire.write((const uint8_t*)_txBuf, _txLen);
 
-  // Limpa para não reenviar a mesma resposta indefinidamente
+  // Limpa para não reenviar a mesma resposta indefinidamente.
   _txLen = 0;
   _txIsAsyncEvent = false;
 }

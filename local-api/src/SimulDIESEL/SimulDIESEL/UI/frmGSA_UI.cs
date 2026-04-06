@@ -13,7 +13,7 @@ namespace SimulDIESEL.UI
         private static frmGSA_UI _instance;
         private readonly FrmGsaLogic _logic;
         private readonly ChannelUiState[] _channels = new ChannelUiState[16];
-        private bool _builtinLedAppliedState;
+        private bool _builtinLedAcceptedState;
         private bool _suppressBuiltinLedEvent;
         private bool _initialRefreshStarted;
         private bool _initialSnapshotLoaded;
@@ -164,9 +164,11 @@ namespace SimulDIESEL.UI
                 return;
             }
 
-            state.OutputEnabled = result.Response.AppliedState;
+            state.OutputEnabled = result.Response.AcceptedState;
             ApplyChannelState(channel);
-            await RefreshChannelAsync(channel, false).ConfigureAwait(true);
+            SetPhysicalResultMessage(
+                "Comando aceito pela GSA. Aguardando IRQ e evento 0x31 para confirmar a execução física.",
+                true);
         }
 
         private void GsaControls_ConfigButtonClick(object sender, GsaControls.GsaChannelConfigClickEventArgs e)
@@ -187,15 +189,15 @@ namespace SimulDIESEL.UI
                 .SetBuiltinLedAsync(_builtinLedCheckBox.Checked)
                 .ConfigureAwait(true);
 
-            if (!result.Success || !result.AppliedState.HasValue)
+            if (!result.Success || !result.AcceptedState.HasValue)
             {
-                SetBuiltinLedCheckboxState(_builtinLedAppliedState);
+                SetBuiltinLedCheckboxState(_builtinLedAcceptedState);
                 ShowOperationError(result.Message);
                 return;
             }
 
-            _builtinLedAppliedState = result.AppliedState.Value;
-            SetBuiltinLedCheckboxState(_builtinLedAppliedState);
+            _builtinLedAcceptedState = result.AcceptedState.Value;
+            SetBuiltinLedCheckboxState(_builtinLedAcceptedState);
         }
 
         private void Logic_ChannelFaultEventReceived(GsaChannelFaultEvent faultEvent)
@@ -243,9 +245,11 @@ namespace SimulDIESEL.UI
                 return;
             }
 
-            state.SetpointVoltage = GsaChannelScaling.RawToVolts(channel, result.Response.AppliedValue);
+            state.SetpointVoltage = GsaChannelScaling.RawToVolts(channel, result.Response.AcceptedValue);
             ApplyChannelState(channel);
-            await RefreshChannelAsync(channel, false).ConfigureAwait(true);
+            SetPhysicalResultMessage(
+                "Comando aceito pela GSA. Aguardando IRQ e evento 0x31 para confirmar a execução física.",
+                true);
         }
 
         private async Task RefreshChannelAsync(int channel, bool updateLocalSetpoint)

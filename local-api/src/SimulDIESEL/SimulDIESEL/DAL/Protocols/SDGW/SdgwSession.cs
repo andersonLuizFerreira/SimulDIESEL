@@ -5,7 +5,7 @@ using SimulDIESEL.DTL.Protocols.SDGW;
 namespace SimulDIESEL.DAL.Protocols.SDGW
 {
     /// <summary>
-    /// Sessão de alto nível do protocolo SGGW/SDGW.
+    /// Sessão de alto nível do protocolo SDGW.
     /// Encapsula o link engine e expõe API segura e tipada.
     /// </summary>
     public sealed class SdgwSession : IDisposable
@@ -14,8 +14,8 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
         private readonly SdGwTxScheduler _txScheduler;
         private bool _disposed;
 
-        public event Action<SggwFrame> FrameReceived;
-        public event Action<SggwFrame> EventReceived;
+        public event Action<SdgwFrame> FrameReceived;
+        public event Action<SdgwFrame> EventReceived;
 
         public SdgwSession(SdGwLinkEngine engine, SdGwTxScheduler txScheduler)
         {
@@ -26,7 +26,7 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
 
         private void OnAppFrameReceived(SdGwLinkEngine.AppFrame frame)
         {
-            var logicalFrame = new SggwFrame(
+            var logicalFrame = new SdgwFrame(
                 cmd: frame.Cmd,
                 seq: frame.Seq,
                 flags: frame.Flags,
@@ -65,7 +65,7 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
         }
 
         public Task<SdGwLinkEngine.SendOutcome> SendAsync(
-            SggwCmd cmd,
+            SdgwCommand cmd,
             byte[] payload,
             bool requireAck = true,
             int timeoutMs = 150,
@@ -88,7 +88,7 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
         }
 
         public Task<SdGwLinkEngine.SendOutcome> SendAsync(
-            SggwCmd cmd,
+            SdgwCommand cmd,
             bool requireAck = true,
             int timeoutMs = 150,
             int retries = 2,

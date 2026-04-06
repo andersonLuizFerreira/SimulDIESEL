@@ -1,11 +1,11 @@
 #include <Arduino.h>
 
-#include "Sggw.defs.h"
-#include "SggwTransport.h"
-#include "SggwBluetoothEndpoint.h"
-#include "SggwEndpointMux.h"
-#include "SggwSessionOwner.h"
-#include <SggwLink.h>
+#include "SdgwDefs.h"
+#include "SdgwTransport.h"
+#include "SdgwBluetoothEndpoint.h"
+#include "SdgwEndpointMux.h"
+#include "SdgwSessionOwner.h"
+#include <SdgwLink.h>
 
 // GatewayCore
 #include "IGatewayApp.h"
@@ -14,11 +14,11 @@
 #include "GwSpiBus.h"
 #include "GwRouter.h"
 
-static SggwTransport serialTransport(Serial);
-static SggwBluetoothEndpoint bluetoothTransport("SimulDIESEL-BPM");
-static SggwSessionOwner sessionOwner(SGGW_ENDPOINT_NONE);
-static SggwEndpointMux transportMux(sessionOwner, serialTransport, bluetoothTransport);
-static SggwLink sggwLink(transportMux, sessionOwner);
+static SdgwTransport serialTransport(Serial);
+static SdgwBluetoothEndpoint bluetoothTransport("SimulDIESEL - BPM");
+static SdgwSessionOwner sessionOwner(SDGW_ENDPOINT_NONE);
+static SdgwEndpointMux transportMux(sessionOwner, serialTransport, bluetoothTransport);
+static SdgwLink sdgwLink(transportMux, sessionOwner);
 
 // Buses
 static GwI2cBus i2cBus(Wire);
@@ -28,13 +28,13 @@ static GwSpiBus spiBus(SPI);
 static GwRouter router(i2cBus, spiBus);
 
 // App
-static GatewayApp app(sggwLink, router);
+static GatewayApp app(sdgwLink, router);
 
 void setup() {
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, LOW);
-  pinMode(GSA_RESET_PIN, OUTPUT);
-  digitalWrite(GSA_RESET_PIN, HIGH);
+  // Reserva o GPIO23 exclusivamente para o reset global e sobe o
+  // barramento SPI com pinagem explicita fora do mapeamento padrao.
+  digitalWrite(BPM_GLOBAL_RESET_PIN, BPM_GLOBAL_RESET_INACTIVE_LEVEL);
+  pinMode(BPM_GLOBAL_RESET_PIN, OUTPUT);
 
   serialTransport.begin();
   serialTransport.setTextEnabled(true);
@@ -42,14 +42,17 @@ void setup() {
   bluetoothTransport.setTextEnabled(true);
 
   i2cBus.begin(BPM_GSA_I2C_SDA_PIN, BPM_GSA_I2C_SCL_PIN, 400000);
-  spiBus.begin(8000000);
+  spiBus.begin(BPM_SPI_CLOCK_HZ,
+               BPM_SPI_SCK_PIN,
+               BPM_SPI_MISO_PIN,
+               BPM_SPI_MOSI_PIN);
 
-  sggwLink.attachApp(&app);
+  sdgwLink.attachApp(&app);
   app.begin();
-  sggwLink.begin();
+  sdgwLink.begin();
 }
 
 void loop() {
-  sggwLink.poll();
+  sdgwLink.poll();
   app.tick();
 }

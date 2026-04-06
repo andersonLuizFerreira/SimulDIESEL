@@ -1,4 +1,5 @@
 ⬅ [Retornar para Testes de Bancada](../08-casos-de-uso/03-testes-bancada.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Testes de Integração
 
@@ -24,7 +25,7 @@ WinForms
   -> SdGwTxScheduler
   -> SdGwLinkEngine
   -> SerialTransport
-  -> BPM / SggwLink / GatewayApp
+  -> BPM / link do gateway / GatewayApp
   -> GwRouter
   -> I2C
   -> GSA
@@ -72,7 +73,7 @@ Hoje:
 - ainda faltam roteiros equivalentes para setpoint, status, offsets e fault event da GSA
 - o roteiro oficial precisa validar também o caminho físico `D21/D22`, `D4/D19` e `D23`
 - ainda não há cobertura equivalente para múltiplas boards em paralelo
-- a recepção funcional ainda é baseada em `SggwFrame`
+- a recepção funcional ainda é baseada em frame lógico tipado do enlace
 
 ## Evolução prevista
 
@@ -88,8 +89,16 @@ Os próximos ganhos naturais são:
 - testes cruzando múltiplos destinos da BPM
 - maior formalização dos roteiros de integração
 
+## Glossário
+
+- **Caso de uso**: fluxo funcional documentado para operação, simulação, diagnóstico ou teste.
+- **GSA**: board de geração de sinais analógicos hoje mais madura na árvore oficial.
+- **Evento**: mensagem assíncrona publicada durante ou após uma operação.
+- **Validação**: verificação de comportamento esperado em bancada.
+- **SDGW**: nomenclatura oficial vigente do enlace host/gateway: SimulDiesel GateWay.
+- **SDH**: SimulDiesel Hardware Command, envelope semântico de comandos do projeto.
+- **TLV**: Type-Length-Value, formato interno de payload usado em transações específicas.
+
 ## Próximas camadas
 
 - Esta é uma página terminal deste ramo da documentação.
-
-

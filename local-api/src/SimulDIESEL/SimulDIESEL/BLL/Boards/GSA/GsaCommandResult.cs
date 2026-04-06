@@ -4,27 +4,27 @@ namespace SimulDIESEL.BLL.Boards.GSA
 {
     public sealed class GsaCommandResult
     {
-        private GsaCommandResult(bool success, bool? appliedState, string message, SdGwLinkEngine.SendOutcome? sendOutcome)
+        private GsaCommandResult(bool success, bool? acceptedState, string message, SdGwLinkEngine.SendOutcome? sendOutcome)
         {
             Success = success;
-            AppliedState = appliedState;
+            AcceptedState = acceptedState;
             Message = message ?? string.Empty;
             SendOutcome = sendOutcome;
         }
 
         public bool Success { get; }
-        public bool? AppliedState { get; }
+        public bool? AcceptedState { get; }
         public string Message { get; }
         public SdGwLinkEngine.SendOutcome? SendOutcome { get; }
 
-        public static GsaCommandResult Succeeded(bool appliedState, SdGwLinkEngine.SendOutcome sendOutcome, string message)
+        public static GsaCommandResult Succeeded(bool acceptedState, SdGwLinkEngine.SendOutcome sendOutcome, string message)
         {
-            return new GsaCommandResult(true, appliedState, message, sendOutcome);
+            return new GsaCommandResult(true, acceptedState, message, sendOutcome);
         }
 
-        public static GsaCommandResult Fail(string message, SdGwLinkEngine.SendOutcome? sendOutcome = null, bool? appliedState = null)
+        public static GsaCommandResult Fail(string message, SdGwLinkEngine.SendOutcome? sendOutcome = null, bool? acceptedState = null)
         {
-            return new GsaCommandResult(false, appliedState, message, sendOutcome);
+            return new GsaCommandResult(false, acceptedState, message, sendOutcome);
         }
     }
 }

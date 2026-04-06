@@ -39,11 +39,6 @@
 
 #define LED_PIN  LED_BUILTIN
 
-#define LINK_ERR_NONE         0x00
-#define LINK_ERR_BAD_LEN      0x01
-#define LINK_ERR_BAD_TLV      0x02
-#define LINK_ERR_BAD_CRC      0x03
-
 struct GsaChannelOffsets {
   int16_t vout;
   int16_t vread;

@@ -1,26 +1,22 @@
-⬅ [Retornar para Escopo](../01-visao-geral/03-escopo.md)
+⬅ [Retornar para Visão Geral do Projeto](../01-visao-geral/01-visao-geral-projeto.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Visão Arquitetural
 
-A arquitetura do **SimulDIESEL** foi concebida em múltiplas camadas, com separação entre operação local, comunicação com o gateway, roteamento interno e hardware modular.
+A arquitetura do **SimulDIESEL** organiza a documentação em duas leituras complementares: uma para entender **onde** cada elemento está no sistema e outra para entender **como** o sistema funciona de ponta a ponta.
 
-Essa organização foi projetada para garantir:
+Essa separação foi adotada para reduzir ambiguidade na navegação e dar suporte simultâneo a:
 
-* escalabilidade
-* manutenção modular
-* expansão de recursos
-* isolamento de responsabilidades
-* robustez da comunicação
-
-O sistema permite que o software local opere uma bancada modular por meio de uma arquitetura intermediária de comunicação e roteamento.
-
----
+* entendimento estrutural do projeto
+* leitura progressiva por camadas
+* governança documental com pais únicos
+* revisão rápida via índice global
 
 ## Estrutura macro do sistema
 
 A visão macro do sistema pode ser entendida nos seguintes blocos.
 
-```text id="0gpl4x"
+```text
 Aplicação Windows
     ↓
 Camada de Comunicação
@@ -28,35 +24,47 @@ Camada de Comunicação
 Gateway Central
     ↓
 Hardware Modular
+    ↓
+Módulo em Teste
 ```
 
----
+## Dois caminhos oficiais de leitura
 
-## Visão conceitual
+### Visão Física do Projeto
 
-O fluxo conceitual do sistema é:
+Este ramo responde **onde** cada parte se encontra fisicamente na bancada e como as interligações materiais se organizam.
 
-```text id="t35f89"
-Usuário
-→ Aplicação
-→ Comunicação
-→ Gateway
-→ Unidade modular
-→ resposta
-```
+O foco está em:
 
-Cada uma dessas camadas possui responsabilidade própria e será detalhada nas próximas páginas.
+* localização física dos elementos
+* conectores e interfaces
+* camadas superior e inferior de cada bloco
+* relações entre API, hardware e módulo em teste
 
----
+### Visão Lógica do Projeto
 
-## Próximas camadas de aprofundamento
+Este ramo responde **como** o sistema opera, transporta comandos, roteia decisões e produz efeitos funcionais sobre a bancada.
 
-Nesta camada, o objetivo é entender a forma geral da solução.
+O foco está em:
 
-Os componentes concretos, classes e mecanismos de transporte ficam para as páginas imediatamente inferiores.
+* funções de cada camada
+* protocolos e transporte
+* fluxos entre UI, software, gateway e boards
+* transformação de comando em ação observável
+
+## Regra de navegação entre as duas leituras
+
+As duas leituras podem se referenciar por texto, mas a troca de ramo deve acontecer sempre por esta página-pai.
+
+Assim, a árvore mantém navegação controlada e sem múltiplos pais.
+
+## Glossário
+
+- **Camada**: nível de responsabilidade dentro da arquitetura do sistema.
+- **Gateway**: ponto de passagem entre host, roteamento interno e hardware.
+- **Arquitetura**: organização estrutural e funcional das partes do SimulDIESEL.
 
 ## Próximas camadas
 
-- [Camadas do Sistema](02-camadas-do-sistema.md)
-
-
+* [Visão Física do Projeto](02-visao-fisica.md)
+* [Visão Lógica do Projeto](03-visao-logica.md)

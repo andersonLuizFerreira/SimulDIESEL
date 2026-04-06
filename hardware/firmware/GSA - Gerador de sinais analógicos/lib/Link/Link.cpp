@@ -2,14 +2,10 @@
 #include "TlvBuilder.h"
 
 Link::Link(Transport& tr, Service& svc)
-: _tr(tr), _svc(svc),
-  _errCode(LINK_ERR_NONE),
-  _errLastT(0),
-  _hasErr(false)
+: _tr(tr), _svc(svc)
 {}
 
 void Link::begin() {
-  clearError();
   Transport::setIrqActive(false);
 }
 
@@ -36,21 +32,8 @@ void Link::tick() {
   Transport::setIrqActive(true);
 }
 
-void Link::setError(uint8_t code, uint8_t lastT) {
-  _hasErr = true;
-  _errCode = code;
-  _errLastT = lastT;
-}
-
-void Link::clearError() {
-  _hasErr = false;
-  _errCode = LINK_ERR_NONE;
-  _errLastT = 0;
-}
-
 bool Link::parseAndValidate(const uint8_t* rx, uint8_t rxLen, TlvFrame& out) {
   if (!rx || rxLen < 3) {
-    setError(LINK_ERR_BAD_LEN, 0);
     return false;
   }
 
@@ -59,7 +42,6 @@ bool Link::parseAndValidate(const uint8_t* rx, uint8_t rxLen, TlvFrame& out) {
 
   uint8_t expected = (uint8_t)(2 + l + 1);
   if (expected != rxLen) {
-    setError(LINK_ERR_BAD_LEN, t);
     return false;
   }
 
@@ -71,18 +53,10 @@ bool Link::parseAndValidate(const uint8_t* rx, uint8_t rxLen, TlvFrame& out) {
   uint8_t crcCalc = Crc8::calc(rx, rxLen - 1);
 
   if (crcCalc != crcRx) {
-    setError(LINK_ERR_BAD_CRC, t);
     return false;
   }
 
   return true;
-}
-
-bool Link::handleLinkCmd(const TlvFrame& tlv, uint8_t* txTlvOut, uint8_t& txTlvLenOut) {
-  (void)tlv;
-  (void)txTlvOut;
-  txTlvLenOut = 0;
-  return false;
 }
 
 void Link::poll() {
@@ -99,16 +73,13 @@ void Link::poll() {
   uint8_t txTlv[TLV_MAX_LEN];
   uint8_t txTlvLen = 0;
 
-  if (!handleLinkCmd(tlv, txTlv, txTlvLen)) {
-    if (!_svc.handleOneTlv(tlv, txTlv, txTlvLen)) {
-      setError(LINK_ERR_BAD_TLV, tlv.t);
-      txTlvLen = TlvBuilder::buildEmpty(tlv.t, txTlv, TLV_MAX_LEN);
-    }
+  if (!_svc.handleOneTlv(tlv, txTlv, txTlvLen)) {
+    uint8_t payload[3] = { tlv.t, 0, GSA_ERROR_COMMAND_NOT_SUPPORTED };
+    txTlvLen = TlvBuilder::build(CMD_FUNCTIONAL_ERROR, payload, sizeof(payload), txTlv, TLV_MAX_LEN);
   }
 
   if (txTlvLen >= 2) {
     if ((uint8_t)(txTlvLen + 1) > TLV_MAX_LEN) {
-      setError(LINK_ERR_BAD_LEN, tlv.t);
       return;
     }
 

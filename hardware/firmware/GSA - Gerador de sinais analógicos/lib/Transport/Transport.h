@@ -13,7 +13,9 @@ public:
   // Chamar no loop para pegar frame recebido (se houver)
   bool popRx(uint8_t* out, uint8_t& outLen);
 
-  // Prepara resposta para o próximo requestFrom() do master
+  // Prepara a proxima resposta a ser lida pela BPM.
+  // Para comandos de escrita, esse payload deve representar apenas o aceite
+  // síncrono; o resultado físico final é publicado depois por IRQ + evento.
   void setTx(const uint8_t* data, uint8_t len, bool isAsyncEvent = false);
 
 private:

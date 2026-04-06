@@ -1,4 +1,5 @@
 ⬅ [Retornar para SDH Examples](03-sdh-examples.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # GSA — Contrato SDH/TLV
 
@@ -385,7 +386,15 @@ Error codes:
 
 O modelo BUSY/IDLE com troca de papel `slave/master` no mesmo barramento I2C foi abandonado e não deve mais ser tratado como arquitetura oficial da GSA.
 
+## Glossário
+
+- **Protocolo**: conjunto de regras de formato e interpretação para comunicação.
+- **Target**: identificador lógico do recurso de destino de um comando SDH.
+- **Envelope**: estrutura externa que organiza os campos semânticos do comando ou resposta.
+- **TLV**: contrato interno usado entre gateway e devices quando aplicável.
+- **SDGW**: nomenclatura oficial vigente do enlace host/gateway: SimulDiesel GateWay.
+- **SDH**: SimulDiesel Hardware Command, envelope semântico de comandos do projeto.
+
 ## Próximas camadas
 
 - Esta é uma página terminal deste ramo da documentação.
-

@@ -7,7 +7,7 @@ namespace SimulDIESEL.BLL.Boards.GSA
 {
     public static class GsaParsers
     {
-        public static bool TryReadBuiltinLedResponse(SggwFrame frame, out GsaLedResponse response, out string error)
+        public static bool TryReadBuiltinLedResponse(SdgwFrame frame, out GsaLedResponse response, out string error)
         {
             response = null;
 
@@ -17,13 +17,13 @@ namespace SimulDIESEL.BLL.Boards.GSA
 
             response = new GsaLedResponse
             {
-                AppliedState = data[0] != 0
+                AcceptedState = data[0] != 0
             };
 
             return true;
         }
 
-        public static bool TryReadChannelSetpointResponse(SggwFrame frame, out GsaChannelSetpointResponse response, out string error)
+        public static bool TryReadChannelSetpointResponse(SdgwFrame frame, out GsaChannelSetpointResponse response, out string error)
         {
             response = null;
 
@@ -34,13 +34,13 @@ namespace SimulDIESEL.BLL.Boards.GSA
             response = new GsaChannelSetpointResponse
             {
                 Channel = data[0],
-                AppliedValue = data[1]
+                AcceptedValue = data[1]
             };
 
             return true;
         }
 
-        public static bool TryReadChannelEnableResponse(SggwFrame frame, out GsaChannelEnableResponse response, out string error)
+        public static bool TryReadChannelEnableResponse(SdgwFrame frame, out GsaChannelEnableResponse response, out string error)
         {
             response = null;
 
@@ -51,13 +51,13 @@ namespace SimulDIESEL.BLL.Boards.GSA
             response = new GsaChannelEnableResponse
             {
                 Channel = data[0],
-                AppliedState = data[1] != 0
+                AcceptedState = data[1] != 0
             };
 
             return true;
         }
 
-        public static bool TryReadChannelStatusResponse(SggwFrame frame, out GsaChannelStatusResponse response, out string error)
+        public static bool TryReadChannelStatusResponse(SdgwFrame frame, out GsaChannelStatusResponse response, out string error)
         {
             response = null;
 
@@ -78,7 +78,7 @@ namespace SimulDIESEL.BLL.Boards.GSA
             return true;
         }
 
-        public static bool TryReadChannelsStatusResponse(SggwFrame frame, out GsaChannelsStatusResponse response, out string error)
+        public static bool TryReadChannelsStatusResponse(SdgwFrame frame, out GsaChannelsStatusResponse response, out string error)
         {
             response = null;
 
@@ -104,7 +104,7 @@ namespace SimulDIESEL.BLL.Boards.GSA
             return true;
         }
 
-        public static bool TryReadChannelsEnableResponse(SggwFrame frame, out GsaChannelsEnableResponse response, out string error)
+        public static bool TryReadChannelsEnableResponse(SdgwFrame frame, out GsaChannelsEnableResponse response, out string error)
         {
             response = null;
 
@@ -121,7 +121,7 @@ namespace SimulDIESEL.BLL.Boards.GSA
             return true;
         }
 
-        public static bool TryReadChannelFaultResetResponse(SggwFrame frame, out GsaChannelFaultResetResponse response, out string error)
+        public static bool TryReadChannelFaultResetResponse(SdgwFrame frame, out GsaChannelFaultResetResponse response, out string error)
         {
             response = null;
 
@@ -138,7 +138,7 @@ namespace SimulDIESEL.BLL.Boards.GSA
             return true;
         }
 
-        public static bool TryReadChannelOffsetResponse(SggwFrame frame, byte expectedType, out GsaChannelOffsetResponse response, out string error)
+        public static bool TryReadChannelOffsetResponse(SdgwFrame frame, byte expectedType, out GsaChannelOffsetResponse response, out string error)
         {
             response = null;
 
@@ -156,7 +156,7 @@ namespace SimulDIESEL.BLL.Boards.GSA
             return true;
         }
 
-        public static bool TryReadChannelOffsetSaveResponse(SggwFrame frame, out GsaChannelOffsetSaveResponse response, out string error)
+        public static bool TryReadChannelOffsetSaveResponse(SdgwFrame frame, out GsaChannelOffsetSaveResponse response, out string error)
         {
             response = null;
 
@@ -172,7 +172,7 @@ namespace SimulDIESEL.BLL.Boards.GSA
             return true;
         }
 
-        public static bool TryReadChannelOffsetResetResponse(SggwFrame frame, out GsaChannelOffsetResetResponse response, out string error)
+        public static bool TryReadChannelOffsetResetResponse(SdgwFrame frame, out GsaChannelOffsetResetResponse response, out string error)
         {
             response = null;
 
@@ -188,7 +188,7 @@ namespace SimulDIESEL.BLL.Boards.GSA
             return true;
         }
 
-        public static bool TryReadOffsetResetResponse(SggwFrame frame, out GsaOffsetResetResponse response, out string error)
+        public static bool TryReadOffsetResetResponse(SdgwFrame frame, out GsaOffsetResetResponse response, out string error)
         {
             response = null;
 
@@ -204,7 +204,7 @@ namespace SimulDIESEL.BLL.Boards.GSA
             return true;
         }
 
-        public static bool TryReadFunctionalError(SggwFrame frame, out GsaFunctionalErrorResponse response, out string error)
+        public static bool TryReadFunctionalError(SdgwFrame frame, out GsaFunctionalErrorResponse response, out string error)
         {
             response = null;
 
@@ -224,7 +224,7 @@ namespace SimulDIESEL.BLL.Boards.GSA
             return true;
         }
 
-        public static bool TryReadChannelFaultEvent(SggwFrame frame, out GsaChannelFaultEvent faultEvent, out string error)
+        public static bool TryReadChannelFaultEvent(SdgwFrame frame, out GsaChannelFaultEvent faultEvent, out string error)
         {
             faultEvent = null;
 
@@ -245,7 +245,7 @@ namespace SimulDIESEL.BLL.Boards.GSA
             return true;
         }
 
-        public static bool TryReadPhysicalOperationEvent(SggwFrame frame, out GsaPhysicalOperationEvent physicalEvent, out string error)
+        public static bool TryReadPhysicalOperationEvent(SdgwFrame frame, out GsaPhysicalOperationEvent physicalEvent, out string error)
         {
             physicalEvent = null;
 
@@ -273,7 +273,7 @@ namespace SimulDIESEL.BLL.Boards.GSA
             return true;
         }
 
-        public static bool TryReadGatewayError(SggwFrame frame, out GsaGatewayErrorResponse gatewayError, out string error)
+        public static bool TryReadGatewayError(SdgwFrame frame, out GsaGatewayErrorResponse gatewayError, out string error)
         {
             gatewayError = null;
 
@@ -291,7 +291,7 @@ namespace SimulDIESEL.BLL.Boards.GSA
             return true;
         }
 
-        private static bool TryReadTlv(SggwFrame frame, byte expectedType, byte expectedLen, string operationName, out byte[] data, out string error)
+        private static bool TryReadTlv(SdgwFrame frame, byte expectedType, byte expectedLen, string operationName, out byte[] data, out string error)
         {
             data = null;
             error = null;

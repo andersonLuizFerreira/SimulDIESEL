@@ -45,7 +45,8 @@ bool GwI2cBus::transact(uint8_t addr,
                 rx[i] = (uint8_t)v;
             }
 
-            // "No data" do GSA: aguarda ate o slave publicar a resposta real.
+            // O slave ainda nao publicou a resposta sincrona de aceite.
+            // A conclusao fisica segue por IRQ + evento assincrono.
             if (rx[0] == 0xFF && rx[1] == 0x00) {
                 if ((uint32_t)(millis() - t0) > timeoutMs) {
                     _ok = false;

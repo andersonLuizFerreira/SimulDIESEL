@@ -1,4 +1,5 @@
-⬅ [Retornar para 00-INDICE — Mapa da árvore documental](../../00-INDICE.md)
+⬅ [Retornar para Pai Imediato (Índice Geral)](../../00-INDICE.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Organização do Repositório
 
@@ -27,8 +28,13 @@
 
 A documentação foi escrita para refletir o estado real atual da árvore e registrar lacunas reais.
 
+## Glossário
+
+- **Repositório**: estrutura de diretórios e arquivos versionados do projeto.
+- **Branch**: linha de desenvolvimento isolada dentro do Git.
+- **Commit**: registro versionado de uma mudança aplicada ao repositório.
+- **Padrão**: convenção adotada para manter consistência técnica.
+
 ## Próximas camadas
 
 - [Padrões de Código](02-padroes-codigo.md)
-
-

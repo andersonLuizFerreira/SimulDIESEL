@@ -1,5 +1,5 @@
 #include "GwDeviceTable.h"
-#include "Sggw.defs.h"
+#include "SdgwDefs.h"
 
 // Defaults de bootstrap enquanto a BPM ainda nao persiste configuracao
 // dinamica de enderecos. O host continua tratando o binding logico;

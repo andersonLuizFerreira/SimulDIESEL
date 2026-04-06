@@ -1,4 +1,5 @@
 ⬅ [Retornar para Manutenção de Módulos](01-manutencao-modulos.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Diagnóstico de Falhas
 
@@ -84,7 +85,14 @@ No caso da GSA LED, considerar:
 - ainda não existe painel persistente de logs estruturados no app
 - parte do diagnóstico continua dependendo de observação manual e correlação por fluxo
 
+## Glossário
+
+- **Caso de uso**: fluxo funcional documentado para operação, simulação, diagnóstico ou teste.
+- **GSA**: board de geração de sinais analógicos hoje mais madura na árvore oficial.
+- **Evento**: mensagem assíncrona publicada durante ou após uma operação.
+- **Validação**: verificação de comportamento esperado em bancada.
+- **SDGW**: nomenclatura oficial vigente do enlace host/gateway: SimulDiesel GateWay.
+
 ## Próximas camadas
 
 - [Testes de Bancada](03-testes-bancada.md)
-

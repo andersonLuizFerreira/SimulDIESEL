@@ -1,4 +1,5 @@
-⬅ [Retornar para Barramentos](../03-hardware/03-barramentos.md)
+⬅ [Retornar para Protocolos e Contratos](README.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # CAN
 
@@ -45,8 +46,13 @@ Quando CAN entrar no código de fato, a documentação oficial deve passar a reg
 - relação entre serviços do gateway e frames CAN;
 - critérios de teste de bancada e captura de tráfego.
 
+## Glossário
+
+- **Protocolo**: conjunto de regras de formato e interpretação para comunicação.
+- **Target**: identificador lógico do recurso de destino de um comando SDH.
+- **Envelope**: estrutura externa que organiza os campos semânticos do comando ou resposta.
+- **TLV**: contrato interno usado entre gateway e devices quando aplicável.
+
 ## Próximas camadas
 
 - Esta é uma página terminal deste ramo da documentação.
-
-

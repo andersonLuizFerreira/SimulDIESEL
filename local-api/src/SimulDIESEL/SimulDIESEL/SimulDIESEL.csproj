@@ -74,6 +74,7 @@
     <Compile Include="DAL\Protocols\SDGW\SdgwLinkSupervisor.cs" />
     <Compile Include="DAL\Protocols\SDGW\SdgwLinkEngine.cs" />
     <Compile Include="DAL\Protocols\SDGW\SdgwSession.cs" />
+    <Compile Include="DAL\Transport\Bluetooth\BluetoothDeviceCatalog.cs" />
     <Compile Include="DAL\Transport\Bluetooth\BluetoothConnectionSettings.cs" />
     <Compile Include="DAL\Transport\Bluetooth\BluetoothTransport.cs" />
     <Compile Include="DAL\Transport\SwitchableTransport.cs" />
@@ -83,6 +84,7 @@
     <Compile Include="DAL\Transport\Serial\SerialConnectionSettings.cs" />
     <Compile Include="DAL\Transport\Serial\SerialPortAdapter.cs" />
     <Compile Include="DAL\Transport\Serial\SerialTransport.cs" />
+    <Compile Include="DTL\Boards\BPM\BluetoothDeviceDto.cs" />
     <Compile Include="DTL\Boards\BPM\BpmStatusDto.cs" />
     <Compile Include="DTL\Boards\GSA\GsaLedResponse.cs" />
     <Compile Include="DTL\Boards\GSA\GsaCommon.cs" />
@@ -94,8 +96,8 @@
     <Compile Include="DTL\Protocols\SDGW\SdhCommand.cs" />
     <Compile Include="DTL\Protocols\SDGW\SdhResponse.cs" />
     <Compile Include="DTL\Protocols\SDGW\SdhTarget.cs" />
-    <Compile Include="DTL\Protocols\SDGW\SggwCmd.cs" />
-    <Compile Include="DTL\Protocols\SDGW\SggwFrame.cs" />
+    <Compile Include="DTL\Protocols\SDGW\SdgwCommand.cs" />
+    <Compile Include="DTL\Protocols\SDGW\SdgwFrame.cs" />
     <Compile Include="UI\Controls\GsaChannelControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

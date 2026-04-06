@@ -5,13 +5,13 @@ namespace SimulDIESEL.DTL.Boards.GSA
     public sealed class GsaChannelSetpointResponse
     {
         public int Channel { get; set; }
-        public byte AppliedValue { get; set; }
+        public byte AcceptedValue { get; set; }
     }
 
     public sealed class GsaChannelEnableResponse
     {
         public int Channel { get; set; }
-        public bool AppliedState { get; set; }
+        public bool AcceptedState { get; set; }
     }
 
     public sealed class GsaChannelStatusResponse : GsaChannelSnapshot

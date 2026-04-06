@@ -15,17 +15,9 @@ public:
   void poll();
 
 private:
-  void setError(uint8_t code, uint8_t lastT);
-  void clearError();
-
   bool parseAndValidate(const uint8_t* rx, uint8_t rxLen, TlvFrame& out);
-  bool handleLinkCmd(const TlvFrame& tlv, uint8_t* txTlvOut, uint8_t& txTlvLenOut);
 
 private:
   Transport& _tr;
   Service& _svc;
-
-  uint8_t _errCode;
-  uint8_t _errLastT;
-  bool    _hasErr;
 };

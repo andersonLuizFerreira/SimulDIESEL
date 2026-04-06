@@ -1,4 +1,5 @@
 ⬅ [Retornar para Especificações](01-especificacoes.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Diagramas
 
@@ -19,7 +20,7 @@ Os diagramas abaixo sintetizam a arquitetura comprovada pelo código. Eles não 
                v
 +------------------------------+
 | Link host/gateway            |
-| Serial + Banner + SGGW       |
+| Serial + Banner + SDGW       |
 | COBS + CRC8 + ACK + SEQ      |
 +--------------+---------------+
                |
@@ -49,14 +50,14 @@ Host                BPM ESP32                   GSA Nano
  |                     |                           |
  |-- banner ---------->|                           |
  |<-- "SimulDIESEL..."-|                           |
- |-- frame SGGW ------>|                           |
+ |-- frame SDGW ------>|                           |
  |                     |-- TLV por D21/D22 ----->|
  |                     |<-- TLV síncrono ---------|
- |<-- resposta SGGW ---|                           |
+ |<-- resposta SDGW ---|                           |
  |                     |<-- IRQ em D19 -----------|
  |                     |-- fetch de evento ------>|
  |                     |<-- TLV 0x31 -------------|
- |<-- evento SGGW -----|                           |
+ |<-- evento SDGW -----|                           |
 ```
 
 ### Diagrama de estados do host
@@ -101,7 +102,14 @@ Conforme o projeto crescer, esta seção deve incorporar:
 - diagramas de energia e interconexão física do backplane;
 - fluxos de protocolos adicionais quando houver implementação real.
 
+## Glossário
+
+- **Especificação**: descrição formal de comportamento, limites ou contratos técnicos.
+- **Diagrama**: representação visual simplificada da arquitetura ou do fluxo.
+- **Contrato**: acordo técnico entre camadas, serviços ou dispositivos.
+- **SDGW**: nomenclatura oficial vigente do enlace host/gateway: SimulDiesel GateWay.
+- **TLV**: Type-Length-Value, formato interno de payload usado em transações específicas.
+
 ## Próximas camadas
 
 - [Contratos de Software](03-contratos-software.md)
-

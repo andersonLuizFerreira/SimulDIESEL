@@ -5,7 +5,7 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
 {
     public sealed class SdgwFrameReader
     {
-        public bool TryDecode(byte[] encodedFrame, out SggwFrame frame, out string error)
+        public bool TryDecode(byte[] encodedFrame, out SdgwFrame frame, out string error)
         {
             frame = null;
             error = null;
@@ -35,7 +35,7 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
 
                 int payloadLen = decoded.Length - 4;
                 byte[] payload = payloadLen > 0 ? Slice(decoded, 3, payloadLen) : Array.Empty<byte>();
-                frame = new SggwFrame(decoded[0], decoded[2], decoded[1], payload);
+                frame = new SdgwFrame(decoded[0], decoded[2], decoded[1], payload);
                 return true;
             }
             catch (Exception ex)

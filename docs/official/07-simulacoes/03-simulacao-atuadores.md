@@ -1,4 +1,5 @@
 ⬅ [Retornar para Simulação de Módulos](01-simulacao-modulos.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Simulação de Atuadores
 
@@ -50,7 +51,13 @@ O padrão já implementado é suficiente para expandir o conjunto de atuadores s
 - confirmação de aplicação;
 - limites elétricos e temporais do hardware correspondente.
 
+## Glossário
+
+- **Caso de uso**: fluxo funcional documentado para operação, simulação, diagnóstico ou teste.
+- **GSA**: board de geração de sinais analógicos hoje mais madura na árvore oficial.
+- **Evento**: mensagem assíncrona publicada durante ou após uma operação.
+- **Validação**: verificação de comportamento esperado em bancada.
+
 ## Próximas camadas
 
 - Esta é uma página terminal deste ramo da documentação.
-

@@ -11,9 +11,8 @@ using SimulDIESEL.DAL.Transport.Serial;
 namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
 {
     /// <summary>
-    /// Fachada legada da comunicação serial da BPM.
-    /// Mantida para compatibilidade com UI/BLL atual, mas delegando a
-    /// sessão SDGW para um núcleo genérico independente do transporte.
+    /// Serviço compartilhado da BPM.
+    /// Centraliza a sessão SDGW e expõe a mesma lógica de link para Serial e Bluetooth.
     /// </summary>
     public class BpmSerialService : IDisposable
     {
@@ -61,9 +60,6 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
         }
 
         public SdgwSession Sdgw => _session != null ? _session.Sdgw : null;
-
-        // Alias legado transitório para compatibilidade com nomenclatura antiga.
-        public SdgwSession Sggw => Sdgw;
         public SdhClient Sdh => _session != null ? _session.Sdh : null;
         public GsaClient Gsa { get; private set; }
         public BpmClient Bpm { get; private set; }
@@ -216,12 +212,12 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
             SetState(MapState(state));
         }
 
-        private static LinkState MapState(Comm.SdgwHostSession.SessionState state)
+        private LinkState MapState(Comm.SdgwHostSession.SessionState state)
         {
             switch (state)
             {
                 case Comm.SdgwHostSession.SessionState.TransportConnected:
-                    return Shared.SelectedTransportKind == TransportKind.Bluetooth
+                    return SelectedTransportKind == TransportKind.Bluetooth
                         ? LinkState.BluetoothConnected
                         : LinkState.SerialConnected;
                 case Comm.SdgwHostSession.SessionState.Draining:

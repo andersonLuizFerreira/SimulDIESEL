@@ -1,4 +1,5 @@
-⬅ [Retornar para Interface de Usuário](../05-software-dashboard/02-interface-usuario.md)
+⬅ [Retornar para Arquitetura do Software Dashboard (Local API)](../05-software-dashboard/01-arquitetura-software.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Manutenção de Módulos
 
@@ -6,7 +7,7 @@
 
 O repositório já permite documentar um fluxo de manutenção de módulos em bancada, mesmo que o conjunto de módulos seja pequeno. A manutenção, nesse contexto, significa validar comunicação, identificar o destino correto, executar comandos controlados e observar respostas ou estados do periférico quando o contrato disponível oferece essa informação.
 
-O melhor caso concreto hoje envolve gateway + GSA.
+O melhor caso concreto hoje envolve host + BPM + GSA.
 
 ## Funcionamento técnico
 
@@ -51,8 +52,14 @@ Os próximos ganhos para manutenção de módulos são:
 - registrar rastros de manutenção no software local;
 - padronizar testes de pós-manutenção com payloads conhecidos.
 
+## Glossário
+
+- **Caso de uso**: fluxo funcional documentado para operação, simulação, diagnóstico ou teste.
+- **GSA**: board de geração de sinais analógicos hoje mais madura na árvore oficial.
+- **Evento**: mensagem assíncrona publicada durante ou após uma operação.
+- **Validação**: verificação de comportamento esperado em bancada.
+- **SDGW**: nomenclatura oficial vigente do enlace host/gateway: SimulDiesel GateWay.
+
 ## Próximas camadas
 
 - [Diagnóstico de Falhas](02-diagnostico.md)
-
-

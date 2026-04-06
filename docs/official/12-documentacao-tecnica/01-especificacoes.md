@@ -1,4 +1,5 @@
-⬅ [Retornar para 00-INDICE — Mapa da árvore documental](../../00-INDICE.md)
+⬅ [Retornar para Pai Imediato (Índice Geral)](../../00-INDICE.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Especificações
 
@@ -16,7 +17,7 @@ Esta página funciona como entrada para esse conjunto. Ela resume **o que já es
 
 ### Especificação do frame host/gateway
 
-Fonte principal: `Sggw.defs.h`, `SggwLink`, `SdGwLinkEngine`.
+Fonte principal: cabeçalho de definições do gateway, implementação do link e motor de link do host.
 
 Estrutura lógica:
 
@@ -34,7 +35,7 @@ Regras observadas:
 
 Limites:
 
-- `SGGW_LOGICAL_MTU = 250`;
+- frame lógico máximo de `250` bytes;
 - `payload` máximo lógico de `247` bytes, considerando cabeçalho e `CRC`.
 
 ### Especificação do enlace
@@ -78,8 +79,14 @@ As próximas especificações que merecem formalização são:
 - contratos `cloud` quando os endpoints deixarem de estar vazios;
 - critérios de compatibilidade entre revisões de firmware e software local.
 
+## Glossário
+
+- **Especificação**: descrição formal de comportamento, limites ou contratos técnicos.
+- **Diagrama**: representação visual simplificada da arquitetura ou do fluxo.
+- **Contrato**: acordo técnico entre camadas, serviços ou dispositivos.
+- **SDH**: SimulDiesel Hardware Command, envelope semântico de comandos do projeto.
+- **TLV**: Type-Length-Value, formato interno de payload usado em transações específicas.
+
 ## Próximas camadas
 
 - [Diagramas](02-diagramas.md)
-
-

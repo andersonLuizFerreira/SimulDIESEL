@@ -152,6 +152,7 @@ build/
 
 # tools outputs
 tools/out/
+out/dumps/
 
 docs/00_visao-geral/AUDITORIA_DOCS.md
 docs/00_visao-geral/CONSISTENCIA_DOCS.md

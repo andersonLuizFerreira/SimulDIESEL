@@ -1,4 +1,5 @@
-⬅ [Retornar para Fluxo de Comunicação](../02-arquitetura/03-fluxo-de-comunicacao.md)
+⬅ [Retornar para Protocolos e Contratos](README.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Onboarding — Arquitetura de Comandos (SDH)
 
@@ -181,7 +182,7 @@ Após seguir essa sequência, o engenheiro deverá ser capaz de:
 ## Observações importantes
 
 - SDH é o envelope semântico do comando.
-- SGGW é o transporte confiável atual.
+- SDGW (SimulDiesel GateWay) é o transporte confiável atual.
 - TLV é o contrato interno entre gateway e dispositivos.
 - O target é sempre lógico, nunca físico.
 - Argumentos devem ser sempre explícitos.
@@ -197,8 +198,15 @@ Após compreender a arquitetura de comandos, recomenda-se estudar:
 - planejamento técnico do projeto;
 - estratégia de testes automatizados.
 
+## Glossário
+
+- **Protocolo**: conjunto de regras de formato e interpretação para comunicação.
+- **Target**: identificador lógico do recurso de destino de um comando SDH.
+- **Envelope**: estrutura externa que organiza os campos semânticos do comando ou resposta.
+- **TLV**: contrato interno usado entre gateway e devices quando aplicável.
+- **SDGW**: nomenclatura oficial vigente do enlace host/gateway: SimulDiesel GateWay.
+- **SDH**: SimulDiesel Hardware Command, envelope semântico de comandos do projeto.
+
 ## Próximas camadas
 
 - [SDH Command Model](01-sdh-command-model.md)
-
-

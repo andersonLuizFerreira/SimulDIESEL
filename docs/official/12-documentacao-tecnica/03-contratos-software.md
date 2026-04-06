@@ -1,4 +1,5 @@
 ⬅ [Retornar para Diagramas](02-diagramas.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Contratos de Software
 
@@ -115,7 +116,14 @@ O modelo anterior deixou de ser oficial:
 - `docs/official/05-software-dashboard/04-sdh-host-architecture.md`
 - `docs/official/06-protocolos/06-gsa-sdh-tlv.md`
 
+## Glossário
+
+- **Especificação**: descrição formal de comportamento, limites ou contratos técnicos.
+- **Diagrama**: representação visual simplificada da arquitetura ou do fluxo.
+- **Contrato**: acordo técnico entre camadas, serviços ou dispositivos.
+- **SDGW**: nomenclatura oficial vigente do enlace host/gateway: SimulDiesel GateWay.
+- **TLV**: Type-Length-Value, formato interno de payload usado em transações específicas.
+
 ## Próximas camadas
 
 - Esta é uma página terminal deste ramo da documentação.
-

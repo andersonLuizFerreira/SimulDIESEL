@@ -2,7 +2,7 @@
 #include "GwDeviceTable.h"
 #include "GwI2cBus.h"
 #include "GwTlv.h"
-#include "Sggw.defs.h"
+#include "SdgwDefs.h"
 
 GwErr GwRouter::route(uint8_t cmd,
                       const uint8_t* reqTlv, uint8_t reqTlvLen,

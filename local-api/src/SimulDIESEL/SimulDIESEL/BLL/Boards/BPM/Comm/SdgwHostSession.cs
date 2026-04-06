@@ -111,36 +111,16 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm
             _isDisconnecting = true;
             try
             {
-                bool shouldSendLogout = false;
-
                 lock (_linkSync)
                 {
                     _linkSupervisor?.SetEnabled(false);
                     _sdgwSessionEstablished = false;
-                    shouldSendLogout = _transport.IsOpen && Sdgw != null && State == SessionState.Linked;
                     _attemptActive = false;
                     _draining = false;
                     _rxBuffer.Clear();
                     StopAndDisposeLinkTimer_NoLock();
                     SetState(SessionState.Disconnected);
                     InterfaceName = "Nenhum";
-                }
-
-                if (shouldSendLogout)
-                {
-                    try
-                    {
-                        Sdgw.SendAsync(
-                            SggwCmd.LOGOUT,
-                            requireAck: true,
-                            timeoutMs: 150,
-                            retries: 1,
-                            priority: SdGwTxPriority.High,
-                            origin: "SGGW logout").Wait(500);
-                    }
-                    catch
-                    {
-                    }
                 }
 
                 _txScheduler?.SetTransportAvailable(false);

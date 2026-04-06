@@ -1,4 +1,5 @@
 ⬅ [Retornar para Boards de Firmware](README.md)
+⬅ [Retornar para Índice Geral](../../../00-INDICE.md)
 
 # UHM
 
@@ -54,7 +55,14 @@ Board ou entidade lógica identificada como UHM. Descrição funcional oficial a
 - Confirmar a tabela oficial de resources internos.
 - Confirmar o binding lógico-físico no firmware do gateway.
 
+## Glossário
+
+- **Firmware**: software embarcado executado nas boards e no gateway.
+- **Gateway**: firmware central responsável por receber, rotear e responder transações.
+- **TLV**: formato interno de transação baseado em Type-Length-Value.
+- **Board**: unidade funcional conectada à bancada e controlada pelo gateway.
+- **SDH**: SimulDiesel Hardware Command, envelope semântico de comandos do projeto.
+
 ## Próximas camadas
 
 - Esta é uma página terminal deste ramo da documentação.
-

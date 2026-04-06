@@ -1,4 +1,5 @@
-⬅ [Retornar para Visão Arquitetural](01-visao-arquitetural.md)
+⬅ [Retornar para Visão Lógica do Projeto](03-visao-logica.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Camadas do Sistema
 
@@ -16,84 +17,88 @@ Essa organização facilita:
 ## Estrutura em camadas
 
 ```text
-Camada de Apresentação
+Operador / UI
         ↓
-Camada de Aplicação
+FormsLogic e clients funcionais
         ↓
-Camada de Comunicação
+SDH / SDGW / sessão
         ↓
-Camada de Gateway
+Gateway BPM
         ↓
-Camada de Módulos
+Serviços embarcados das boards
 ```
 
 ---
 
-## Camada de apresentação
+## Camada de apresentação e operação
 
-Responsável pela interação com o operador.
+Responsável pela interação com o operador e pelos formulários WinForms já implementados.
 
 Inclui:
 
-* interface gráfica
-* formulários
-* dashboards
-* comandos operacionais
-* monitoramento
+* `DashBoard`
+* `frmPortaSerial_UI`
+* `frmBluetoothConnect`
+* `frmGSA_UI`
 
 ---
 
-## Camada de aplicação
+## Camada de aplicação host
 
-Responsável pela lógica funcional do sistema.
+Responsável por transformar ação de tela em caso de uso operacional.
 
 Inclui:
 
-* regras de operação
-* orquestração dos recursos
-* controle de fluxo
-* integração entre software e hardware
+* `FrmBpmLogic`
+* `FrmGsaLogic`
+* `BpmClient`
+* `GsaClient`
+* `BpmSerialService`
 
 ---
 
-## Camada de comunicação
+## Camada de sessão e comunicação
 
-Responsável pelo transporte seguro de dados entre software e hardware.
+Responsável por sessão, framing, confiabilidade e transporte.
 
 Inclui:
 
-* sessão de comunicação
-* integridade de dados
-* framing
-* controle de erros
-* supervisão do enlace
+* `SdhClient`
+* `SdgwSession`
+* `SdGwTxScheduler`
+* `SdGwLinkEngine`
+* `SdGwLinkSupervisor`
+* `SwitchableTransport`
+* `SerialTransport`
+* `BluetoothTransport`
 
 ---
 
 ## Camada de gateway
 
-Responsável pelo roteamento interno da bancada.
+Responsável por receber SDGW, manter sessão binária e rotear para a board correta.
 
 Inclui:
 
-* recepção de comandos
-* validação
-* decisão de destino
-* encaminhamento aos módulos
+* `SggwLink`
+* `SggwEndpointMux`
+* `GatewayApp`
+* `GwRouter`
+* `GwDeviceTable`
 
 ---
 
-## Camada de módulos
+## Camada de serviços embarcados
 
-Responsável pelos recursos físicos e funcionais da bancada aplicados ao equipamento em teste.
+Responsável pela execução funcional nas boards remotas.
 
 Inclui:
 
-* geração e monitoramento de alimentação
-* geração de sinais analógicos e digitais
-* leitura de sinais analógicos e digitais
-* leitura de dados, códigos de erro e programação
-* simulação de condições reais de funcionamento
+* `Service` e `AnalogService` da GSA
+* TLV curto com CRC próprio
+* geração de sinais analógicos
+* fault reset, status e offsets por canal
+* eventos assíncronos de fault e de resultado físico
 
 
 ---
@@ -102,45 +107,23 @@ Inclui:
 
 ```text
 UI
-→ Aplicação
-→ Comunicação
-→ Gateway
-→ Módulo
+→ FormsLogic / clients
+→ SDH / SDGW
+→ Gateway BPM
+→ serviço embarcado
 → resposta
 ```
 
 ---
 
+## Glossário
+
+- **Camada**: nível de responsabilidade dentro da arquitetura do sistema.
+- **Gateway**: ponto de passagem entre host, roteamento interno e hardware.
+- **Arquitetura**: organização estrutural e funcional das partes do SimulDIESEL.
+
 ## Próximas camadas
 
-A partir desta divisão em camadas, escolha a área que deseja aprofundar.
-
-### Fluxo entre as camadas
-
-Para entender como a informação percorre o sistema, desde a interface até o módulo físico.
+A partir desta divisão lógica, o próximo aprofundamento oficial segue pelo fluxo operacional do sistema.
 
 * [Fluxo de Comunicação](03-fluxo-de-comunicacao.md)
-
----
-
-### Estrutura física da bancada
-
-Para entender a organização física do hardware e sua distribuição modular.
-
-* [Backplane](../03-hardware/01-backplane.md)
-
----
-
-### Camada embarcada
-
-Para aprofundar a arquitetura de firmware e gateway.
-
-* [Arquitetura de Firmware](../04-firmware/01-arquitetura-firmware.md)
-
----
-
-### Camada da aplicação
-
-Para aprofundar a arquitetura do software local e interface com o operador.
-
-* [Arquitetura do Software](../05-software-dashboard/01-arquitetura-software.md)

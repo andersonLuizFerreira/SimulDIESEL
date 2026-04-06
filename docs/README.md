@@ -2,46 +2,37 @@
 
 Bem-vindo à documentação oficial do **SimulDIESEL**.
 
-Esta documentação foi organizada como uma **árvore de aprofundamento progressivo**, permitindo que a leitura parta de uma visão ampla do projeto e avance, camada por camada, até os níveis mais técnicos de implementação.
+Esta documentação está organizada como uma **árvore hierárquica de aprofundamento progressivo**, com suporte a duas leituras complementares:
 
-O objetivo é oferecer uma navegação clara e intuitiva entre:
+* visão física
+* visão lógica
 
-* visão geral
-* arquitetura
-* hardware
-* firmware
-* software
-* protocolos
-* operação
-* testes
-
----
+O objetivo é permitir que a consulta comece por um mapa global, avance por pais e filhos imediatos e mantenha governança formal da estrutura ativa.
 
 ## Como navegar
 
-* Comece pelo mapa principal da documentação.
-* Em cada página, utilize o link do topo para subir um nível.
-* Ao final de cada página, utilize a seção **Próximas camadas** para descer apenas para os filhos imediatos.
+* Use o [índice geral](./00-INDICE.md) como mapa rápido global.
+* Em cada página oficial, use o retorno ao pai imediato para subir um nível.
+* Em cada página oficial, use o retorno ao índice geral para reposicionar a leitura.
+* Desça na árvore apenas pela seção **Próximas camadas** de cada documento.
 
----
+## Governança documental
+
+A regra oficial da árvore e das futuras revisões está em [DOCUMENTATION_RULES.md](./DOCUMENTATION_RULES.md).
 
 ## Papel desta página
 
-Esta página é a **raiz oficial da árvore documental**.
+Esta página continua sendo a porta de entrada da pasta `docs/`, conectando o leitor ao índice global e ao documento mestre de governança.
 
-Toda a navegação hierárquica parte daqui.
+O acervo histórico permanece preservado em `docs/legacy/`.
 
-O material histórico permanece preservado, porém fora da árvore principal.
+## Glossário
 
----
-
-## Material complementar
-
-* Histórico preservado: [Documentação legada](./legacy/00-INDICE-LEGACY.md)
-* Acervo complementar: `docs/archive/` e `docs/generated/`
-
----
+- **Documentação oficial**: árvore viva usada como referência atual do projeto.
+- **Índice geral**: mapa global clicável da navegação documental.
+- **Governança documental**: conjunto de regras que controla estrutura, navegação e revisões.
 
 ## Próximas camadas
 
-* [00-INDICE — Mapa da árvore documental](./00-INDICE.md)
+* [00-INDICE — Índice Geral da Navegação](./00-INDICE.md)
+* [DOCUMENTATION_RULES — Regras Oficiais da Documentação](./DOCUMENTATION_RULES.md)

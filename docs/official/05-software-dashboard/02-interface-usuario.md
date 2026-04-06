@@ -1,10 +1,11 @@
-⬅ [Retornar para Arquitetura do Software Dashboard (Local API)](01-arquitetura-software.md)
+⬅ [Retornar para API e Host Local](../02-arquitetura/04-api-e-host-local.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Interface de Usuário
 
 ## Estado atual
 
-A interface de usuário presente no repositório é uma aplicação WinForms orientada à operação de bancada. Ela não é um dashboard analítico amplo; ela é um conjunto de telas de apoio à conexão serial, à seleção de Bluetooth, ao diagnóstico do link e ao teste de funcionalidades expostas pelo gateway.
+A interface de usuário presente no repositório é uma aplicação WinForms orientada à operação de bancada. Nesta trilha física, o foco não é o caso de uso do operador, mas **onde a UI se posiciona no host real**.
 
 As telas diretamente observadas no código são:
 
@@ -13,26 +14,26 @@ As telas diretamente observadas no código são:
 - `frmBluetoothConnect`: seleção e conexão de dispositivo Bluetooth SPP;
 - `frmGSA_UI`: operação e teste dos recursos atuais da GSA.
 
-## Funcionamento técnico
-
-### Fluxo principal de uso
+## Posição na pilha do host
 
 ```text
-Operador abre a aplicação
-  -> escolhe serial ou Bluetooth
-  -> inicia o link com o gateway
-  -> monitora saúde da conexão
-  -> executa ações de teste
+Operador
+  ↓
+DashBoard e formulários WinForms
+  ↓
+FormsLogic / BLL
+  ↓
+Sessão e transporte
 ```
 
-### Responsabilidades por tela
+## Blocos implementados
 
 - `DashBoard`: organiza o acesso às funcionalidades de bancada e concentra o contexto da aplicação.
 - `frmPortaSerial_UI`: aciona a sessão serial via `FrmBpmLogic` e `BpmSerialService`.
 - `frmBluetoothConnect`: lista dispositivos detectados e usa `FrmBpmLogic` para abrir a sessão Bluetooth da BPM.
 - `frmGSA_UI`: fornece o caso de uso funcional mais completo hoje, consumindo `FrmGsaLogic` e `GsaClient`.
 
-### Relação com as camadas inferiores
+## Interface com a camada inferior
 
 A interface não conversa diretamente com byte streams nem com barramentos. Ela delega para classes de negócio e infraestrutura:
 
@@ -43,17 +44,6 @@ A interface não conversa diretamente com byte streams nem com barramentos. Ela 
 - a `DAL` transporta bytes pela interface ativa.
 
 Essa separação reduz o acoplamento com o hardware e permite evoluir a interface sem reescrever o protocolo.
-
-## Papel deste ramo na árvore
-
-Nesta trilha, a interface é lida como o ponto de entrada dos **casos de uso operacionais** já sustentados pelo software local.
-
-Por isso, as próximas camadas não detalham componentes visuais adicionais. Elas aprofundam as duas famílias de uso que a UI precisa materializar hoje:
-
-* simulação de módulos em bancada
-* manutenção e diagnóstico de módulos
-
-O objetivo é mostrar o que o operador realmente consegue fazer a partir da interface atual, e não apenas quais formulários existem.
 
 ## Limitações
 
@@ -67,9 +57,13 @@ A base atual favorece a expansão da UI em três direções:
 - expor estado do link, erros e eventos com maior clareza operacional;
 - incorporar novas telas à medida que novos serviços roteáveis forem adicionados ao gateway e a novas interfaces de acesso forem consolidadas.
 
+## Glossário
+
+- **Host**: lado do software local que coordena a bancada a partir do PC.
+- **UI**: camada visual usada pelo operador para interagir com o sistema.
+- **Sessão**: estado lógico que mantém o enlace ativo entre host e gateway.
+- **Client funcional**: classe que encapsula operações de um domínio específico, como GSA ou BPM.
+
 ## Próximas camadas
 
-- [Simulação de Módulos](../07-simulacoes/01-simulacao-modulos.md)
-- [Manutenção de Módulos](../08-casos-de-uso/01-manutencao-modulos.md)
-
-
+- Esta é uma página terminal do ramo físico da API.

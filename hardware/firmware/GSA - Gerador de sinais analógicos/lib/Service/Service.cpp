@@ -23,6 +23,8 @@ bool Service::handleOneTlv(const TlvFrame &tlv, uint8_t *txOut, uint8_t &txLenOu
     return false;
   txLenOut = 0;
 
+  // O caminho síncrono da GSA só confirma o aceite do comando.
+  // A execução física em TCA9548/MCP4725 acontece depois e é reportada por IRQ + 0x31.
   switch (tlv.t)
   {
     case CMD_LED_BUILTIN:
@@ -63,8 +65,8 @@ bool Service::handleBuiltinLed(const TlvFrame& tlv, uint8_t* txOut, uint8_t& txL
     return buildFunctionalError(CMD_LED_BUILTIN, 0, GSA_ERROR_INVALID_STATE, txOut, txLenOut);
   }
 
-  uint8_t applied = (uint8_t)_led.set(tlv.v[0]);
-  txLenOut = TlvBuilder::buildU8(CMD_LED_BUILTIN, applied, txOut, TLV_MAX_LEN);
+  uint8_t currentState = (uint8_t)_led.set(tlv.v[0]);
+  txLenOut = TlvBuilder::buildU8(CMD_LED_BUILTIN, currentState, txOut, TLV_MAX_LEN);
   return txLenOut != 0;
 }
 

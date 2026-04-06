@@ -157,6 +157,8 @@ bool AnalogService::handleSetpoint(const TlvFrame& tlv, uint8_t* txOut, uint8_t&
     }
   }
 
+  // A resposta síncrona só confirma o setpoint aceito para processamento.
+  // Se houver etapa elétrica, a conclusão real virá depois no evento 0x31.
   uint8_t payload[2] = { channel, newValue };
   txLenOut = TlvBuilder::build(CMD_SETPOINT, payload, sizeof(payload), txOut, TLV_MAX_LEN);
   return txLenOut != 0;
@@ -199,6 +201,8 @@ bool AnalogService::handleEnableChannel(const TlvFrame& tlv, uint8_t* txOut, uin
     }
   }
 
+  // A resposta síncrona informa apenas o estado aceito.
+  // A aplicação elétrica no DAC/hub é confirmada depois via 0x31.
   uint8_t payload[2] = { channel, requestedState };
   txLenOut = TlvBuilder::build(CMD_ENABLE_CHANNEL, payload, sizeof(payload), txOut, TLV_MAX_LEN);
   return txLenOut != 0;
@@ -237,6 +241,7 @@ bool AnalogService::handleEnableGlobal(const TlvFrame& tlv, uint8_t* txOut, uint
     return buildFunctionalError(CMD_ENABLE_GLOBAL, 0, GSA_ERROR_OPERATION_NOT_ALLOWED, txOut, txLenOut);
   }
 
+  // O retorno síncrono só confirma o pedido aceito e quantos canais foram enfileirados.
   uint8_t payload[2] = { requestedState, operationCount };
   txLenOut = TlvBuilder::build(CMD_ENABLE_GLOBAL, payload, sizeof(payload), txOut, TLV_MAX_LEN);
   return txLenOut != 0;
@@ -270,6 +275,7 @@ bool AnalogService::handleFaultReset(const TlvFrame& tlv, uint8_t* txOut, uint8_
     state.faultLatched = false;
   }
 
+  // O retorno síncrono confirma o reset aceito; o resultado físico segue por 0x31.
   uint8_t payload[2] = { channel, 0 };
   txLenOut = TlvBuilder::build(CMD_FAULT_RESET, payload, sizeof(payload), txOut, TLV_MAX_LEN);
   return txLenOut != 0;
@@ -425,6 +431,7 @@ void AnalogService::processCompletedHardwareOperations() {
   while (_busArbiter.popCompletedOperation(result)) {
     applyCompletedOperation(result);
 
+    // Toda conclusão física, inclusive falha, é publicada por evento assíncrono.
     uint8_t payload[3] = {
       result.originType,
       result.channel,

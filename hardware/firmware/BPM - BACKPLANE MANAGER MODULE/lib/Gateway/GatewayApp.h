@@ -6,11 +6,11 @@
 #include "GwRouter.h"
 #include "GwErr.h"
 
-class SggwLink;
+class SdgwLink;
 
 class GatewayApp : public IGatewayApp {
 public:
-    GatewayApp(SggwLink& link, GwRouter& router);
+    GatewayApp(SdgwLink& link, GwRouter& router);
 
     void begin();
 
@@ -33,7 +33,7 @@ private:
     void sendGatewayErrAsResponse(uint8_t cmd, GwErr err);
 
 private:
-    SggwLink& _link;
+    SdgwLink& _link;
     GwRouter& _router;
     volatile bool _gsaIrqLatched;
 

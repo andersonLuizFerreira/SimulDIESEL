@@ -1,10 +1,11 @@
-⬅ [Retornar para Interface de Usuário](../05-software-dashboard/02-interface-usuario.md)
+⬅ [Retornar para Arquitetura do Software Dashboard (Local API)](../05-software-dashboard/01-arquitetura-software.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Simulação de Módulos
 
 ## Estado atual
 
-No estado atual do repositório, a simulação de módulos deve ser entendida como um **caso de uso operacional exposto pela interface** e sustentado por uma arquitetura modular no gateway.
+No estado atual do repositório, a simulação de módulos deve ser entendida como um **caso de uso lógico do software local** sustentado por uma arquitetura modular no gateway.
 
 O componente mais concreto dessa estratégia é a capacidade do gateway de tratar boards e recursos como destinos lógicos independentes, permitindo ao host acionar um módulo sem conhecer diretamente o barramento físico.
 
@@ -72,9 +73,15 @@ O próximo ganho arquitetural é adicionar módulos novos sem quebrar o fluxo ex
 - firmware de dispositivo com contrato bem definido;
 - tela ou caso de uso correspondente no software local.
 
+## Glossário
+
+- **Caso de uso**: fluxo funcional documentado para operação, simulação, diagnóstico ou teste.
+- **GSA**: board de geração de sinais analógicos hoje mais madura na árvore oficial.
+- **Evento**: mensagem assíncrona publicada durante ou após uma operação.
+- **Validação**: verificação de comportamento esperado em bancada.
+- **TLV**: Type-Length-Value, formato interno de payload usado em transações específicas.
+
 ## Próximas camadas
 
 - [Simulação de Sensores](02-simulacao-sensores.md)
 - [Simulação de Atuadores](03-simulacao-atuadores.md)
-
-

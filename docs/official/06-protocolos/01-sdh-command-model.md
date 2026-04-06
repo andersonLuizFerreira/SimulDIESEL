@@ -1,4 +1,5 @@
 ⬅ [Retornar para Onboarding — Arquitetura de Comandos (SDH)](00-onboarding-comandos.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # SDH Command Model
 
@@ -153,7 +154,14 @@ Devem manter compatibilidade controlada.
 - `docs/official/06-protocolos/03-sdh-examples.md`
 - `docs/official/06-protocolos/06-gsa-sdh-tlv.md`
 
+## Glossário
+
+- **Protocolo**: conjunto de regras de formato e interpretação para comunicação.
+- **Target**: identificador lógico do recurso de destino de um comando SDH.
+- **Envelope**: estrutura externa que organiza os campos semânticos do comando ou resposta.
+- **TLV**: contrato interno usado entre gateway e devices quando aplicável.
+- **SDH**: SimulDiesel Hardware Command, envelope semântico de comandos do projeto.
+
 ## Próximas camadas
 
 - [SDH Response Model](02-sdh-response-model.md)
-

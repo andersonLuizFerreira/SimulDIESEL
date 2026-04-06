@@ -1,8 +1,8 @@
 #include <Arduino.h>
 
 #include "GatewayApp.h"
-#include "SggwLink.h"
-#include "Sggw.defs.h"
+#include "SdgwLink.h"
+#include "SdgwDefs.h"
 #include "GwTlv.h"
 
 namespace {
@@ -11,7 +11,7 @@ static const uint8_t MaxEventsPerDrain = 24;
 
 GatewayApp* GatewayApp::_self = nullptr;
 
-GatewayApp::GatewayApp(SggwLink& link, GwRouter& router)
+GatewayApp::GatewayApp(SdgwLink& link, GwRouter& router)
     : _link(link),
       _router(router),
       _gsaIrqLatched(false)
@@ -23,8 +23,8 @@ void GatewayApp::begin()
     _self = this;
     _gsaIrqLatched = false;
 
-    pinMode(GSA_IRQ_PIN, INPUT);
-    attachInterrupt(digitalPinToInterrupt(GSA_IRQ_PIN), onGsaIrqThunk, FALLING);
+    pinMode(BPM_GSA_IRQ_PIN, INPUT);
+    attachInterrupt(digitalPinToInterrupt(BPM_GSA_IRQ_PIN), onGsaIrqThunk, FALLING);
 }
 
 void GatewayApp::onCommand(uint8_t cmd,
@@ -46,7 +46,7 @@ void GatewayApp::onCommand(uint8_t cmd,
 
     uint8_t resp[300];
     size_t respLen = 0;
-    uint16_t timeoutMs = (uint16_t)SGGW_GATEWAY_ROUTE_TIMEOUT_MS;
+    uint16_t timeoutMs = (uint16_t)SDGW_GATEWAY_ROUTE_TIMEOUT_MS;
 
     GwErr r = _router.route(cmd, data, dataLen, resp, sizeof(resp), respLen, timeoutMs);
     if (r != GWERR_OK) {
@@ -77,7 +77,7 @@ void GatewayApp::handleGatewayLocal(uint8_t cmd,
 
 void GatewayApp::tick()
 {
-    if (!_gsaIrqLatched && digitalRead(GSA_IRQ_PIN) != LOW) {
+    if (!_gsaIrqLatched && digitalRead(BPM_GSA_IRQ_PIN) != LOW) {
         return;
     }
 
@@ -105,16 +105,16 @@ void GatewayApp::drainPendingGsaEvents()
             break;
         }
 
-        _link.sendEvent(SGGW_CMD_GSA_TLV, eventPacket, (uint8_t)eventLen);
+        _link.sendEvent(SDGW_CMD_GSA_TLV, eventPacket, (uint8_t)eventLen);
     }
 
-    _gsaIrqLatched = (digitalRead(GSA_IRQ_PIN) == LOW);
+    _gsaIrqLatched = (digitalRead(BPM_GSA_IRQ_PIN) == LOW);
 }
 
 void GatewayApp::sendGatewayErrAsResponse(uint8_t cmd, GwErr err)
 {
     uint8_t tlv[3];
-    tlv[0] = SGGW_TLV_GATEWAY_ERR;
+    tlv[0] = SDGW_TLV_GATEWAY_ERR;
     tlv[1] = 0x01;
     tlv[2] = (uint8_t)err;
 

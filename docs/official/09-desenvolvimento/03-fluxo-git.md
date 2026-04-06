@@ -1,4 +1,5 @@
 ⬅ [Retornar para Padrões de Código](02-padroes-codigo.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Fluxo Git
 
@@ -49,7 +50,13 @@ Quando o fluxo Git for formalizado, a documentação oficial deve registrar:
 - critério de atualização obrigatória da documentação oficial;
 - relação entre ADRs, roadmap e entregas incrementais.
 
+## Glossário
+
+- **Repositório**: estrutura de diretórios e arquivos versionados do projeto.
+- **Branch**: linha de desenvolvimento isolada dentro do Git.
+- **Commit**: registro versionado de uma mudança aplicada ao repositório.
+- **Padrão**: convenção adotada para manter consistência técnica.
+
 ## Próximas camadas
 
 - Esta é uma página terminal deste ramo da documentação.
-
