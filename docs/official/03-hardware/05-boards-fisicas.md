@@ -1,117 +1,43 @@
 ⬅ [Retornar para Baby Boards](02-baby-boards.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Construção Física das Boards
 
-Esta seção reúne a documentação relacionada à **engenharia física e eletrônica das baby boards** do SimulDIESEL que já possuem material oficial conectado à árvore viva.
+Esta camada aprofunda a construção física das boards que possuem evidência suficiente no repositório.
 
-O objetivo desta camada não é esgotar toda a documentação de hardware possível, mas apresentar a forma como uma board física é descrita no acervo oficial atual.
+## Estado real
 
-No estado atual da árvore, isso significa:
+- **IMPLEMENTADO**: a GSA possui esquemático, PCB e firmware coerentes entre si.
+- **PARCIALMENTE IMPLEMENTADO**: a placa raiz `SimulDIESEL` existe como hardware, mas ainda não sustenta o mesmo nível de documentação física por netlist.
+- **LEGADO**: `legacy-comunicacao` preserva uma solução anterior fora da arquitetura corrente.
+- **PLANEJADO**: demais boards físicas ainda não atingiram o mesmo nível de detalhamento.
 
-* visão física da board
-* blocos eletrônicos principais
-* caminho funcional entre gateway, lógica local e circuito analógico
-* pontos de interligação mais relevantes
+## Caminho deste ramo
 
----
-
-## Escopo desta camada
-
-Nesta área são documentados os aspectos físicos e eletrônicos das boards, incluindo:
-
-* descrição detalhada do funcionamento eletrônico
-* esquemas elétricos
-* topologia dos circuitos
-* placas de circuito impresso (PCI)
-* tabelas de interligação
-* pinagens
-* níveis de tensão
-* proteção elétrica
-* circuitos analógicos e digitais
-
----
-
-## Estrutura de engenharia
-
-A construção física de uma board normalmente é dividida nas seguintes áreas:
-
-```text id="7y4m9p"
-Alimentação
-    ↓
-Proteção elétrica
-    ↓
-Processamento eletrônico
-    ↓
-Entradas e saídas
-    ↓
-Interligação física
+```text
+Board física
+  -> MCU / lógica local
+  -> barramentos locais
+  -> periféricos elétricos
+  -> conectores / saída
 ```
 
-Cada board pode possuir variações conforme sua função.
+## Referência viva
 
----
+A GSA é a board física mais madura desta árvore porque já mostra:
 
-## Estado atual da árvore
+- microcontrolador identificado no esquemático
+- barramento físico com a BPM
+- barramento lógico interno
+- periféricos `TCA9548A` e `MCP4725`
+- firmware correspondente
 
-Hoje a árvore oficial possui aprofundamento físico conectado para a **GSA**, usada como board de referência neste ramo.
+## Glossário
 
-Isso significa que as próximas páginas devem ser lidas como:
-
-* exemplo concreto de board física atualmente documentada
-* referência de como este ramo deve evoluir quando outras boards tiverem material equivalente
-
-Não há, neste momento, garantia de que todas as categorias listadas acima já estejam disponíveis para cada board.
-
----
-
-## Elementos normalmente documentados
-
-Cada board física deverá conter, quando aplicável:
-
-### Alimentação
-
-* tensões de entrada
-* tensões reguladas
-* separação de domínios
-* proteção contra curto
-
----
-
-### Circuitos de processamento
-
-* DACs
-* multiplexadores
-* HUBs I2C
-* drivers
-* buffers
-* amplificadores operacionais
-* condicionamento de sinais
-
----
-
-### Interface física
-
-* conectores
-* chicotes
-* pinagem
-* tabelas de interligação
-* interface com X-CONN e backplane
-
----
-
-### Placa de circuito impresso
-
-* layout
-* camadas
-* roteamento crítico
-* dissipação térmica
-
----
+- **Construção física**: leitura focada em componentes, conectores e interligações materiais.
+- **Referência viva**: board que já possui evidência suficiente para aprofundamento.
+- **Netlist**: material que permite afirmar conexões elétricas concretas.
 
 ## Próximas camadas
 
-### GSA — Gerador de Sinais Analógicos
-
-Visão física da board mais madura hoje no acervo oficial.
-
-* [Abrir documentação física da GSA](./boards/03-gsa/README.md)
+- [Abrir documentação física da GSA](./boards/03-gsa/README.md)

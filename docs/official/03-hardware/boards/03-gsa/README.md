@@ -1,105 +1,53 @@
 ⬅ [Retornar para Construção Física das Boards](../../05-boards-fisicas.md)
+⬅ [Retornar para Índice Geral](../../../../00-INDICE.md)
 
 # GSA — Gerador de Sinais Analógicos
 
-A **GSA (Gerador de Sinais Analógicos)** é uma baby board especializada na geração, condicionamento e monitoramento de sinais analógicos aplicados ao módulo em teste.
+Esta página descreve a GSA como placa física.
 
-Atualmente, esta é a board física mais madura do projeto SimulDIESEL, servindo como referência para a arquitetura eletrônica das demais boards.
+## Evidências materiais usadas aqui
 
-Sua principal função é reproduzir sinais elétricos analógicos que simulam sensores, entradas e condições reais de operação.
+- `hardware/boards/GSA -gerador-sinais-analogicos/GSA - gerador de sinais analogicos.kicad_sch`
+- `hardware/boards/GSA -gerador-sinais-analogicos/GERADOR DE NÍVEIS/GERADOR_NIVEIS.kicad_sch`
+- firmware da GSA em `hardware/firmware/GSA - Gerador de sinais analógicos`
 
----
+## Estrutura física confirmada
 
-## Função principal
+| bloco físico | evidência | papel | status |
+| --- | --- | --- | --- |
+| MCU principal | `Arduino_Nano_Every` no esquemático | lógica local da board | `IMPLEMENTADO` |
+| `I2C` físico em `A4/A5` | esquemático + firmware | interface com a BPM | `IMPLEMENTADO` |
+| `I2C` lógico em `D2/D3` | esquemático + firmware | barramento interno da board | `IMPLEMENTADO` |
+| `IRQ` em `D4` | esquemático + firmware | evento assíncrono para a BPM | `IMPLEMENTADO` |
+| reset do hub em `D8` | esquemático + firmware | controle do `TCA9548A` | `IMPLEMENTADO` |
+| `TCA9548A` | `GERADOR_NIVEIS.kicad_sch` | seleção de ramo | `IMPLEMENTADO` |
+| `MCP4725` | firmware e subprojeto da GSA | DAC por canal | `IMPLEMENTADO` |
 
-A GSA é responsável por:
+## Empilhamento físico da placa
 
-* geração de tensões analógicas controladas
-* simulação de sensores
-* condicionamento de níveis de tensão
-* monitoramento das saídas
-* proteção elétrica dos canais
-* interface com a backplane
-
-Ela permite que o módulo em teste receba sinais equivalentes aos encontrados no ambiente real de funcionamento.
-
----
-
-## Características físicas
-
-A estrutura física da GSA é composta por blocos funcionais principais.
-
-```text id="w8z43f"
-Interface com Gateway
-        ↓
-Controle lógico
-        ↓
-Barramento I2C interno
-        ↓
-DACs / HUB I2C
-        ↓
-Circuitos analógicos
-        ↓
-Saídas para módulo em teste
+```text
+BPM
+  -> I2C físico
+  -> MCU da GSA
+  -> I2C lógico
+  -> TCA9548A
+  -> MCP4725
+  -> estágio analógico
+  -> saída do canal
 ```
 
----
+## Observações importantes
 
-## Características elétricas
+- O firmware confirma 16 canais lógicos.
+- O hub `TCA9548A` divide esses 16 canais em 8 ramos com 2 DACs por ramo.
+- A GSA é hoje a principal referência física do projeto; outras boards ainda não apresentam o mesmo conjunto de evidências.
 
-A GSA possui:
+## Glossário
 
-* 16 canais de saída, sendo:
-
-  * 8 canais de geração de 0–5 V
-  * 8 canais de geração de 0–12 V
-* conversão digital-analógica por DAC
-* condicionamento por amplificadores operacionais
-* leitura e monitoramento de tensão e corrente de saída
-* proteção contra falhas elétricas
-* capacidade de corrente de saída de até 80 mA em modo source/sink
-
-
----
-
-## Arquitetura interna
-
-A placa é dividida em duas grandes áreas.
-
-### Controle lógico
-
-Responsável por:
-
-* interpretação dos comandos
-* controle dos canais
-* shadow RAM
-* interface com a BPM (Gateway)
-
----
-
-### Circuito eletrônico
-
-Responsável por:
-
-* DAC
-* HUB I2C
-* multiplexação
-* condicionamento analógico
-* proteção elétrica
-* monitoramento
-
----
-
-## Papel dentro da bancada
-
-A GSA atua como a unidade responsável pela geração de sinais analógicos do sistema.
-
-Ela é utilizada para simular sensores e condições operacionais do módulo conectado via X-CONN.
-
----
+- **MCU**: microcontrolador principal da placa.
+- **Ramo**: saída selecionável do `TCA9548A`.
+- **DAC**: conversor digital-analógico responsável pelo valor base do canal.
 
 ## Próximas camadas
 
-### Funcionamento eletrônico detalhado
-
-* [Funcionamento eletrônico](01-funcionamento-eletronico.md)
+- [Funcionamento eletrônico](01-funcionamento-eletronico.md)

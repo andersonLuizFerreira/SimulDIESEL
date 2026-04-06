@@ -1,164 +1,86 @@
 ⬅ [Retornar para GSA — Visão Geral](README.md)
+⬅ [Retornar para Índice Geral](../../../../00-INDICE.md)
 
 # Funcionamento Eletrônico
 
-Esta seção descreve o funcionamento eletrônico real da GSA, desde o recebimento do comando vindo da BPM até a geração física do sinal analógico na saída.
+Esta página responde à trilha **COMO** da GSA física: como o sinal atravessa a placa depois que a BPM envia um comando.
 
-O fluxo foi concebido com **dois barramentos I2C independentes**, separando a comunicação com o gateway da comunicação interna da própria board.
+## Fluxo físico-funcional confirmado
 
----
-
-## Fluxo eletrônico principal
-
-O funcionamento da GSA segue o seguinte fluxo:
-
-```text id="k7m2ha"
-BPM (Gateway)
-        ↓
-I2C físico (slave)
-        ↓
-Controle lógico da GSA
-        ↓
-I2C lógico interno (master)
-        ↓
-HUB I2C (8 canais)
-        ↓
-DAC selecionado
-        ↓
-Condicionamento analógico
-        ↓
-Saída do canal
+```text
+BPM
+  -> I2C físico (A4/A5)
+  -> Transport / Link / Service
+  -> AnalogService
+  -> BusArbiterService
+  -> TCA9548A
+  -> MCP4725
+  -> estágio analógico do canal
+  -> resultado elétrico
+  -> IRQ + evento assíncrono
 ```
 
----
+## Como o canal é escolhido
 
-## 1. Recebimento do comando pela BPM
+O firmware faz a seleção em duas etapas:
 
-A GSA recebe os comandos da BPM por meio de um **barramento I2C físico dedicado**.
+1. `Tca9548Service::switchIndexForChannel(channel)` escolhe um dos 8 ramos do hub.
+2. `Mcp4725Service::addressForChannel(channel)` escolhe `0x61` para canais ímpares e `0x60` para pares.
 
-Neste barramento, a GSA opera como **slave**.
+## Como o valor vira tensão
 
-A BPM envia o comando contendo, entre outras informações:
+`BusArbiterService::rawToOutputMillivolts(...)` converte o `setpointRaw` de `0..255` para milivolts conforme a faixa do canal.
 
-* canal desejado
-* valor de tensão solicitado
-* habilitação da saída
+Depois, `Mcp4725Service::toDacVoltage(...)` aplica a lógica física:
 
-O firmware da GSA recebe esse pacote e inicia o processamento interno.
+- canais `1..8`: faixa até `5 V`
+- canais `9..16`: faixa até `12 V`
+- canais altos usam ganho de amplificação `2.4`
 
----
+## Comentário orientado a código
 
-## 2. Processamento do comando
+Trecho real de `BusArbiterService::executeOperation(...)`:
 
-Após o recebimento, a camada lógica da GSA interpreta o comando.
+```cpp
+if (!_tca9548.selectChannel(operation.channel, &ackCode)) {
+  return GSA_PHYSICAL_STATUS_TCA_NO_ACK;
+}
 
-Nesta etapa são identificados:
-
-* porta / canal de saída
-* faixa de tensão
-* valor solicitado
-* DAC de destino
-
-Essa etapa define qual recurso eletrônico será acionado.
-
----
-
-## 3. Arquitetura de barramentos I2C
-
-A GSA utiliza **dois barramentos I2C independentes**.
-
-### I2C físico — comunicação com a BPM
-
-Este barramento é utilizado exclusivamente para comunicação entre gateway e board.
-
-```text id="j8s3ta"
-BPM → GSA
+if (!_mcp4725.probeChannel(operation.channel, &ackCode)) {
+  return GSA_PHYSICAL_STATUS_MCP_NO_ACK;
+}
 ```
 
-Modo de operação da GSA:
+Esse bloco existe para validar a rota elétrica antes de aplicar a escrita no DAC.
 
-```text id="4pj7wh"
-slave
+Em seguida:
+
+```cpp
+bool ok = operation.disableOutput
+  ? _mcp4725.disableChannel(operation.channel, &ackCode)
+  : _mcp4725.writeChannel(operation.channel, rawToOutputMillivolts(...), &ackCode);
 ```
 
----
+Aqui a GSA decide entre zerar a saída ou escrever um novo valor físico.
 
-### I2C lógico — barramento interno da GSA
+## Como o resultado volta
 
-Para acesso aos componentes internos, a GSA utiliza um segundo barramento I2C.
+Depois da etapa elétrica:
 
-Neste barramento a GSA opera como **master**.
+- a GSA empilha `CMD_PHYSICAL_EVENT (0x31)` com `origin_type`, `channel` e `status`
+- `Link::tick()` arma `IRQ`
+- a BPM detecta `LOW` e busca o evento
 
-Esse barramento é responsável por controlar:
+## O que ainda permanece parcial
 
-* HUB I2C
-* DACs
-* periféricos internos
+- descrição completa do estágio analógico por componente fora do subprojeto da GSA
+- documentação elétrica consolidada do caminho até X-CONN e módulo em teste
 
-```text id="4m40kl"
-GSA → HUB → DAC
-```
+## Glossário
 
----
----
-
-## Tabela de interligação física
-
-A GSA possui as seguintes interligações físicas principais relacionadas ao funcionamento eletrônico da placa.
-
-| Função       | Tipo                   | Pinos   | Observação                                              |
-| ------------ | ---------------------- | ------- | ------------------------------------------------------- |
-| I2C físico   | Comunicação com BPM    | A4 / A5 | Barramento I2C onde a GSA opera como **slave**          |
-| I2C lógico   | Comunicação interna    | D2 / D3 | Barramento I2C interno onde a GSA opera como **master** |
-| Reset do HUB | Controle interno       | D8      | Reset do multiplexador / HUB I2C                        |
-| IRQ          | Sinalização assíncrona | D4      | Notificação de eventos para a BPM                       |
-| Reset global | Reset da board         | RESET   | Ligado ao reset global vindo pelo backplane             |
-
----
-
-
-## 4. HUB I2C
-
-O acesso aos DACs é realizado por meio de um **HUB I2C de 8 canais**.
-
-Cada canal do HUB possui **2 DACs associados**.
-
-Isso permite expandir a quantidade total de canais de saída da board.
-
-A estrutura é:
-
-```text id="p4e58n"
-8 canais HUB
-×
-2 DACs por canal
-=
-16 canais totais
-```
-
----
-
-## 5. DAC e geração do sinal
-
-Após a seleção do canal no HUB, a GSA acessa o DAC correspondente.
-
-O DAC converte o valor digital recebido em tensão analógica de referência.
-
-Essa tensão segue para o circuito de condicionamento analógico da saída.
-
-É nessa etapa que são geradas as faixas de:
-
-* 0–5 V
-* 0–12 V
-
----
-
-## Estado atual
-
-A leitura de tensão e corrente de saída **ainda não está implementada**.
-
-Por esse motivo, esta etapa ainda não faz parte do fluxo funcional oficial.
-
----
+- **Resultado elétrico**: efeito físico aplicado ao canal depois da escrita no DAC.
+- **Probe**: teste de presença do periférico antes da operação.
+- **Evento físico**: mensagem assíncrona usada para reportar sucesso ou falha da etapa elétrica.
 
 ## Próximas camadas
 

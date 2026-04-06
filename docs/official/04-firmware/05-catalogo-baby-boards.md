@@ -1,94 +1,66 @@
 ⬅ [Retornar para Arquitetura SDH no Gateway](04-sdh-gateway-architecture.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Catálogo de Baby Boards e Targets SDH
 
-## Objetivo
+Esta página registra o catálogo realmente observável nesta auditoria, sem promover boards planejadas a estado implementado.
 
-Este documento centraliza a documentação das baby boards do SimulDIESEL sob o ponto de vista do firmware e do acesso por comandos SDH.
+## Inventário real
 
-O foco desta seção é registrar:
+| board | evidência em código | endereço/slot real | papel atual | status |
+| --- | --- | --- | --- | --- |
+| BPM | `BPM - BACKPLANE MANAGER MODULE/src/main.cpp` | `GW_ADDR_BPM = 0x0` | gateway local | `IMPLEMENTADO` |
+| GSA | `GwDeviceTable.cpp`, `GSA - Gerador de sinais analógicos/src/main.cpp` | `GW_ADDR_GSA = 0x1`, `I2C_GSA_ADDR = 0x23` | board remota analógica | `IMPLEMENTADO` |
+| broadcast | `SdgwDefs.h` | `GW_ADDR_BROADCAST = 0xF` | reservado; ignorado por `GatewayApp` | `PARCIALMENTE IMPLEMENTADO` |
+| PSU, GSC, URL, SLU, UCO, UCS, UIOD, UHM | somente documentação | nenhum | catálogo reservado | `PLANEJADO` |
 
-- identificador lógico da board;
-- nome canônico da board;
-- responsabilidade principal;
-- targets SDH associados;
-- exemplos de comandos SDH;
-- situação do código legado numérico de acesso no gateway.
+## Targets realmente sustentados
 
-## Regra importante
+### BPM
 
-Nesta fase, os identificadores SDH estão formalizados, mas os códigos numéricos legados de roteamento no gateway (como `ADDR` ou nibble alto do campo de comando) ainda devem ser considerados:
+- `BPM.gateway ping`
 
-    PENDENTE DE DEFINIÇÃO OFICIAL
+### GSA
 
-Portanto, esta documentação formaliza o domínio lógico sem inventar mapeamentos físicos ainda não fechados.
+Os contratos semânticos aparecem no host e convergem para `SDGW_CMD_GSA_TLV`:
 
-Evidência atual no repositório:
+- `GSA.led`
+- `GSA.channel.setpoint`
+- `GSA.channel.enable`
+- `GSA.channels.enable`
+- `GSA.channel.fault`
+- `GSA.channel.offset`
+- `GSA.offset`
+- `GSA.channel.status`
 
-- `BPM` e `GSA` possuem firmware e referências concretas em `hardware/firmware/`.
-- `PSU`, `GSC`, `URL`, `SLU`, `UCO`, `UCS`, `UIOD` e `UHM` permanecem como identificadores reservados ou provisórios na documentação, sem implementação confirmada nesta auditoria.
+## Comentário orientado a código
 
-## Boards documentadas
+O catálogo vivo do gateway é hoje mínimo. Em `GwDeviceTable.cpp`:
 
-- [README da pasta boards](boards/README.md)
-- [BPM](boards/BPM/01-bpm.md)
-- [PSU](boards/PSU/02-psu.md)
-- [GSA](boards/GSA/03-gsa.md)
-- [GSC](boards/04-gsc.md)
-- [URL](boards/05-url.md)
-- [SLU](boards/06-slu.md)
-- [UCO](boards/07-uco.md)
-- [UCS](boards/08-ucs.md)
-- [UIOD](boards/09-uiod.md)
-- [UHM](boards/10-uhm.md)
+```cpp
+static const GwDeviceEntry kBootstrapDefaults[] = {
+    {GW_ADDR_GSA,  GW_BUS_I2C, I2C_GSA_ADDR, -1, -1},
+};
+```
 
-## Resumo rápido
+Esse trecho é a prova mais forte de que:
 
-| Board | Código SDH | Exemplo de target | Código legado numérico |
-|-------|------------|-------------------|------------------------|
-| BPM   | `BPM`      | `BPM.gateway`     | PENDENTE DE DEFINIÇÃO |
-| PSU   | `PSU`      | `PSU.power.main`  | PENDENTE DE DEFINIÇÃO |
-| GSA   | `GSA`      | `GSA.led` / `GSA.channel.status` | PENDENTE DE DEFINIÇÃO |
-| GSC   | `GSC`      | `GSC.signal1`     | PENDENTE DE DEFINIÇÃO |
-| URL   | `URL`      | `URL.relay3`      | PENDENTE DE DEFINIÇÃO |
-| SLU   | `SLU`      | PENDENTE DE DEFINIÇÃO | PENDENTE DE DEFINIÇÃO |
-| UCO   | `UCO`      | `UCO.can1`        | PENDENTE DE DEFINIÇÃO |
-| UCS   | `UCS`      | PENDENTE DE DEFINIÇÃO | PENDENTE DE DEFINIÇÃO |
-| UIOD  | `UIOD`     | `UIOD.do5`        | PENDENTE DE DEFINIÇÃO |
-| UHM   | `UHM`      | PENDENTE DE DEFINIÇÃO | PENDENTE DE DEFINIÇÃO |
+- só a GSA está publicada como device remoto vivo;
+- o barramento ativo para ela é `I2C`;
+- `SPI` ainda não recebeu uma board registrada na tabela.
 
-## Operações SDH base
+## Leitura correta deste catálogo
 
-As operações base aprovadas para o modelo SDH são:
+- O host já conhece mais semântica que o gateway.
+- O gateway conhece poucos endereços compactos e poucos destinos reais.
+- A documentação das demais boards continua útil como nomenclatura de projeto, mas não como firmware implementado.
 
-    read
-    get
-    set
-    cfg
-    run
-    status
-    reset
-    save
-    ping
+## Glossário
 
-Formas qualificadas podem existir quando necessário:
-
-    read.id
-    read.cfg
-    set.state
-    run.scan
-    run.apply
-
-## Referências
-
-- `docs/official/06-protocolos/01-sdh-command-model.md`
-- `docs/official/06-protocolos/02-sdh-response-model.md`
-- `docs/official/06-protocolos/03-sdh-examples.md`
-- `docs/official/06-protocolos/06-gsa-sdh-tlv.md`
-- `docs/official/04-firmware/04-sdh-gateway-architecture.md`
+- **Catálogo vivo**: conjunto de boards que possuem evidência simultânea em código e documentação.
+- **Slot lógico**: endereço compacto usado pelo gateway para decidir o destino.
+- **Bootstrap defaults**: tabela fixa atual enquanto a BPM não persiste configuração dinâmica.
 
 ## Próximas camadas
 
 - [Boards de Firmware](boards/README.md)
-
-

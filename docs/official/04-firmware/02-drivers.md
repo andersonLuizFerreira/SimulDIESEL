@@ -1,52 +1,66 @@
 ⬅ [Retornar para Arquitetura de Firmware](01-arquitetura-firmware.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Drivers de Firmware
 
-## Objetivo dos drivers
+Esta página lista os drivers e adaptadores realmente usados hoje pelos firmwares da BPM e da GSA.
 
-Este documento descreve os drivers concretos usados hoje para I/O físico e controle de barramento.
+## Drivers confirmados na BPM
 
-## Drivers no gateway (ESP32)
+| arquivo real | classe | driver/base | papel | status |
+| --- | --- | --- | --- | --- |
+| `lib/SdgwTransport/SdgwTransport.h` | `SdgwTransport` | `HardwareSerial` | endpoint serial `SDGW` em `115200 8N1` | `IMPLEMENTADO` |
+| `lib/SdgwTransport/SdgwBluetoothEndpoint.h` | `SdgwBluetoothEndpoint` | `BluetoothSerial` | endpoint Bluetooth SPP para a mesma sessão | `IMPLEMENTADO` |
+| `lib/SdgwTransport/SdgwEndpointMux.h` | `SdgwEndpointMux` | composição de endpoints | escolhe o endpoint dono da sessão | `IMPLEMENTADO` |
+| `lib/GwI2cBus/GwI2cBus.h` | `GwI2cBus` | `TwoWire` | transação `TLV + CRC` com boards `I2C` | `IMPLEMENTADO` |
+| `lib/GwSpiBus/GwSpiBus.h` | `GwSpiBus` | `SPIClass` | transação curta com devices `SPI` | `IMPLEMENTADO` |
 
-### Serial
-- **Arquivo:** `SggwTransport`
-- **Implementação:** `HardwareSerial` (serial USB do ESP32)
-- **Funções reais:** `begin()`, `available()`, `readByte()`, `writeBytes()`, `flushTx()`
-- **Configuração:** `SGGW_UART_BAUDRATE` definido em `Sggw.defs.h` (`115200`).
+## Drivers confirmados na GSA
 
-### I2C
-- **Arquivo:** `GwI2cBus`
-- **Driver:** `TwoWire` (`Wire` por padrão)
-- **Uso:** transação síncrona: escrita do frame TLV, leitura em uma única janela e corte por campo `L`.
-- **Observação:** o próprio firmware de teste do link de handshake pode emitir texto no boot; por isso a camada de link trata janelas de sincronização.
+| arquivo real | classe | driver/base | papel | status |
+| --- | --- | --- | --- | --- |
+| `lib/Transport/Transport.h` | `Transport` | `Wire` | slave `I2C` físico em `A4/A5` | `IMPLEMENTADO` |
+| `src/main.cpp` | `SoftwareWire g_logicalI2c` | `SoftwareWire` | master `I2C` lógico em `D2/D3` | `IMPLEMENTADO` |
+| `lib/Tca9548Service/Tca9548Service.h` | `Tca9548Service` | `SoftwareWire` | seleção de ramo no `TCA9548A` | `IMPLEMENTADO` |
+| `lib/Mcp4725Service/Mcp4725Service.h` | `Mcp4725Service` | `SoftwareWire` | escrita e disable nos DACs `MCP4725` | `IMPLEMENTADO` |
+| `lib/LedService/LedService.cpp` | `LedService` | `digitalWrite` | LED builtin para teste local | `IMPLEMENTADO` |
+| `lib/EepromService/EepromService.h` | `EepromService` | `EEPROM` | persistência de offsets por canal | `IMPLEMENTADO` |
 
-### SPI
-- **Arquivo:** `GwSpiBus`
-- **Driver:** `SPI`
-- **Uso:** `beginTransaction` com CS por dispositivo, escrita + aguardar IRQ opcional + leitura do retorno.
+## Comentário orientado a código
 
-## Drivers no GSA
+Em `SdgwTransport`, a política de ownership do endpoint serial é mínima:
 
-### I2C (modo escravo)
-- **Arquivo:** `Transport` do GSA
-- **Eventos:** `onReceiveThunk` e `onRequestThunk`.
-- `Wire.begin(i2cAddr)` inicia endereço fixo (macro `I2C_GSA_ADDR`).
+```cpp
+bool shouldClaimOwnership() override { return _ser.available() > 0; }
+```
 
-### GPIO
-- **Arquivo:** `LedService`
-- **Uso:** controle de pino de LED (`LED_PIN`) com nível digital.
+Isso existe para permitir que a Serial só roube a sessão quando realmente houver tráfego entrando.
 
-## Drivers de software (camada de aplicação)
+Em `SdgwBluetoothEndpoint`, o critério muda:
 
-- `SerialPort` em `local-api` para transporte físico.
-- Timers de handshake e heartbeat na camada BLL.
+```cpp
+bool shouldClaimOwnership() override
+{
+    return isConnected();
+}
+```
 
-## Lacunas e controle de dependência
+Aqui o Bluetooth pede ownership assim que há cliente SPP conectado, mesmo antes de bytes chegarem.
 
-- Não há camada de abstração dedicada para CAN/LIN neste repositório atual.
-- `HAL` de rede/cloud está reservado, sem implementação ativa.
+## Observações importantes
+
+- A documentação antiga com `SggwBluetoothEndpoint` está desatualizada; o nome real vivo é `SdgwBluetoothEndpoint`.
+- O caminho `SPI` existe e é inicializado na BPM, mas a tabela viva de devices ainda não publica nenhuma board `SPI`.
+- Na GSA, `Wire` e `SoftwareWire` têm papéis diferentes e não devem ser tratados como o mesmo barramento.
+
+## Glossário
+
+- **Driver**: camada que fala diretamente com periférico, barramento ou biblioteca de base.
+- **Endpoint**: origem física de bytes para a sessão `SDGW`.
+- **I2C físico**: barramento entre BPM e GSA.
+- **I2C lógico**: barramento interno da GSA para `TCA9548A` e `MCP4725`.
+- **SPP**: Serial Port Profile usado pelo Bluetooth Classic da BPM.
 
 ## Próximas camadas
 
 - Esta é uma página terminal deste ramo da documentação.
-

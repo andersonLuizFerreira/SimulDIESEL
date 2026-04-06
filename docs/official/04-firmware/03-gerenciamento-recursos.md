@@ -1,57 +1,94 @@
 ⬅ [Retornar para Arquitetura de Firmware](01-arquitetura-firmware.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Gerenciamento de Recursos em Firmware
 
-## Objetivos
+Esta página descreve os limites, filas, watchdogs e buffers que o firmware realmente usa para manter a sessão e processar operações.
 
-O firmware atual prioriza determinismo de comunicação. O gerenciamento de recursos cobre:
+## BPM: limites e tempos reais
 
-- limites de frame e buffers;
-- controle de timeout;
-- watchdog de link;
-- cache de última resposta para deduplicação.
+As constantes vivas estão em `hardware/firmware/BPM - BACKPLANE MANAGER MODULE/include/SdgwDefs.h`.
 
-## Limites estruturais (Gateway)
+| recurso | valor real | papel | status |
+| --- | --- | --- | --- |
+| `SDGW_MAX_LOGICAL_FRAME` | `250` | frame lógico antes de `COBS` | `IMPLEMENTADO` |
+| `SDGW_MAX_PAYLOAD` | `247` | carga útil máxima do frame | `IMPLEMENTADO` |
+| `SDGW_MAX_ENCODED_FRAME` | `384` | frame já codificado | `IMPLEMENTADO` |
+| `SDGW_HANDSHAKE_BUFFER` | `64` | buffer para detectar `SIMULDIESELAPI` | `IMPLEMENTADO` |
+| `SDGW_HANDSHAKE_TIMEOUT_MS` | `2000` | timeout de handshake | `IMPLEMENTADO` |
+| `SDGW_LINK_ACTIVITY_TIMEOUT_MS` | `4000` | watchdog de sessão `Linked` | `IMPLEMENTADO` |
+| `SDGW_GATEWAY_ROUTE_TIMEOUT_MS` | `100` | timeout do roteamento para board | `IMPLEMENTADO` |
 
-Constantes em `hardware/firmware/esp32-api-bridge/include/Sggw.defs.h`:
+## BPM: ownership e watchdog
 
-- `SGGW_MAX_LOGICAL_FRAME = 250`
-- `SGGW_MAX_PAYLOAD = 247`
-- `SGGW_MAX_ENCODED_FRAME = 384`
-- `SGGW_MAX_LAST_RESPONSE = 64`
+`SdgwSessionOwner` garante exclusividade de endpoint. O link só processa bytes quando o endpoint atual continua dono da sessão.
 
-Esses valores limitam frame bruto, payload e buffer de retransmissão.
+Trecho real de `SdgwEndpointMux`:
 
-## Controle de tempo
+```cpp
+if (_sessionOwner.hasOwner()) {
+    const SdgwEndpointKind currentOwner = _sessionOwner.owner();
+    ISdgwEndpoint* ownerEndpoint = findByKind(currentOwner);
+    if (ownerEndpoint && ownerEndpoint->isConnected())
+        return currentOwner;
 
-- `SggwLink` mantém estado de watchdog (`checkPingWatchdog`) para encerrar link em ausência prolongada de ping.
-- Handshake e heartbeat são controlados via máquina de estados no PC.
-- no host atual, a supervisão de saúde do link fica concentrada em `SdGwLinkSupervisor` e `SdGwLinkEngine`.
+    _sessionOwner.release(currentOwner);
+}
+```
 
-## Tolerância a erro e deduplicação
+Esse bloco existe para evitar duas origens alimentando a mesma máquina de estados `SDGW`.
 
-- CRC de integridade:
-  - COBS no fluxo serial;
-  - `CRC8` com `poly 0x07`.
-- Deduplicação de retransmissão:
-  - `Gw`: resposta reenviada por sequência quando necessário.
-  - `GSA`: `errCode` mantido até consulta de erro.
+## GSA: filas e capacidade
 
-## Recursos de observabilidade
+As constantes vivas estão em `hardware/firmware/GSA - Gerador de sinais analógicos/include/config.h`.
 
-Eventos existentes:
+| recurso | valor real | papel | status |
+| --- | --- | --- | --- |
+| `TLV_MAX_LEN` | `32` | limite do pacote `TLV + CRC` | `IMPLEMENTADO` |
+| `GSA_PHYSICAL_OP_QUEUE_SIZE` | `24` | fila de operações físicas | `IMPLEMENTADO` |
+| `GSA_EVENT_QUEUE_SIZE` | `24` | fila de eventos assíncronos | `IMPLEMENTADO` |
+| `GSA_LOGICAL_I2C_DELAY_US` | `5` | temporização do `SoftwareWire` | `IMPLEMENTADO` |
+| `GSA_TCA_RESET_PULSE_MS` | `1` | pulso de reset do `TCA9548A` | `IMPLEMENTADO` |
+| `GSA_TCA_RESET_SETTLE_MS` | `1` | tempo de assentamento após reset | `IMPLEMENTADO` |
 
-- `Serial_ConnectionChanged`, `LinkStateChanged`, erros de transporte;
-- `ProtocolError` no parser/link engine;
-- status de saúde (`LinkHealthChanged`) no cliente local.
+## GSA: aceite síncrono vs resultado físico
 
-## Pontos ainda não implementados (dependente de validação)
+O firmware separa dois recursos lógicos:
 
-- Métricas formais persistidas por sessão (contadores detalhados, histórico de falhas, latência média).
-- Gerenciamento de memória por telemetria contínua no firmware.
-- Estratégia de atualização OTA não documentada como recurso ativo.
+1. resposta síncrona de aceite no `Transport`
+2. conclusão física posterior via `BusArbiterService` e evento `0x31`
+
+Trecho real de `AnalogService::processCompletedHardwareOperations()`:
+
+```cpp
+while (_busArbiter.popCompletedOperation(result)) {
+  applyCompletedOperation(result);
+
+  uint8_t payload[3] = {
+    result.originType,
+    result.channel,
+    result.status
+  };
+  enqueueEvent(CMD_PHYSICAL_EVENT, payload, sizeof(payload));
+}
+```
+
+Esse trecho existe para desacoplar o protocolo curto no barramento físico do tempo real necessário para a etapa elétrica.
+
+## Retry, ACK e erro
+
+- **IMPLEMENTADO na BPM**: `ACK`, `ERR`, deduplicação por `seq` e retransmissão da última resposta quando a sequência se repete.
+- **IMPLEMENTADO na GSA**: códigos físicos `0x01`, `0x02`, `0x03` retornados em evento assíncrono.
+- **NÃO IMPLEMENTADO no firmware**: retry automático da operação elétrica na GSA.
+- **LEGADO**: modelo BUSY/IDLE como controle de concorrência da GSA.
+
+## Glossário
+
+- **Deduplicação**: retransmissão segura da última resposta quando o host repete a mesma sequência.
+- **Watchdog**: temporizador usado para derrubar handshake ou sessão zumbi.
+- **Fila física**: conjunto de operações pendentes para `TCA9548A` e `MCP4725`.
+- **Evento assíncrono**: resposta publicada fora do caminho síncrono do comando.
 
 ## Próximas camadas
 
 - Esta é uma página terminal deste ramo da documentação.
-

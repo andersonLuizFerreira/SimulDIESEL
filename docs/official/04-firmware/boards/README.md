@@ -1,10 +1,15 @@
 ⬅ [Retornar para Catálogo de Baby Boards e Targets SDH](../05-catalogo-baby-boards.md)
+⬅ [Retornar para Índice Geral](../../../00-INDICE.md)
 
 # Boards de Firmware
 
-## Objetivo
+Esta pasta agrupa as boards sob o ponto de vista do firmware embarcado.
 
-Esta pasta documenta cada baby board do SimulDIESEL sob o ponto de vista do firmware, do endereçamento lógico SDH e dos exemplos de acesso por comando.
+## Estado real da pasta
+
+- **IMPLEMENTADO**: `BPM` e `GSA` têm firmware, arquivos, classes e fluxo observáveis.
+- **PLANEJADO**: `PSU`, `GSC`, `URL`, `SLU`, `UCO`, `UCS`, `UIOD` e `UHM` permanecem como placeholders documentais.
+- **LEGADO**: qualquer leitura que suponha firmware ativo para todas as boards listadas aqui.
 
 ## Índice
 
@@ -19,18 +24,16 @@ Esta pasta documenta cada baby board do SimulDIESEL sob o ponto de vista do firm
 - [09. UIOD](09-uiod.md)
 - [10. UHM](10-uhm.md)
 
-## Observação
+## Leitura correta deste ramo
 
-Os identificadores SDH estão formalizados nesta documentação, mas nem todos têm implementação confirmada no repositório atual.
+- `BPM` e `GSA` devem ser lidas como páginas vivas de firmware.
+- As demais pages ajudam a preservar nomenclatura e intenção do projeto, mas ainda não representam código embarcado implementado.
 
-Situação validada nesta auditoria:
+## Glossário
 
-- `BPM` e `GSA` têm evidência direta em `hardware/firmware/` e `local-api/`.
-- `PSU`, `GSC`, `URL`, `SLU`, `UCO`, `UCS`, `UIOD` e `UHM` permanecem como documentação provisória ou reservada, útil para nomenclatura e navegação, mas não devem ser lidas como firmware implementado.
-
-Os códigos numéricos legados de roteamento físico do gateway permanecem como:
-
-    PENDENTE DE DEFINIÇÃO OFICIAL
+- **Board**: unidade física com firmware próprio ou reservado.
+- **Página viva**: documento ancorado em implementação real.
+- **Placeholder documental**: página mantida para organização, mas sem código correspondente.
 
 ## Próximas camadas
 
@@ -44,5 +47,3 @@ Os códigos numéricos legados de roteamento físico do gateway permanecem como:
 - [UCS](08-ucs.md)
 - [UIOD](09-uiod.md)
 - [UHM](10-uhm.md)
-
-

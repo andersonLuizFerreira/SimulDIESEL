@@ -1,94 +1,65 @@
 ⬅ [Retornar para Backplane](01-backplane.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Barramentos
 
-## Estado atual
+Esta página fixa **onde** cada barramento físico confirmado entra na bancada.
 
-O repositório implementa três classes principais de transporte:
+## Barramentos confirmados
 
-- serial entre host e gateway;
-- `I2C` físico entre gateway e baby boards;
-- `SPI` para dispositivos mapeados diretamente pelo gateway.
+| barramento | origem | destino | evidência | status |
+| --- | --- | --- | --- | --- |
+| Serial | host | BPM | firmware BPM e `local-api` | `IMPLEMENTADO` |
+| Bluetooth SPP | host | BPM | firmware BPM e `local-api` | `IMPLEMENTADO` |
+| `I2C` físico | BPM `21/22` | GSA `A4/A5` | `SdgwDefs.h`, `config.h`, esquemático GSA | `IMPLEMENTADO` |
+| `IRQ` dedicado | GSA `D4` | BPM `19` | `SdgwDefs.h`, `config.h` | `IMPLEMENTADO` |
+| reset dedicado | BPM `23` | reset externo da GSA | `SdgwDefs.h`, `config.h` | `IMPLEMENTADO` |
+| `I2C` lógico | GSA `D2/D3` | `TCA9548A` + `MCP4725` | `config.h`, firmware GSA | `IMPLEMENTADO` |
+| `SPI` | BPM `18/26/25` | slot futuro | firmware BPM | `PARCIALMENTE IMPLEMENTADO` |
 
-No caso da GSA, a arquitetura oficial passou a usar dois barramentos `I2C` independentes.
-
-## Funcionamento técnico
-
-### Serial host/gateway
-
-Responsabilidades:
-
-- transporte bruto em `SerialTransport`;
-- sincronização textual inicial;
-- enquadramento SDGW com `COBS`, `CRC8`, sequência e `ACK`.
-
-### I2C físico gateway/GSA
-
-No barramento físico:
-
-- BPM = `master`
-- GSA = `slave`
-- endereço da GSA = `0x23`
-- BPM ESP32 `SDA=D21`, `SCL=D22`
-- GSA Nano `SDA=A4`, `SCL=A5`
-
-Esse barramento transporta o TLV curto:
+## Empilhamento físico dos barramentos
 
 ```text
-T | L | V... | CRC8
+Host
+  -> Serial / Bluetooth
+  -> BPM
+  -> I2C físico / IRQ / reset
+  -> GSA
+  -> I2C lógico
+  -> TCA9548A / MCP4725
 ```
 
-A resposta síncrona da GSA agora significa apenas:
+## Comentário orientado a código
 
-- comando recebido;
-- payload válido;
-- operação aceita para processamento.
+Em `GwSpiBus::begin(...)`, o firmware fixa a pinagem `SPI` explicitamente:
 
-### I2C lógico interno da GSA
+```cpp
+_spi.begin(_sckPin, _misoPin, _mosiPin, -1);
+```
 
-Além do barramento físico, a GSA possui um barramento I2C eletrônico independente:
+Isso existe para não usar o mapeamento padrão do ESP32, que conflitaria com o reset global em `GPIO23`.
 
-- GSA = `master`
-- `TCA9548A = 0x70`
-- `MCP4725 = 0x60 / 0x61`
-- GSA Nano `SDA=D2`, `SCL=D3`
-- reset dedicado do `TCA9548A` em `D8`
+Em `Transport::setIrqActive(...)` da GSA, a linha de `IRQ` é tratada como open-drain por software:
 
-Esse barramento não é compartilhado com a BPM. Por isso:
+```cpp
+if (active) {
+  pinMode(GSA_IRQ_PIN, OUTPUT);
+  digitalWrite(GSA_IRQ_PIN, LOW);
+} else {
+  digitalWrite(GSA_IRQ_PIN, LOW);
+  pinMode(GSA_IRQ_PIN, INPUT);
+}
+```
 
-- a GSA não precisa mais trocar de papel `slave/master` no mesmo fio;
-- o modelo BUSY/IDLE anterior deixou de ser necessário para arbitragem do barramento físico.
+Esse trecho existe para a GSA poder sinalizar evento à BPM sem dirigir a linha em nível alto.
 
-### IRQ físico GSA -> BPM
+## Glossário
 
-A conclusão da operação física da GSA é sinalizada por uma linha dedicada:
-
-- GSA Nano `D4`
-- BPM ESP32 `D19`
-- ativo em `LOW`
-- pull-up externo em `3,3 V`
-- open-drain por software na GSA
-
-### Reset dedicado
-
-- BPM ESP32 `D23` controla o reset físico da GSA
-- o reset local do `TCA9548A` fica em `D8` na GSA
-
-O IRQ substitui o modelo antigo de polling semântico para BUSY/IDLE.
-
-### SPI gateway/dispositivo
-
-`GwSpiBus` continua representando o mesmo papel para dispositivos SPI, com seleção por `chip select` e transação request/response curta.
-
-## Observações
-
-- a documentação oficial da GSA deve sempre distinguir `I2C físico` de `I2C lógico`;
-- o evento assíncrono associado à conclusão da etapa elétrica da GSA é `0x31`;
-- o evento de `fault` legado `0x30` continua existindo para fault de canal, mas não substitui o resultado físico do `0x31`.
+- **I2C físico**: barramento entre gateway BPM e GSA.
+- **I2C lógico**: barramento interno da GSA para periféricos.
+- **IRQ**: linha dedicada de sinalização assíncrona.
+- **Open-drain por software**: técnica em que o firmware só força nível baixo e libera a linha no estado inativo.
 
 ## Próximas camadas
 
-- [CAN](../06-protocolos/04-can.md)
-- [J1939](../06-protocolos/05-j1939.md)
-
-
+- Esta é uma página terminal do ramo físico. Os protocolos associados aos barramentos ficam no ramo lógico.

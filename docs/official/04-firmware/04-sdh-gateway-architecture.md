@@ -1,268 +1,125 @@
 ⬅ [Retornar para Arquitetura de Firmware](01-arquitetura-firmware.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Arquitetura SDH no Gateway
 
-## Objetivo
+O nome histórico desta página foi preservado, mas a verdade do código hoje é outra:
 
-Este documento define formalmente a arquitetura pretendida para a implementação do SDH (SimulDiesel Hardware Command) no gateway do SimulDIESEL.
+- o host interpreta `SDH`;
+- a BPM não faz parse de `SDH`;
+- o gateway embarcado recebe `SDGW` compacto e payload `TLV` já resolvido.
 
-O foco deste documento não é o transporte host/gateway já existente, mas sim a camada lógica que deverá interpretar comandos SDH, resolver targets lógicos e adaptá-los para o contrato interno atualmente utilizado entre gateway e dispositivos.
+Esta página documenta **como o gateway realmente opera hoje**.
 
-## Contexto arquitetural
+## Estado real do gateway
 
-No estado atual do projeto:
+- **IMPLEMENTADO**: sessão `SDGW` com handshake textual, `COBS`, `CRC8`, `ACK`, `ERR`, sequência e watchdog.
+- **IMPLEMENTADO**: roteamento local `BPM.gateway ping`.
+- **IMPLEMENTADO**: roteamento remoto para a GSA via `GwRouter`.
+- **PARCIALMENTE IMPLEMENTADO**: infraestrutura `SPI` pronta no gateway, mas sem device vivo na tabela.
+- **PLANEJADO**: parser `SDH` dentro da BPM.
 
-- o host já possui uma primeira camada semântica SDH;
-- o transporte host/gateway continua baseado em `SGGW`;
-- o gateway atual já conhece `ADDR/OP`, roteamento por barramento e payloads internos;
-- o contrato interno com devices, como o GSA, continua baseado em `TLV`.
+## Fluxo operacional real
 
-A evolução aprovada é:
+```text
+Host
+  -> resolve SDH para SDGW compacto
+  -> envia frame para BPM
+  -> SdgwLink valida e trata handshake/ACK
+  -> GatewayApp decide local x remoto
+  -> GwRouter escolhe I2C ou SPI
+  -> board remota responde TLV
+  -> BPM devolve resposta SDGW
+```
 
-- manter `SGGW` como transporte confiável atual;
-- introduzir SDH como envelope lógico de comando;
-- preservar TLV como contrato interno para os devices;
-- realizar o binding entre endereço lógico e físico dentro do gateway.
+## Ponto de entrada do gateway
 
-## Papel do gateway na arquitetura SDH
+Em `src/main.cpp`, o loop principal da BPM é mínimo:
 
-O gateway passa a ser o ponto responsável por:
+```cpp
+void loop()
+{
+    sdgwLink.poll();
+    app.tick();
+}
+```
 
-- receber o comando vindo do host;
-- interpretar o envelope SDH;
-- validar versão, target, operação e argumentos;
-- resolver a board e o recurso interno;
-- mapear o target lógico para a rota física;
-- traduzir a intenção do comando para `ADDR/OP/PAYLOAD`;
-- encaminhar a transação ao barramento apropriado;
-- devolver uma resposta padronizada ao host.
+Esse desenho é importante porque separa duas responsabilidades:
 
-## Fluxo lógico esperado
+- `sdgwLink.poll()` cuida de sessão, framing e dispatch de comando;
+- `app.tick()` drena eventos físicos pendentes, especialmente os da GSA.
 
-A implementação alvo do gateway deve seguir o fluxo:
+## Onde o handshake acontece
 
-    Frame recebido do host
-        -> extração do payload lógico
-        -> parser SDH
-        -> validator SDH
-        -> target router
-        -> device binding
-        -> mapper para contrato interno
-        -> barramento físico
-        -> resposta do device
-        -> montagem de resposta ao host
+O handshake não está em `GatewayApp`, mas em `SdgwLink`.
 
-## Camadas propostas no gateway
+Trecho real de `SdgwLink::processHandshakeByte(...)`:
 
-A arquitetura recomendada para o gateway é composta por cinco camadas.
+```cpp
+if (memcmp(tail, SDGW_PC_BANNER, need) == 0)
+{
+    sendBanner();
+    _hs = Linked;
+    _tr.setTextEnabled(false);
+}
+```
 
-### 1. Transporte host/gateway
+Esse trecho faz três coisas críticas:
 
-Responsável por:
+1. detecta o banner textual do host
+2. responde com o banner do device
+3. desliga o modo texto e entra em `Linked`
 
-- framing `SGGW`;
-- recepção e transmissão de bytes;
-- `ACK`;
-- `SEQ`;
-- `CRC`;
-- watchdog e sessão.
+## Onde o comando vira ação local ou remota
 
-Essa camada já existe e deve continuar separada do SDH.
+O corte entre BPM local e board remota está em `GatewayApp::onCommand(...)`:
 
-### 2. Parser SDH
+```cpp
+const uint8_t addr = GW_CMD_ADDR(cmd);
 
-Responsável por:
+if (addr == GW_ADDR_BPM) {
+    handleGatewayLocal(cmd, data, dataLen);
+    return;
+}
+```
 
-- interpretar o envelope lógico do comando;
-- validar presença de:
-  - `version`
-  - `target`
-  - `op`
-  - `args`
-  - `meta`
-- produzir uma estrutura interna de comando.
+Hoje isso significa:
 
-Essa camada não deve conhecer barramentos nem detalhes físicos.
+- `GW_ADDR_BPM` fica na própria BPM;
+- `GW_ADDR_GSA` segue para o roteador;
+- `GW_ADDR_BROADCAST` é ignorado no código atual.
 
-### 3. Router de target
+## Onde a GSA entra no caminho
 
-Responsável por:
+Quando a GSA baixa `IRQ`, a BPM não executa lógica analógica; ela apenas drena eventos:
 
-- decompor o target lógico;
-- identificar:
-  - board
-  - resource
-  - subresource
-- selecionar o handler apropriado.
+```cpp
+if (!_router.pollGsaEvent(eventPacket, sizeof(eventPacket), eventLen)) {
+    break;
+}
 
-Exemplos de target:
+_link.sendEvent(SDGW_CMD_GSA_TLV, eventPacket, (uint8_t)eventLen);
+```
 
-    GSA.led
-    BPM.gateway
-    BPM.gateway.serial
-    PSU.power.main
-    UCO.can1
+Esse bloco existe para transformar o evento curto da GSA em evento `SDGW` para o host.
 
-### 4. Binding lógico-físico
+## Consequência arquitetural
 
-Responsável por mapear o domínio lógico da board para a infraestrutura física do gateway.
+O gateway ativo do projeto não é um interpretador semântico amplo. Ele é:
 
-Exemplo conceitual:
+- um terminador de sessão `SDGW`;
+- um roteador compacto `ADDR/OP`;
+- um adaptador entre host e barramentos da bancada.
 
-- board lógica: `GSA`
-- endereço lógico do gateway: `0x1`
-- barramento: `I2C`
-- endereço físico: `0x23`
+## Glossário
 
-Esse binding não pertence ao host. Ele deve acontecer exclusivamente no gateway.
-
-### 5. Mapper para contrato interno
-
-Responsável por traduzir o comando SDH para o modelo atualmente entendido pelo firmware e pelos devices.
-
-Exemplo para o primeiro caso de uso:
-
-    sdh/1 GSA.led set state=on
-
-convergindo para algo como:
-
-- board `GSA`
-- operação interna equivalente a `SET`
-- subcomando `LED`
-- payload com valor `1`
-
-## Primeiro caso de uso oficial do gateway
-
-O primeiro caso que deverá ser suportado pelo gateway é:
-
-    sdh/1 GSA.led set state=on
-    sdh/1 GSA.led set state=off
-
-Esse caso foi escolhido porque:
-
-- já existe contrato funcional de LED no projeto;
-- já existe caminho host -> gateway -> GSA;
-- permite validar a arquitetura SDH sem romper o legado.
-
-## Mapeamento esperado do primeiro caso
-
-### Comando semântico
-
-    sdh/1 GSA.led set state=on
-
-### Interpretação no gateway
-
-- `version = sdh/1`
-- `target = GSA.led`
-- `op = set`
-- `args.state = on`
-
-### Resolução lógica
-
-- board = `GSA`
-- resource = `led`
-
-### Binding físico
-
-- board lógica `GSA`
-- rota conhecida do gateway para `GSA`
-
-### Tradução interna
-
-A intenção semântica é convertida para o contrato interno já existente do GSA.
-
-## Componentes recomendados no firmware do gateway
-
-Os nomes exatos podem variar conforme a organização atual do firmware, mas os blocos recomendados são:
-
-- `sdh_command`
-- `sdh_response`
-- `sdh_parser`
-- `sdh_validator`
-- `sdh_target`
-- `sdh_router`
-- `device_binding_table`
-- `gsa_command_mapper`
-
-Esses componentes devem ficar acima do barramento e abaixo da sessão host/gateway.
-
-## Regras de projeto
-
-A implementação do SDH no gateway deve obedecer às seguintes regras:
-
-- `SGGW` não deve virar parser SDH;
-- o parser SDH não deve conhecer barramento físico;
-- o binding lógico-físico deve ficar centralizado no gateway;
-- a lógica por board deve ser expansível;
-- a tradução para contratos legados deve ficar isolada em mappers;
-- o target externo deve permanecer lógico, nunca físico.
-
-## Estado desejado do sistema após essa etapa
-
-Depois da implementação do SDH no gateway, o sistema deverá passar a ter:
-
-### No host
-
-- comando semântico SDH
-- envio sobre `SGGW`
-
-### No gateway
-
-- parser e resolução SDH
-- binding lógico-físico
-- tradução para o contrato interno
-
-### No device
-
-- contrato interno atual preservado
-
-## Benefícios esperados
-
-A adoção dessa arquitetura traz os seguintes ganhos:
-
-- separação clara entre semântica e transporte;
-- host desacoplado do hardware interno da bancada;
-- possibilidade de crescimento por board e por resource;
-- manutenção do legado enquanto o SDH amadurece;
-- redução de ambiguidade na expansão de comandos.
-
-## Limitações e decisões desta fase
-
-Este documento ainda não define:
-
-- layout binário final do SDH no enlace host/gateway;
-- formato definitivo de resposta SDH no gateway;
-- política completa de eventos SDH;
-- catálogo completo de boards e resources.
-
-Esses pontos devem ser detalhados em etapas posteriores, após validação do primeiro caso funcional no gateway.
-
-## Próximos passos recomendados
-
-Os próximos passos coerentes com este documento são:
-
-- definir a estrutura interna de `SdhCommand` no firmware;
-- definir onde o parser SDH será acoplado ao fluxo atual do gateway;
-- definir a tabela de binding lógico-físico;
-- implementar o primeiro mapper:
-  - `GSA.led set state=on|off`
-- validar o fluxo ponta a ponta com o GSA.
-
-## Conclusão
-
-O gateway é o ponto correto para resolver a passagem entre o domínio lógico do SDH e a infraestrutura física da bancada.
-
-Com isso, o projeto mantém:
-
-- semântica de alto nível no host;
-- binding físico no gateway;
-- contrato interno preservado nos devices.
-
-Essa é a base correta para a evolução modular do SimulDIESEL.
+- **GatewayApp**: camada da BPM que separa comandos locais de comandos roteados.
+- **Handshake**: transição do banner textual para o modo binário `SDGW`.
+- **ADDR/OP**: compactação do comando usada pelo gateway atual.
+- **Tick**: trabalho cooperativo executado no loop fora do parser principal.
 
 ## Próximas camadas
 
 - [Catálogo de Baby Boards e Targets SDH](05-catalogo-baby-boards.md)
 - [Tabela Mestra de Binding Lógico-Físico do Gateway](06-gateway-binding-logico-fisico.md)
 - [Resolver Engine do Gateway](07-resolver-engine-gateway.md)
-

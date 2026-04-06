@@ -1,119 +1,93 @@
 ⬅ [Retornar para Boards de Firmware](../README.md)
+⬅ [Retornar para Índice Geral](../../../../00-INDICE.md)
 
 # BPM
 
-## Nome canônico
+Esta página responde à trilha **ONDE** para a BPM: onde a board está na pilha, quais classes a compõem e onde ela se conecta fisicamente.
 
-BPM
+## Papel estrutural
 
-## Identificador SDH da board
+A BPM é o gateway embarcado do projeto.
 
-BPM
+Ela fica entre:
 
-## Responsabilidade principal no firmware
+- acima: host local por Serial ou Bluetooth
+- abaixo: `GwRouter`, `I2C`, `SPI` e boards remotas
 
-Ser o gateway físico entre host e baby boards, mantendo a sessão SDGW na serial e roteando o tráfego curto para as boards remotas.
+## Arquivos e classes reais
 
-## Papel atual no sistema
+| arquivo real | classe/bloco | fica acima de | fica abaixo de | status |
+| --- | --- | --- | --- | --- |
+| `src/main.cpp` | composição estática da BPM | host | `SdgwLink`, `GatewayApp`, barramentos | `IMPLEMENTADO` |
+| `lib/SdgwTransport/SdgwTransport.h` | `SdgwTransport` | `SdgwEndpointMux` | `HardwareSerial` | `IMPLEMENTADO` |
+| `lib/SdgwTransport/SdgwBluetoothEndpoint.h` | `SdgwBluetoothEndpoint` | `SdgwEndpointMux` | `BluetoothSerial` | `IMPLEMENTADO` |
+| `lib/SdgwTransport/SdgwSessionOwner.h` | `SdgwSessionOwner` | `SdgwEndpointMux`, `SdgwLink` | nenhum | `IMPLEMENTADO` |
+| `lib/SdgwLink/SdgwLink.h` | `SdgwLink` | host / endpoint mux | `GatewayApp` | `IMPLEMENTADO` |
+| `lib/Gateway/GatewayApp.h` | `GatewayApp` | `SdgwLink` | `GwRouter` | `IMPLEMENTADO` |
+| `lib/GwRouter/GwRouter.h` | `GwRouter` | `GatewayApp` | `GwI2cBus`, `GwSpiBus` | `IMPLEMENTADO` |
+| `lib/GwI2cBus/GwI2cBus.h` | `GwI2cBus` | `GwRouter` | `Wire` | `IMPLEMENTADO` |
+| `lib/GwSpiBus/GwSpiBus.h` | `GwSpiBus` | `GwRouter` | `SPI` | `IMPLEMENTADO` |
 
-No estado atual do projeto, a BPM:
-
-- recebe o bootstrap textual do host;
-- entra em `Linked`;
-- valida e processa frames SDGW;
-- trata comandos locais da própria BPM;
-- roteia comandos compactos para a GSA e demais boards;
-- encaminha eventos assíncronos vindos das boards para o host.
-
-## Papel da BPM na nova arquitetura da GSA
-
-Com a arquitetura oficial nova da GSA, a BPM não arbitra mais BUSY/IDLE por polling.
-
-O comportamento vigente é:
-
-1. a BPM envia o comando TLV para a GSA no barramento físico;
-2. recebe da GSA apenas o ACK lógico síncrono do comando;
-3. aguarda a IRQ física da GSA;
-4. quando a IRQ entra em `LOW`, lê um TLV assíncrono encapsulado da GSA;
-5. encaminha esse TLV no fluxo reverso SDGW como evento.
-
-## Pinagem oficial da BPM para a GSA
-
-- I2C físico com a GSA: `D21` = SDA, `D22` = SCL
-- entrada de IRQ da GSA: `D19`
-- reset dedicado da GSA: `D23`
-
-## IRQ da GSA
-
-Definições vigentes na BPM:
-
-- entrada de IRQ da GSA em `D19`
-- ativo em `LOW`
-- leitura por interrupção e drenagem no loop principal
-
-A BPM não interpreta a regra de negócio da operação analógica. Ela apenas:
-
-- detecta a IRQ;
-- busca o evento;
-- reencaminha o payload ao host.
-
-## Sessão host/gateway
-
-### Handshake
-
-Estado inicial do firmware:
+## Empilhamento real
 
 ```text
-WaitingBanner
+Serial / Bluetooth
+  -> SdgwTransport / SdgwBluetoothEndpoint
+  -> SdgwEndpointMux
+  -> SdgwSessionOwner
+  -> SdgwLink
+  -> GatewayApp
+  -> GwRouter
+  -> GwI2cBus / GwSpiBus
 ```
 
-Fluxo:
+## Conectores físicos confirmados
 
-1. o host envia `SIMULDIESELAPI`
-2. a BPM responde com o banner do dispositivo
-3. o firmware desabilita o modo texto
-4. a BPM entra em `Linked`
+As definições vivas estão em `include/SdgwDefs.h`.
 
-### Keepalive atual
+| função | pino BPM | destino | status |
+| --- | --- | --- | --- |
+| `I2C SDA` | `21` | `A4` da GSA | `IMPLEMENTADO` |
+| `I2C SCL` | `22` | `A5` da GSA | `IMPLEMENTADO` |
+| `IRQ` de entrada | `19` | `D4` da GSA | `IMPLEMENTADO` |
+| `reset` global | `23` | reset externo da GSA | `IMPLEMENTADO` |
+| `SPI SCK` | `18` | barramento `SPI` futuro | `PARCIALMENTE IMPLEMENTADO` |
+| `SPI MISO` | `26` | barramento `SPI` futuro | `PARCIALMENTE IMPLEMENTADO` |
+| `SPI MOSI` | `25` | barramento `SPI` futuro | `PARCIALMENTE IMPLEMENTADO` |
 
-A BPM continua alinhada ao host:
+## Comentário orientado a código
 
-- qualquer frame SDGW válido renova a sessão;
-- `PING 0x55` permanece suportado, mas não é a única prova de vida;
-- timeout de atividade da sessão = `4000 ms`.
+Em `main.cpp`, esta linha mostra onde a BPM fecha a pilha do host para o hardware:
 
-## Roteamento local
+```cpp
+static GwRouter router(i2cBus, spiBus);
+```
 
-### Comandos locais
+Ela existe para manter `GatewayApp` desacoplado do barramento concreto.
 
-Exemplo:
+Em seguida:
 
-- `BPM.gateway ping`
+```cpp
+static GatewayApp app(sdgwLink, router);
+```
 
-### Comandos roteados
+Essa composição mostra que a BPM não fala direto com `Wire` ou `SPI` no nível da aplicação; ela passa pelo roteador.
 
-Exemplos:
+## O que a BPM não é no código atual
 
-- `GSA.led set state=on|off`
-- `GSA.channel.setpoint set channel=<1..16> value=<0..255>`
-- `GSA.channel.enable set channel=<1..16> state=on|off`
+- não é parser `SDH`
+- não é regra de negócio da GSA
+- não é catálogo persistente amplo de boards
 
-No caso roteado, a BPM:
+Ela é, hoje, um gateway compacto e roteador físico.
 
-1. recebe o comando SDGW compacto do host;
-2. identifica o endereço lógico de destino;
-3. usa `GwRouter` para selecionar o barramento;
-4. envia o TLV curto para a board remota;
-5. devolve a resposta síncrona ao host;
-6. em paralelo, encaminha eventos assíncronos quando a board sinaliza IRQ.
+## Glossário
 
-## Observações
-
-- o wire format SDGW permanece compatível com o host atual;
-- a BPM continua sendo dona do gateway físico e do roteamento;
-- o fluxo ativo da GSA não usa mais o modelo BUSY/IDLE com retry ou polling semântico.
+- **BPM**: Backplane Manager Module.
+- **Endpoint mux**: camada que decide qual endpoint alimenta a sessão.
+- **Roteador**: camada que escolhe o barramento certo para a board remota.
+- **Gateway local**: comandos tratados dentro da própria BPM.
 
 ## Próximas camadas
 
 - Esta é uma página terminal deste ramo da documentação.
-

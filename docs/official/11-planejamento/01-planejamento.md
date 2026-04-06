@@ -1,58 +1,49 @@
-⬅ [Retornar para 00-INDICE — Mapa da árvore documental](../../00-INDICE.md)
+⬅ [Retornar para Pai Imediato (Índice Geral)](../../00-INDICE.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Planejamento
 
-## Estado atual
+## Situação após o fechamento desta etapa
 
-O principal artefato de planejamento identificado no repositório está em `docs/legacy/04_desenvolvimento/technical-roadmap.md`. Ele descreve uma evolução por fases, começando pela base de transporte host/gateway e avançando para protocolo, roteamento e expansão funcional. O estado atual do código confirma que a fundação de comunicação local e o primeiro periférico já saíram do nível conceitual e entraram em implementação.
+O planejamento vivo do projeto muda de patamar depois desta rodada.
 
-Em termos práticos, o planejamento realizado até aqui materializou:
+O que fica consolidado:
 
-- enlace serial funcional com handshake;
-- protocolo host/gateway com `COBS + CRC8`;
-- gateway com roteamento por tabela;
-- primeiro dispositivo remoto com contrato real.
+- arquitetura documental oficial estabilizada
+- host local aprofundado sobre o código real
+- firmware BPM e GSA aprofundados sobre o código real
+- hardware físico documentado no limite real do repositório
 
-## Funcionamento técnico
+## Marco de encerramento
 
-### Linha de evolução observável
+Esta etapa é considerada fechada com a seguinte leitura oficial:
+
+- **IMPLEMENTADO**: base documental transversal do projeto
+- **IMPLEMENTADO**: trilhas `ONDE` e `COMO` fora e dentro da API
+- **PARCIALMENTE IMPLEMENTADO**: GSA ainda com finalização pendente
+- **PRONTO PARA PRÓXIMA ETAPA**: início da `UCE`
+
+## Linha de continuidade
 
 ```text
-Fase 1: transporte serial confiável
-Fase 2: protocolo de gateway e ACK
-Fase 3: roteamento para periféricos
-Fase 4: ampliação de serviços e dispositivos
+Consolidação documental
+  -> fechamento da etapa BPM/GSA/bancada atual
+  -> finalização remanescente da GSA
+  -> início da UCE
 ```
 
-O planejamento técnico do projeto faz sentido porque cada fase depende da anterior:
+## Critério de priorização daqui para frente
 
-- sem serial estável, o dashboard não opera;
-- sem protocolo, não há confiabilidade de bancada;
-- sem roteamento, não há modularidade;
-- sem serviços de dispositivo, não há simulação útil.
+1. fechar os pontos restantes da GSA
+2. iniciar a UCE sobre a base documental já consolidada
+3. expandir catálogo de boards apenas onde houver implementação real
 
-### Decisões já consolidadas
+## Glossário
 
-- host e gateway falam um protocolo próprio leve;
-- o gateway é o ponto central de integração;
-- dispositivos remotos recebem contratos internos mais simples que o protocolo do host;
-- a documentação histórica é preservada, mas a documentação oficial deve refletir o código atual.
-
-## Limitações
-
-O roadmap técnico existente não é um plano executivo detalhado com datas, donos e marcos de entrega atuais. Ele funciona melhor como direção arquitetural do que como cronograma operacional. Também há frentes planejadas que ainda não aparecem no código, como expansão mais rica de protocolos e serviços.
-
-## Evolução prevista
-
-Com base no que já está implementado, as prioridades técnicas mais coerentes são:
-
-- ampliar os serviços embarcados além do caso de LED;
-- documentar de forma mais rígida cada dispositivo da tabela;
-- consolidar testes repetíveis de integração;
-- transformar os contratos externos e a camada `cloud` em componentes realmente executáveis.
+- **Marco**: ponto formal de fechamento de uma etapa.
+- **Pendência remanescente**: item reconhecido como ainda não concluído, mas já delimitado.
+- **UCE**: Unidade de Comunicação Externa, próxima board preparada para início.
 
 ## Próximas camadas
 
 - [Próximas Funcionalidades](02-proximas-funcionalidades.md)
-
-

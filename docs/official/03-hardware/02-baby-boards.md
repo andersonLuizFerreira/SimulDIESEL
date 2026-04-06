@@ -1,130 +1,45 @@
 ⬅ [Retornar para Backplane](01-backplane.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Baby Boards
 
-As **Baby Boards** são módulos especializados conectados ao backplane, responsáveis por executar funções específicas da bancada.
+Esta página inventaria as boards físicas existentes no repositório.
 
-Cada board encapsula uma responsabilidade funcional e elétrica própria, permitindo que o sistema seja expandido de forma modular.
+## Inventário físico real
 
-Essa arquitetura facilita:
+| board | evidência física | evidência de firmware | papel | status |
+| --- | --- | --- | --- | --- |
+| GSA | `hardware/boards/GSA -gerador-sinais-analogicos` | `hardware/firmware/GSA - Gerador de sinais analógicos` | geração de sinais analógicos | `IMPLEMENTADO` |
+| BPM | não aparece aqui como baby board; atua acima da camada | `hardware/firmware/BPM - BACKPLANE MANAGER MODULE` | gateway da bancada | `IMPLEMENTADO` |
+| legacy-comunicacao | `hardware/boards/SimulDIESEL/legacy-comunicacao` | nenhuma evidência ativa na pilha atual | acervo histórico | `LEGADO` |
+| demais boards nomeadas na documentação | apenas páginas/documentação | não encontrada em `hardware/firmware` | catálogo reservado | `PLANEJADO` |
 
-* expansão de recursos
-* manutenção
-* substituição individual
-* isolamento de falhas
-* escalabilidade do sistema
+## Posição das baby boards na bancada
 
----
-
-## Papel das baby boards
-
-As baby boards recebem sinais, comandos e alimentação por meio do backplane.
-
-Sua função é executar operações específicas como:
-
-* geração de sinais
-* leitura de entradas
-* monitoramento
-* atuação física
-* interfaces de comunicação
-* alimentação controlada
-
-Cada board é dedicada a uma função bem definida.
-
----
-
-## Fluxo funcional
-
-O fluxo de operação entre software, gateway e baby board pode ser resumido em:
-
-```text id="g49p31"
-Aplicação
-    ↓
-Gateway
-    ↓
-Backplane
-    ↓
-Baby Board
-    ↓
-Módulo em teste
+```text
+BPM
+  -> barramento físico
+  -> baby board
+  -> circuito local
+  -> sinais para a bancada
 ```
 
-A resposta percorre o caminho inverso.
+## Observação importante
 
----
+A GSA é hoje a única baby board com:
 
-## Arquitetura modular
+- pasta de hardware viva
+- firmware vivo
+- contrato funcional vivo no host
 
-Cada baby board possui sua própria camada lógica e eletrônica.
+Por isso ela é a referência principal deste ramo.
 
-De forma geral, elas são compostas por:
+## Glossário
 
-### Camada lógica
-
-Responsável por:
-
-* interpretação dos comandos recebidos
-* validação
-* shadow RAM
-* controle funcional
-
----
-
-### Camada eletrônica
-
-Responsável por:
-
-* atuação física
-* barramentos internos
-* DACs
-* multiplexadores
-* drivers
-* monitoramento elétrico
-
----
-
-## Comunicação assíncrona
-
-As baby boards podem sinalizar eventos ao gateway de forma assíncrona.
-
-Isso permite:
-
-* retorno de estados
-* eventos de falha
-* confirmação de atuação
-* sinalização de término de processo
-
----
-
-## Exemplo de board implementada
-
-**A GSA (Gerador de Sinais Analógicos)** é atualmente a referência funcional mais madura dentro do projeto.
-
-Ela representa o modelo oficial de integração entre gateway, backplane e baby board.
-
-## Papel deste ramo na árvore
-
-Nesta trilha da documentação, o aprofundamento segue pelo **aspecto físico e eletrônico** das boards atualmente documentadas.
-
-Os detalhes de firmware, contratos SDH e roteamento lógico das mesmas boards continuam no ramo de firmware, preservando a separação entre:
-
-* construção física da placa
-* comportamento embarcado
-* contrato de software
-
-
----
+- **Baby board**: placa especializada conectada ao backplane.
+- **Acervo legado**: hardware mantido no repositório sem papel ativo na arquitetura corrente.
+- **Referência física**: board que já possui evidência suficiente para documentar construção e integração.
 
 ## Próximas camadas
 
-### Construção física das boards
-
-Visão física das boards já documentadas no acervo oficial, com foco em:
-
-* função eletrônica da placa
-
-* blocos internos principais
-
-* interligação com backplane e gateway
-
-* [Construção Física das Boards](05-boards-fisicas.md)
+- [Construção Física das Boards](05-boards-fisicas.md)

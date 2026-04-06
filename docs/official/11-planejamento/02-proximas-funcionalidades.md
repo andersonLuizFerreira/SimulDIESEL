@@ -1,52 +1,37 @@
 ⬅ [Retornar para Planejamento](01-planejamento.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Próximas Funcionalidades
 
-## Estado atual
+## Prioridade oficial após esta etapa
 
-As próximas funcionalidades mais sustentadas pelo repositório não são especulações amplas; elas surgem diretamente dos espaços já preparados pela arquitetura e ainda pouco ocupados pelo código. O projeto já possui transporte, link, roteamento e um primeiro dispositivo. O passo seguinte natural é aumentar densidade funcional sobre essa base.
+As próximas frentes oficiais, respeitando o código real e o fechamento desta rodada, são:
 
-## Funcionamento técnico
+1. finalizar a GSA onde ainda restarem lacunas de implementação e validação
+2. iniciar a `UCE (Unidade de Comunicação Externa)`
+3. ampliar o catálogo de boards somente quando houver firmware ou hardware vivo correspondente
 
-### Frentes que o código já prepara
+## O que não deve entrar como prioridade falsa
 
-1. Mais serviços no GSA ou em dispositivos equivalentes.
-2. Ampliação de `GwDeviceTable` com módulos adicionais.
-3. Casos de uso novos no software local sobre `GsaClient`, `BpmClient` e clients equivalentes.
-4. Formalização dos contratos externos de software.
+- expansão especulativa de múltiplas boards sem código
+- detalhamento elétrico inventado para o backplane
+- promoção de parser `SDH` embarcado como se já existisse na BPM
 
-### Sinais concretos de evolução possível
+## Leitura prática
 
-- `cloud/api-contracts/openapi.yaml` existe, mas ainda sem rotas operacionais;
-- a tabela de dispositivos do gateway já comporta múltiplos destinos;
-- o padrão `Transport -> Link -> Service` é replicável;
-- os documentos legados já discutem protocolo e roadmap em mais de uma etapa.
+O projeto sai desta etapa com:
 
-### Prioridade arquitetural sugerida pelo estado atual
+- documentação oficial madura
+- BPM e GSA descritas no nível de classes, métodos e trechos reais
+- uma pendência explícita de finalização da GSA
+- base pronta para a UCE
 
-```text
-Mais serviços reais
-  -> mais testes integrados
-  -> mais documentação por dispositivo
-  -> mais valor de bancada
-```
+## Glossário
 
-Esse encadeamento é coerente porque o sistema já superou a fase de transporte básico; agora o gargalo é a riqueza funcional dos módulos.
-
-## Limitações
-
-Não há, no repositório analisado, um backlog versionado e detalhado por issue ou sprint que permita afirmar ordem fechada de implementação. Também não é possível prometer funcionalidades automotivas específicas sem código correspondente. As próximas funcionalidades listadas aqui são as mais compatíveis com a arquitetura e com os artefatos já presentes.
-
-## Evolução prevista
-
-As evoluções mais prováveis e tecnicamente justificadas são:
-
-- expansão do conjunto de comandos roteáveis;
-- documentação formal de payloads e contratos por dispositivo;
-- amadurecimento do software local para diagnóstico e operação;
-- introdução futura de protocolos adicionais quando houver implementação real no repositório.
+- **Prioridade oficial**: direção de evolução compatível com a implementação real.
+- **UCE**: Unidade de Comunicação Externa.
+- **Prioridade falsa**: item documentalmente sedutor, mas sem evidência real suficiente.
 
 ## Próximas camadas
 
 - Esta é uma página terminal deste ramo da documentação.
-

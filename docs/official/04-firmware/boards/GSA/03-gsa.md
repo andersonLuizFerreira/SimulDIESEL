@@ -1,173 +1,100 @@
 ⬅ [Retornar para Boards de Firmware](../README.md)
+⬅ [Retornar para Índice Geral](../../../../00-INDICE.md)
 
 # GSA
 
-## Nome canônico
+Esta página responde à trilha **ONDE** para a GSA: onde a board se encaixa, quais classes a compõem e onde ficam os dois barramentos que ela usa.
 
-Gerador de Sinais Analógicos (GSA)
+## Papel estrutural
 
-## Identificador SDH da board
+A GSA é uma board remota controlada pela BPM.
 
-GSA
+Ela fica entre:
 
-## Responsabilidade principal no firmware
+- acima: BPM por `I2C` físico
+- abaixo: `TCA9548A`, `MCP4725`, EEPROM e saídas analógicas
 
-Receber comandos TLV da BPM no barramento físico, manter o estado lógico dos 16 canais e executar a atuação elétrica real em um barramento I2C independente para `TCA9548A` + `MCP4725`.
+## Arquivos e classes reais
 
-## Arquitetura oficial vigente
+| arquivo real | classe/bloco | acima de | abaixo de | status |
+| --- | --- | --- | --- | --- |
+| `src/main.cpp` | composição estática da GSA | BPM | `Transport`, `Link`, serviços | `IMPLEMENTADO` |
+| `lib/Transport/Transport.h` | `Transport` | `Link` | `Wire` físico | `IMPLEMENTADO` |
+| `lib/Link/Link.h` | `Link` | `Transport` | `Service` | `IMPLEMENTADO` |
+| `lib/Service/Service.h` | `Service` | `Link` | `LedService`, `AnalogService` | `IMPLEMENTADO` |
+| `lib/AnalogService/AnalogService.h` | `AnalogService` | `Service` | `BusArbiterService`, `EepromService` | `IMPLEMENTADO` |
+| `lib/BusArbiterService/BusArbiterService.h` | `BusArbiterService` | `AnalogService` | `Tca9548Service`, `Mcp4725Service` | `IMPLEMENTADO` |
+| `lib/Tca9548Service/Tca9548Service.h` | `Tca9548Service` | `BusArbiterService` | `SoftwareWire` | `IMPLEMENTADO` |
+| `lib/Mcp4725Service/Mcp4725Service.h` | `Mcp4725Service` | `BusArbiterService` | `SoftwareWire` | `IMPLEMENTADO` |
+| `lib/EepromService/EepromService.h` | `EepromService` | `AnalogService` | `EEPROM` | `IMPLEMENTADO` |
 
-O firmware atual da GSA trabalha com dois barramentos I2C distintos:
-
-1. barramento físico:
-   - ligação com a BPM
-   - GSA = `slave`
-   - endereço fixo = `0x23`
-2. barramento lógico/eletrônico:
-   - ligação com `TCA9548A` + `MCP4725`
-   - GSA = `master`
-   - sem troca de papel com o barramento físico
-
-Consequência importante:
-
-- a GSA não usa mais o modelo antigo de virar `master` no mesmo barramento da BPM;
-- o modelo BUSY/IDLE por polling deixou de ser a arquitetura oficial.
-
-## Pinagem oficial da GSA
-
-- I2C físico com a BPM: `A4` = SDA, `A5` = SCL
-- I2C lógico com `TCA9548A` e `MCP4725`: `D2` = SDA, `D3` = SCL
-- IRQ físico para a BPM: `D4`
-- reset do `TCA9548A`: `D8`
-- reset da placa GSA: pino `RESET` físico do Nano, comandado pela BPM via `D23`
-
-## Pilha interna preservada
-
-O caminho lógico da board continua curto:
+## Empilhamento real
 
 ```text
-I2C callback -> Transport -> Link -> Service -> LedService / AnalogService / EepromService
+I2C físico com a BPM
+  -> Transport
+  -> Link
+  -> Service
+  -> AnalogService / LedService
+  -> BusArbiterService
+  -> Tca9548Service / Mcp4725Service / EepromService
+  -> circuito analógico
 ```
 
-A atuação elétrica real ficou acoplada ao fluxo lógico por serviços dedicados:
+## Conectores físicos confirmados
 
-- `BusArbiterService`
-- `Tca9548Service`
-- `Mcp4725Service`
+As definições vivas estão em `include/config.h` e são coerentes com o esquemático `hardware/boards/GSA -gerador-sinais-analogicos/GSA - gerador de sinais analogicos.kicad_sch`.
 
-## Fluxo operacional oficial
+| função | pino GSA | destino | status |
+| --- | --- | --- | --- |
+| `I2C SDA` físico | `A4` | BPM `21` | `IMPLEMENTADO` |
+| `I2C SCL` físico | `A5` | BPM `22` | `IMPLEMENTADO` |
+| `I2C SDA` lógico | `D2` | `SoftwareWire` interno | `IMPLEMENTADO` |
+| `I2C SCL` lógico | `D3` | `SoftwareWire` interno | `IMPLEMENTADO` |
+| `IRQ` | `D4` | BPM `19` | `IMPLEMENTADO` |
+| `reset TCA` | `D8` | `TCA9548A` | `IMPLEMENTADO` |
 
-1. a BPM envia um TLV para a GSA no barramento físico;
-2. a GSA valida o payload e responde sincronicamente apenas com o ACK lógico da recepção;
-3. a GSA enfileira a operação física pendente;
-4. o `BusArbiterService` executa a operação no barramento lógico;
-5. ao concluir, a GSA publica um evento assíncrono `0x31`;
-6. a GSA aciona a linha de IRQ física para a BPM;
-7. a BPM busca o TLV assíncrono e o encaminha ao host.
+## Mapeamento estrutural dos canais
 
-## IRQ físico
+`Tca9548Service::switchIndexForChannel(channel)` prova que dois canais compartilham cada ramo do hub:
 
-Definições vigentes:
+- canais `1-2` -> `SC0`
+- canais `3-4` -> `SC1`
+- canais `5-6` -> `SC2`
+- canais `7-8` -> `SC3`
+- canais `9-10` -> `SC4`
+- canais `11-12` -> `SC5`
+- canais `13-14` -> `SC6`
+- canais `15-16` -> `SC7`
 
-- Nano `D4`
-- ativo em `LOW`
-- `INPUT_PULLUP` desativado
-- pull-up externo em `3,3 V`
-- comportamento de open-drain por software:
-  - inativo = alta impedância
-  - ativo = forçar `LOW`
+`Mcp4725Service::addressForChannel(channel)` completa o par:
 
-## Modelo funcional documentado
+- canal ímpar -> `0x61`
+- canal par -> `0x60`
 
-- `16` canais no total
-- canais `1..8` na faixa `0..5 V`
-- canais `9..16` na faixa `0..12 V`
-- setpoint lógico transportado como `0..255`
-- shadow RAM mantido por canal
-- offsets por canal:
-  - `vout`
-  - `vread`
-  - `iread`
-- EEPROM preservada para offsets
+## Comentário orientado a código
 
-Enquanto a medição analógica real completa não existe, o status reportado continua derivado do shadow e da simulação já existente no firmware.
+Em `src/main.cpp`, a linha abaixo materializa a separação física mais importante da GSA:
 
-## Mapeamento elétrico obrigatório
-
-- canal `1`  -> `SC0` + `MCP4725 0x61`
-- canal `2`  -> `SC0` + `MCP4725 0x60`
-- canal `3`  -> `SC1` + `MCP4725 0x61`
-- canal `4`  -> `SC1` + `MCP4725 0x60`
-- canal `5`  -> `SC2` + `MCP4725 0x61`
-- canal `6`  -> `SC2` + `MCP4725 0x60`
-- canal `7`  -> `SC3` + `MCP4725 0x61`
-- canal `8`  -> `SC3` + `MCP4725 0x60`
-- canal `9`  -> `SC4` + `MCP4725 0x61`
-- canal `10` -> `SC4` + `MCP4725 0x60`
-- canal `11` -> `SC5` + `MCP4725 0x61`
-- canal `12` -> `SC5` + `MCP4725 0x60`
-- canal `13` -> `SC6` + `MCP4725 0x61`
-- canal `14` -> `SC6` + `MCP4725 0x60`
-- canal `15` -> `SC7` + `MCP4725 0x61`
-- canal `16` -> `SC7` + `MCP4725 0x60`
-
-Endereços:
-
-- `TCA9548A = 0x70`
-- `MCP4725 A0 = GND -> 0x60`
-- `MCP4725 A0 = VCC -> 0x61`
-
-## Resultado físico assíncrono
-
-O evento assíncrono oficial da execução elétrica é:
-
-- `0x31`
-
-Payload:
-
-```text
-[origin_type][channel][status]
+```cpp
+static SoftwareWire g_logicalI2c(GSA_LOGICAL_I2C_SDA_PIN, GSA_LOGICAL_I2C_SCL_PIN, false);
 ```
 
-Status:
+Ela existe para manter o barramento interno da GSA separado do barramento físico onde a BPM a enxerga como slave.
 
-- `0x01` = operação OK
-- `0x02` = `TCA9548A` sem ACK
-- `0x03` = `MCP4725` sem ACK
+## Limite importante desta página
 
-Regra:
+Esta página diz **onde** cada bloco da GSA está.
 
-- o `0x31` é emitido sempre, inclusive em sucesso;
-- ele não substitui a resposta síncrona do comando original.
+O fluxo de aceite síncrono, enfileiramento, execução física, `IRQ`, evento `0x31` e faults fica na trilha **COMO** em `04-sdh-gateway-architecture.md` e filhos.
 
-## Política de falha física
+## Glossário
 
-Quando a etapa física falha:
-
-- o valor anterior do canal é preservado;
-- o shadow lógico não é alterado;
-- o enable não muda;
-- não há retry automático;
-- não é criado `fault latched` apenas por falta de ACK do barramento lógico;
-- o resultado é comunicado exclusivamente pelo evento `0x31`.
-
-## Targets SDH vigentes da GSA
-
-- `GSA.led`
-- `GSA.channel.setpoint`
-- `GSA.channel.enable`
-- `GSA.channels.enable`
-- `GSA.channel.status`
-- `GSA.channel.fault`
-- `GSA.channel.offset`
-- `GSA.offset`
-
-## Observações
-
-- o caso `GSA.led set state=on|off` continua válido e é o caminho mais simples de teste ponta a ponta;
-- o modelo antigo BUSY/IDLE deixou de ser referência para a arquitetura oficial da board;
-- o contrato TLV detalhado está em `docs/official/06-protocolos/06-gsa-sdh-tlv.md`.
+- **GSA**: Gerador de Sinais Analógicos.
+- **Barramento físico**: `I2C` usado pela BPM para falar com a GSA.
+- **Barramento lógico**: `I2C` interno da GSA para seus periféricos.
+- **Hub**: `TCA9548A`, usado para selecionar o ramo do canal.
 
 ## Próximas camadas
 
 - Esta é uma página terminal deste ramo da documentação.
-

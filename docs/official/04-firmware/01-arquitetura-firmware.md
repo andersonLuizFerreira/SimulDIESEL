@@ -1,197 +1,116 @@
-⬅ [Retornar para Camadas do Sistema](../02-arquitetura/02-camadas-do-sistema.md)
+⬅ [Retornar para Visão Lógica do Projeto](../02-arquitetura/03-visao-logica.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Arquitetura de Firmware
 
-## Visão geral
-
-O firmware atual da BPM continua baseado em SDGW/SGGW como camada binária de transporte entre host e gateway.
-
-A arquitetura ativa hoje está organizada em torno de:
-
-- transporte serial
-- link SDGW confiável
-- aplicação local do gateway
-- roteamento para barramentos internos
-- contratos TLV curtos para as baby boards
-
-O firmware não depende mais de ping periódico fixo como única forma de manter a sessão host/gateway.
-
-## Camadas internas do firmware
-
-### Transporte físico
-
-Responsável por:
-
-- UART
-- I2C
-- SPI
-- GPIO e temporização auxiliar
-
-Essa camada apenas movimenta bytes.
-
-### Link SDGW
-
-Implementado principalmente em `SggwLink`.
-
-Responsabilidades:
-
-- handshake textual inicial
-- transição para modo binário
-- delimitação de frames
-- `COBS`
-- `CRC-8/ATM`
-- tratamento de `ACK` / `ERR`
-- cache da última resposta para retransmissão
-- watchdog de atividade da sessão
-
-### Aplicação local do gateway
-
-Implementada em `GatewayApp`.
-
-Responsabilidades:
-
-- tratar comandos locais da BPM
-- distinguir endereço local BPM de comandos roteados
-- encaminhar comandos compactos para o router
-- transformar erros do gateway em eventos SDGW
-
-### Router e barramentos
-
-O `GwRouter` escolhe o destino físico e executa a transação:
-
-- I2C
-- SPI
-
-O payload interno continua sendo TLV curto com CRC próprio da transação para a baby board.
-
-## Sessão host/gateway
-
-### Handshake inicial
-
-O bootstrap continua textual:
-
-1. a BPM inicia em `WaitingBanner`
-2. o host envia `SIMULDIESELAPI`
-3. a BPM responde com seu banner
-4. a BPM entra em `Linked`
-5. o transporte em texto é desabilitado
-
-Esse comportamento continua necessário para o primeiro estabelecimento da conexão serial.
-
-### Operação binária
-
-Depois do handshake, o link usa frames SDGW:
-
-    CMD | FLAGS | SEQ | PAYLOAD | CRC8
-
-Nada foi alterado em:
-
-- wire format
-- `COBS`
-- delimitador `0x00`
-- `ACK`
-- `ERR`
-- flags do protocolo
-
-## Keepalive atual da BPM
-
-O firmware da BPM foi alinhado ao host novo.
-
-### Lógica antiga
-
-Antes, a sessão era renovada na prática por `PING 0x55`.
-
-Isso criava divergência com o host quando havia tráfego funcional válido, mas sem ping explícito recente.
-
-### Lógica atual
-
-Agora:
-
-- qualquer frame SDGW estruturalmente válido recebido renova a atividade da sessão
-- a renovação ocorre logo após a validação estrutural do frame
-- `PING 0x55` continua suportado, mas não é a única prova de vida
-
-Em termos práticos:
-
-- comandos funcionais válidos mantêm a sessão ativa
-- `ACK`s e demais frames válidos também contam como atividade
-- a BPM não deve mais se auto-deslogar no meio de tráfego funcional só por falta de ping explícito
-
-### Timeout atual da sessão
-
-O watchdog da BPM mede silêncio de atividade SDGW válida.
-
-Valor atual:
-
-- timeout de atividade do link: `4000 ms`
-
-Quando esse silêncio expira:
-
-- a BPM faz logout da sessão binária
-- volta para `WaitingBanner`
-
-Esse comportamento continua existindo, mas agora está baseado em ausência de atividade válida, não em ausência específica de `PING`.
-
-## Router do gateway
-
-O `GatewayApp` continua tratando:
-
-- comandos locais da BPM
-- comandos compactos roteados para as baby boards
-
-O timeout interno do roteamento foi tornado mais realista para uso interativo.
-
-Valor atual:
-
-- timeout do router/gateway: `100 ms`
-
-Isso reduz falhas artificiais em operações repetitivas como o fluxo de LED da GSA.
-
-## Papel atual do SDH no firmware
-
-No host, o SDH já existe como camada semântica.
-
-No firmware da BPM, a situação atual é mais conservadora:
-
-- o host resolve SDH para comandos SDGW compactos antes do envio
-- a BPM continua operando sobre o contrato compacto `[ADDR:4][OP:4]`
-- o gateway trata endereço local BPM ou roteia para a baby board correspondente
-
-Ou seja:
-
-- o firmware atual ainda não usa SDH textual como parser de entrada do gateway
-- a compatibilidade real vigente é host SDH semântico -> SDGW compacto -> BPM/Gateway -> TLV interno
-
-## Exemplo atual de fluxo funcional
-
-Caso de uso: `GSA.led set state=on`
-
-Fluxo:
-
-1. o host monta o comando SDH
-2. o host o converte para SDGW compacto do endereço GSA
-3. a BPM recebe o frame SDGW válido
-4. a atividade da sessão é renovada
-5. o `GatewayApp` encaminha a transação ao `GwRouter`
-6. o router envia o TLV curto para a GSA
-7. a resposta volta ao gateway
-8. a BPM publica a resposta como evento SDGW para o host
-
-## Conclusão
-
-A arquitetura atual do firmware da BPM pode ser resumida assim:
-
-- handshake textual inicial preservado
-- operação binária SDGW preservada
-- keepalive baseado em atividade SDGW válida
-- watchdog de sessão em `4000 ms`
-- router com timeout de `100 ms`
-- gateway ainda consumindo comandos compactos resolvidos pelo host
+Esta página descreve a arquitetura de firmware realmente observável em `hardware/firmware`.
+
+O foco aqui é estrutural: onde cada bloco embarcado fica na pilha, quais arquivos materializam essa pilha e quais boards têm implementação real.
+
+## Estado confirmado
+
+- **IMPLEMENTADO**: firmware da `BPM - BACKPLANE MANAGER MODULE` com sessão `SDGW`, endpoints Serial e Bluetooth, roteamento local e acesso a `I2C`/`SPI`.
+- **IMPLEMENTADO**: firmware da `GSA - Gerador de sinais analógicos` com `Transport -> Link -> Service -> AnalogService`, fila de operações físicas, `IRQ` e eventos assíncronos.
+- **PARCIALMENTE IMPLEMENTADO**: caminho físico `SPI` no gateway existe no firmware da BPM, mas a tabela viva de devices ainda publica apenas a GSA em `I2C`.
+- **PLANEJADO**: demais boards documentadas em `docs/official/04-firmware/boards/` ainda não possuem firmware equivalente nesta auditoria.
+- **LEGADO**: a ideia de parser `SDH` residente no gateway continua apenas documental; o firmware ativo consome `SDGW` compacto e `TLV`.
+
+## Pilha real do firmware
+
+```text
+Host local
+  -> SDH semântico no host
+  -> SDGW compacto
+  -> BPM (ESP32)
+       -> SdgwTransport / SdgwBluetoothEndpoint
+       -> SdgwEndpointMux / SdgwSessionOwner
+       -> SdgwLink
+       -> GatewayApp
+       -> GwRouter
+       -> GwI2cBus / GwSpiBus
+  -> GSA (Nano Every)
+       -> Transport
+       -> Link
+       -> Service
+       -> AnalogService / LedService
+       -> BusArbiterService
+       -> Tca9548Service / Mcp4725Service / EepromService
+```
+
+## Boards com firmware vivo
+
+| board | pasta real | ponto de entrada | papel na pilha | status |
+| --- | --- | --- | --- | --- |
+| BPM | `hardware/firmware/BPM - BACKPLANE MANAGER MODULE` | `src/main.cpp` | gateway físico entre host e boards | `IMPLEMENTADO` |
+| GSA | `hardware/firmware/GSA - Gerador de sinais analógicos` | `src/main.cpp` | board remota de geração analógica | `IMPLEMENTADO` |
+| PSU, GSC, URL, SLU, UCO, UCS, UIOD, UHM | não encontrado em `hardware/firmware` | inexistente | reservadas na árvore documental | `PLANEJADO` |
+
+## BPM: composição real
+
+Em `hardware/firmware/BPM - BACKPLANE MANAGER MODULE/src/main.cpp`, a BPM é composta de forma estática:
+
+```cpp
+static SdgwTransport serialTransport(Serial);
+static SdgwBluetoothEndpoint bluetoothTransport("SimulDIESEL - BPM");
+static SdgwSessionOwner sessionOwner(SDGW_ENDPOINT_NONE);
+static SdgwEndpointMux transportMux(sessionOwner, serialTransport, bluetoothTransport);
+static SdgwLink sdgwLink(transportMux, sessionOwner);
+static GwI2cBus i2cBus(Wire);
+static GwSpiBus spiBus(SPI);
+static GwRouter router(i2cBus, spiBus);
+static GatewayApp app(sdgwLink, router);
+```
+
+Esse trecho mostra a ordem estrutural real:
+
+1. endpoints físicos
+2. arbitragem de ownership
+3. link `SDGW`
+4. aplicação do gateway
+5. roteador para barramentos
+
+## GSA: composição real
+
+Em `hardware/firmware/GSA - Gerador de sinais analógicos/src/main.cpp`, a GSA é montada assim:
+
+```cpp
+static Transport g_transport;
+static LedService g_led;
+static EepromService g_eeprom;
+static SoftwareWire g_logicalI2c(...);
+static Tca9548Service g_tca9548(g_logicalI2c);
+static Mcp4725Service g_mcp4725(g_logicalI2c);
+static BusArbiterService g_busArbiter(g_logicalI2c, g_tca9548, g_mcp4725);
+static AnalogService g_analog(g_eeprom, g_busArbiter);
+static Service g_service(g_led, g_analog);
+static Link g_link(g_transport, g_service);
+```
+
+Aqui a pilha real é:
+
+1. `Transport` no `I2C` físico com a BPM
+2. `Link` para validar `TLV + CRC`
+3. `Service` como despachante
+4. `AnalogService` e `LedService`
+5. `BusArbiterService` e periféricos físicos
+
+## Decisões estruturais confirmadas
+
+- O gateway ativo fala `SDGW`, não `SDH` textual.
+- A BPM multiplexa Serial e Bluetooth, mas só um endpoint pode alimentar a sessão por vez.
+- A GSA separa `I2C` físico com a BPM de `I2C` lógico com `TCA9548A` e `MCP4725`.
+- O retorno físico da GSA usa `IRQ` e evento assíncrono, não BUSY/IDLE no mesmo barramento.
+
+## Glossário
+
+- **BPM**: board gateway do projeto, implementada em ESP32.
+- **GSA**: board de geração de sinais analógicos, implementada em Nano Every.
+- **SDGW**: protocolo binário efetivamente implementado entre host e BPM.
+- **TLV**: contrato curto usado entre BPM e board remota.
+- **Ownership**: política que garante um único endpoint ativo por sessão no gateway.
 
 ## Próximas camadas
 
 - [Drivers de Firmware](02-drivers.md)
 - [Gerenciamento de Recursos em Firmware](03-gerenciamento-recursos.md)
 - [Arquitetura SDH no Gateway](04-sdh-gateway-architecture.md)
-
-

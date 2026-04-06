@@ -1,139 +1,50 @@
-⬅ [Retornar para Camadas do Sistema](../02-arquitetura/02-camadas-do-sistema.md)
+⬅ [Retornar para Hardware da Bancada](../02-arquitetura/10-hardware-da-bancada.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Backplane
 
-O **Backplane** é a estrutura central de interligação física, elétrica e lógica do SimulDIESEL.
+Esta página documenta o backplane sob a trilha **ONDE**.
 
-Ele é responsável por conectar o módulo em teste, as baby boards e o gateway, garantindo distribuição segura de sinais, alimentação e comunicação.
+## Estado real do backplane
 
-Sua arquitetura foi concebida para permitir modularidade, proteção elétrica e expansão progressiva da bancada.
+- **PARCIALMENTE IMPLEMENTADO**: existe uma pasta física dedicada em `hardware/boards/SimulDIESEL`.
+- **PARCIALMENTE IMPLEMENTADO**: `SimulDIESEL.kicad_pcb` e `SimulDIESEL.kicad_pro` existem como artefatos vivos.
+- **PARCIALMENTE IMPLEMENTADO**: `SimulDIESEL.kicad_sch` ainda não materializa um esquemático populado no mesmo nível de detalhe da GSA.
+- **IMPLEMENTADO**: a função estrutural do backplane aparece no firmware e na arquitetura física como base de interligação entre BPM, GSA, X-CONN e módulo em teste.
 
----
+## Onde o backplane fica
 
-## Papel do backplane
-
-O backplane atua como elemento central entre três blocos principais:
-
-```text id="7j9l0v"
-Módulo em teste
-        ↓
-X-CONN
-        ↓
-Backplane
-   ↙    ↓    ↘
-Baby Boards  Gateway  Alimentação
+```text
+BPM
+  -> backplane
+  -> baby boards
+  -> X-CONN
+  -> módulo em teste
 ```
 
-Ele faz a interligação completa entre esses elementos.
+## O que já é possível afirmar com segurança
 
----
+- a BPM ocupa o papel de gateway superior da bancada;
+- a GSA é uma baby board efetivamente integrada à pilha;
+- o backplane é a base física prevista para organizar essa ligação;
+- a árvore física do projeto já reserva o caminho até X-CONN e chicote.
 
-## Interface com o módulo em teste
+## O que ainda não é possível afirmar com a mesma segurança
 
-O módulo em teste é conectado por meio de um **chicote específico** para cada aplicação.
+- pinagem completa do backplane
+- distribuição detalhada de cada net da placa raiz
+- tabela definitiva de slots e conectores por board
 
-Esse chicote é ligado à placa **X-CONN**.
+Esses pontos permanecem parciais porque o esquemático raiz ainda não está populado como fonte de verdade equivalente à GSA.
 
-A **X-CONN** é responsável por adaptar e organizar fisicamente os sinais do módulo.
+## Glossário
 
-O backplane recebe esses sinais da X-CONN e faz a distribuição para as baby boards responsáveis pela geração, leitura ou monitoramento de cada recurso.
-
-Isso inclui:
-
-* sinais analógicos
-* sinais digitais
-* linhas de comunicação
-* alimentação do módulo
-
----
-
-## Interface com as baby boards
-
-O backplane realiza a interligação elétrica entre a X-CONN e as baby boards.
-
-Cada baby board executa uma função específica, como:
-
-* geração de sinais
-* leitura de entradas
-* acionamento de saídas
-* monitoramento de estados
-
-O backplane distribui os sinais necessários entre essas unidades.
-
----
-
-## Distribuição de alimentação
-
-Uma das funções mais importantes do backplane é a distribuição de alimentação.
-
-Essa alimentação é dividida em dois domínios independentes.
-
-### Alimentação das baby boards
-
-Responsável exclusivamente pelo funcionamento interno da bancada.
-
-Essa alimentação é dedicada aos módulos internos do sistema.
-
----
-
-### Alimentação do módulo em teste
-
-Responsável por alimentar o equipamento externo conectado à bancada.
-
-Essa alimentação é mantida separada da alimentação das baby boards.
-
-O objetivo é garantir proteção contra falhas como:
-
-* curto-circuito no módulo
-* sobrecorrente
-* falha de alimentação externa
-
-Essa segregação aumenta a segurança do sistema.
-
----
-
-## Comunicação com o gateway
-
-O backplane também realiza a interligação dos sinais de comunicação entre as baby boards e o gateway central.
-
-Essa comunicação permite que a aplicação Windows envie comandos e receba respostas do hardware.
-
-```text id="1x8xqj"
-Aplicação
-    ↓
-Gateway
-    ↓
-Backplane
-    ↓
-Baby Boards
-```
-
----
-
-## Papel estrutural
-
-O backplane é o núcleo físico da bancada.
-
-Ele centraliza:
-
-* interconexão
-* alimentação
-* proteção
-* comunicação
-* expansão modular
-
----
+- **Backplane**: base física de interligação da bancada.
+- **Slot**: posição estrutural reservada para conexão de uma board.
+- **Placa raiz**: PCB principal da bancada.
 
 ## Próximas camadas
 
-### Módulos especializados
-
-* [Baby Boards](02-baby-boards.md)
-
-### Barramentos internos
-
-* [Barramentos](03-barramentos.md)
-
-### Alimentação
-
-* [Alimentação](04-alimentacao.md)
+- [Baby Boards](02-baby-boards.md)
+- [Barramentos](03-barramentos.md)
+- [Alimentação](04-alimentacao.md)

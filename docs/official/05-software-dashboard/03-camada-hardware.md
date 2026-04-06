@@ -1,262 +1,76 @@
 ⬅ [Retornar para Arquitetura do Software Dashboard (Local API)](01-arquitetura-software.md)
+⬅ [Retornar para Índice Geral](../../00-INDICE.md)
 
 # Camada Hardware do Software
 
-## Estado atual
+## O que esta camada faz
 
-A camada de hardware do software local é a parte da aplicação que conecta a UI WinForms ao link host SDGW/SDH da BPM.
+Na leitura lógica do host, a camada hardware do software é o conjunto de classes que:
 
-Hoje ela é organizada em torno de:
+- sobe a sessão entre host e BPM;
+- mantém o link lógico vivo;
+- transforma comandos SDH em frames SDGW;
+- devolve respostas e eventos para a camada funcional.
 
-- `SwitchableTransport`
-- `SerialTransport`
-- `BluetoothTransport`
-- `BpmSerialService`
-- `SdGwLinkEngine`
-- `SdGwTxScheduler`
-- `SdgwSession`
-- `SdhClient`
-- `SdGwLinkSupervisor`
-- clients funcionais por board, como `GsaClient` e `BpmClient`
+## Componentes ativos
 
-`SerialLink`, `SerialLinkService`, `SdGgwClient` e `SdgwHealthService` não fazem mais parte da arquitetura ativa.
+| função | classes | estado | observação |
+| --- | --- | --- | --- |
+| sessão e estados do link | `SdgwHostSession`, `BpmSerialService` | `IMPLEMENTADO` | fazem handshake textual, rearmam tentativa e projetam estado |
+| semântica SDH | `SdhClient`, `SdhValidator`, `SdhToSdgwMapper` | `IMPLEMENTADO` | validam targets e montam payloads compactos |
+| fila, framing e ACK | `SdGwTxScheduler`, `SdGwLinkEngine` | `IMPLEMENTADO` | stop-and-wait, COBS, CRC, timeout e retry |
+| watchdog de saúde | `SdGwLinkSupervisor` | `IMPLEMENTADO` | mede silêncio de RX válido e agenda ping |
+| adaptação física | `SwitchableTransport`, `SerialTransport`, `BluetoothTransport` | `IMPLEMENTADO` | entregam bytes ao endpoint físico ativo |
+| casos funcionais de board | `GsaClient`, `BpmClient` | `IMPLEMENTADO` | transformam resposta técnica em resultado funcional |
 
-## Componentes centrais
+## Fluxos lógicos confirmados
 
-### Transporte e link
+### Subida de sessão
 
-- `SwitchableTransport`: hub com uma única sessão ativa por vez
-- `SerialTransport`: I/O bruto sobre COM
-- `BluetoothTransport`: transporte Bluetooth Classic SPP sobre COM
-- `BpmSerialService`: fachada funcional do link host da BPM, preservando o nome legado por compatibilidade
-- `SdGwLinkEngine`: framing SDGW, `ACK`, `ERR`, timeout/retry e stop-and-wait
-- `SdGwTxScheduler`: fila central de transmissão com prioridade
-- `SdGwLinkSupervisor`: watchdog lógico por silêncio de RX válido
+`SdgwHostSession` abre o transporte, drena ruído inicial, envia o banner textual `SIMULDIESELAPI` e só então libera o estado `Linked`.
 
-### Sessão e semântica
+### Caminho de comando
 
-- `SdgwSession`: sessão de alto nível do SDGW sobre o scheduler
-- `SdhClient`: camada semântica de comandos SDH
-- `SdhValidator`: validação estrutural do comando
-- `SdhToSdgwMapper`: adaptação de SDH para SDGW compacto
+`FrmGsaLogic` ou `BpmClient` chamam `SdhClient`, que valida o comando, mapeia o target para TLV SDGW e entrega o envio para `SdgwSession`.
 
-### Clients funcionais
+### Caminho de resposta
 
-- `GsaClient`: operações da GSA
-- `BpmClient`: operações funcionais da própria BPM
+`SdGwLinkEngine` decodifica o frame, valida CRC, trata `ACK` e `ERR`, e `SdgwSession` repassa o frame lógico para quem estiver inscrito.
 
-## Responsabilidades por classe
+### Caminho de evento
 
-### `BpmSerialService`
+`GsaClient` consome `SdgwSession.EventReceived`, interpreta `fault` e resultado físico, e sobe esses eventos para `FrmGsaLogic` e `frmGSA_UI`.
 
-Responsabilidades:
+## Trecho comentado: composição lógica do host
 
-- compor todo o link host
-- controlar conexão/desconexão
-- executar handshake textual inicial
-- publicar estado do link
-- coordenar supervisor, sessão e clients
+No construtor de `SdgwHostSession`, a pilha operacional aparece inteira:
 
-Ponto global transitório atual:
+```csharp
+_engine = new SdGwLinkEngine(cfg, WriteRaw);
+_txScheduler = new SdGwTxScheduler(_engine);
+Sdgw = new SdgwSession(_engine, _txScheduler);
+Sdh = new SdhClient(Sdgw);
+_linkSupervisor = new SdGwLinkSupervisor(linkSupervisorCfg, SendSupervisorPingAsync);
+```
 
-    BpmSerialService.Shared
+O que esse trecho faz:
 
-### `SdGwTxScheduler`
+- define o encadeamento real entre envio semântico, fila, engine e supervisor;
+- mostra que o host possui uma sessão própria, independente de `SerialPort`;
+- prepara a base que todas as operações BPM/GSA usam depois.
 
-É o centro de arbitragem de TX.
+## O que o código não sustenta
 
-Responsabilidades:
+- Não há evidência em `local-api` de barramentos internos da BPM, pinos, ISR ou IRQ de firmware como entidades observáveis pelo host.
+- Não há modelo remoto `BUSY`/`IDLE` além do `Busy` local do `SdGwLinkEngine`.
+- Não há stack Bluetooth nativa além do reaproveitamento de COM SPP.
 
-- enfileirar solicitações
-- priorizar envios
-- despachar um item por vez para o engine
-- evitar competição direta entre comandos funcionais e pings internos
+## Glossário
 
-Prioridades:
-
-- `High`
-- `Normal`
-- `Low`
-
-Uso corrente:
-
-- funcional da aplicação: `High`
-- supervisor: `Low`
-
-### `SdGwLinkSupervisor`
-
-Supervisiona o link sem ping fixo periódico.
-
-Regras atuais:
-
-- RX SDGW válido prova vida
-- silêncio abaixo de `IdleBeforePingMs` não gera ping
-- silêncio acima do limiar pode agendar ping
-- silêncio acima de `LinkTimeoutMs` derruba a saúde lógica
-
-Configuração atual no host:
-
-- `IdleBeforePingMs = 1500`
-- `LinkTimeoutMs = 3000`
-
-### `SdgwSession`
-
-Fornece a API de envio e eventos sobre o scheduler.
-
-O envio funcional agora passa por:
-
-    SdgwSession -> SdGwTxScheduler -> SdGwLinkEngine
-
-### `SdhClient`
-
-Converte intenção funcional em envio SDGW compacto.
-
-O fluxo atual é:
-
-    SdhCommand
-        -> validação
-        -> mapeamento SDGW
-        -> envio via sessão
-
-## Fluxo técnico interno
-
-O fluxo funcional atual no host é:
-
-    UI / FormsLogic
-      -> BpmSerialService.Shared
-      -> GsaClient / BpmClient
-      -> SdhClient.SendAsync(...)
-      -> SdhToSdgwMapper.Map(...)
-      -> SdgwSession.SendAsync(...)
-      -> SdGwTxScheduler
-      -> SdGwLinkEngine
-      -> SwitchableTransport
-      -> SerialTransport / BluetoothTransport
-
-Esse desenho mantém a UI fora de:
-
-- `COBS`
-- `CRC8`
-- `SEQ`
-- timeout/retry
-- arbitragem de prioridade
-
-## Keepalive e saúde do link
-
-O comportamento atual do host é:
-
-- a saúde do link é baseada em RX SDGW válido
-- o supervisor agenda ping apenas sob silêncio
-- o ping não é mais prova exclusiva de vida
-- a BPM foi alinhada ao mesmo conceito de atividade válida
-
-Isso substitui o modelo antigo de health service por ping periódico fixo.
-
-## Recepção e recuperação do link
-
-O host continua usando bootstrap textual no começo da conexão.
-
-Depois do primeiro `Linked` da conexão atual:
-
-- o `BpmSerialService` mantém a sessão SDGW da conexão como estabelecida
-- tráfego binário SDGW continua podendo ser entregue ao engine mesmo se o estado lógico cair para `LinkFailed`
-
-Esse ajuste evita descarte indevido de:
-
-- `ACK`s tardios
-- respostas tardias
-- eventos SDGW que ainda chegam com a porta aberta
-
-## Caso atual da GSA
-
-Historicamente, o caso funcional mais exercitado no host foi `GSA.led set state=on|off`.
-
-Esse fluxo continua preservado, mas o host agora também suporta a expansão funcional da GSA para:
-
-- setpoint por canal;
-- enable por canal;
-- enable global;
-- status por canal;
-- status global;
-- fault reset por canal;
-- offsets por canal;
-- save/reset de offsets;
-- reset global de offsets;
-- evento assíncrono de fault.
-
-### Fluxo funcional vigente
-
-Fluxo base:
-
-    FrmGsaLogic
-      -> GsaClient
-      -> SdhClient
-      -> SdhToSdgwMapper
-      -> SdgwSession (priority: High)
-      -> SdGwTxScheduler
-      -> SdGwLinkEngine
-
-Fluxos expostos hoje pelo `GsaClient`:
-
-- `SetBuiltinLedAsync(bool)`
-- `SetChannelSetpointAsync(...)`
-- `SetChannelEnableAsync(...)`
-- `SetChannelsEnableAsync(...)`
-- `GetChannelStatusAsync(...)`
-- `GetChannelsStatusAsync()`
-- `ResetChannelFaultAsync(...)`
-- `SetChannelOffsetAsync(...)`
-- `GetChannelOffsetAsync(...)`
-- `SaveChannelOffsetAsync(...)`
-- `ResetChannelOffsetAsync(...)`
-- `ResetOffsetsAsync()`
-
-### Recepção funcional da GSA
-
-O `GsaClient` consome:
-
-- respostas funcionais recebidas como `SggwFrame`;
-- erros funcionais TLV da GSA;
-- evento assíncrono de `fault` via `SdgwSession.EventReceived`.
-
-Regras observadas no host:
-
-- não há evento assíncrono normal para enable/disable;
-- não há telemetria contínua por evento;
-- o evento assíncrono publicado ao host é apenas o snapshot de `fault` do canal.
-
-### Compatibilidade preservada
-
-O fluxo do LED builtin continua compatível e não foi removido.
-
-Houve, porém, uma inconsistência histórica no contrato TLV da GSA:
-
-- o LED builtin já usava `type = 0x12`;
-- uma fase intermediária da expansão da GSA também chegou a documentar `type = 0x12` para `channel.status`.
-
-O contrato oficial atual resolve esse ponto da seguinte forma:
-
-- `0x12` permanece dedicado ao LED builtin legado;
-- `0x1B` passa a ser o type oficial de `channel.status`.
-
-Isso preserva o LED sem regressão e remove a necessidade de distinguir o status por canal por `len`.
-
-## Limitações atuais
-
-- o host ainda opera com uma única sessão e um único transporte ativo por vez
-- a recepção funcional ainda é entregue como `SggwFrame`
-- `BpmSerialService.Shared` ainda é um ponto global transitório
-- o catálogo SDH suportado no host ainda é parcial em relação ao catálogo documental geral
-- o conflito histórico de `type 0x12` foi resolvido migrando `channel.status` para `0x1B`
-
-## Referência adicional
-
-Para o detalhamento formal do host atual, consulte:
-
-- `docs/official/05-software-dashboard/04-sdh-host-architecture.md`
-- `docs/official/06-protocolos/06-gsa-sdh-tlv.md`
+- **Subida de sessão**: processo que leva o host de desconectado para `Linked`.
+- **Watchdog lógico**: regra que considera o link vivo ou morto a partir de atividade recebida.
+- **Camada hardware do software**: zona do software PC que fala diretamente com sessão, enlace e transporte.
 
 ## Próximas camadas
 
 - [Arquitetura SDH no Host](04-sdh-host-architecture.md)
-
