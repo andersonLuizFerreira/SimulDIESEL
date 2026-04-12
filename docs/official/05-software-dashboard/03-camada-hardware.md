@@ -21,7 +21,7 @@ Na leitura lógica do host, a camada hardware do software é o conjunto de class
 | fila, framing e ACK | `SdGwTxScheduler`, `SdGwLinkEngine` | `IMPLEMENTADO` | stop-and-wait, COBS, CRC, timeout e retry |
 | watchdog de saúde | `SdGwLinkSupervisor` | `IMPLEMENTADO` | mede silêncio de RX válido e agenda ping |
 | adaptação física | `SwitchableTransport`, `SerialTransport`, `BluetoothTransport` | `IMPLEMENTADO` | entregam bytes ao endpoint físico ativo |
-| casos funcionais de board | `GsaClient`, `BpmClient` | `IMPLEMENTADO` | transformam resposta técnica em resultado funcional |
+| casos funcionais de board | `GsaClient`, `UceClient`, `BpmClient` | `IMPLEMENTADO` | transformam resposta técnica em resultado funcional |
 
 ## Fluxos lógicos confirmados
 
@@ -31,7 +31,7 @@ Na leitura lógica do host, a camada hardware do software é o conjunto de class
 
 ### Caminho de comando
 
-`FrmGsaLogic` ou `BpmClient` chamam `SdhClient`, que valida o comando, mapeia o target para TLV SDGW e entrega o envio para `SdgwSession`.
+`FrmGsaLogic`, `FrmUceLogic` ou `BpmClient` chamam `SdhClient`, que valida o comando, mapeia o target para TLV SDGW e entrega o envio para `SdgwSession`.
 
 ### Caminho de resposta
 
@@ -39,7 +39,7 @@ Na leitura lógica do host, a camada hardware do software é o conjunto de class
 
 ### Caminho de evento
 
-`GsaClient` consome `SdgwSession.EventReceived`, interpreta `fault` e resultado físico, e sobe esses eventos para `FrmGsaLogic` e `frmGSA_UI`.
+`GsaClient` consome `SdgwSession.EventReceived`, interpreta `fault` e resultado físico, e sobe esses eventos para `FrmGsaLogic` e `frmGSA_UI`. `UceClient` hoje trabalha com resposta síncrona compacta e entrega o resultado para `FrmUceLogic` e `frmUCE_UI`.
 
 ## Trecho comentado: composição lógica do host
 

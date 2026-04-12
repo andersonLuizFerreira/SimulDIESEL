@@ -249,6 +249,22 @@ namespace SimulDIESEL
             frmGsa.Show();
         }
 
+        private void uCEUNIDADEDECOMUNICACAOEXTERNAToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var frmUce = frmUCE_UI.Instance;
+
+            if (frmUce.Visible)
+            {
+                frmUce.BringToFront();
+                frmUce.Activate();
+                return;
+            }
+
+            frmUce.MdiParent = this;
+            frmUce.StartPosition = FormStartPosition.CenterParent;
+            frmUce.Show();
+        }
+
         private void demoGaugesVerticaisToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var formGaugeDemo = FormGaugeDemo.Instance;

@@ -41,6 +41,7 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.mnuFerramentas = new System.Windows.Forms.ToolStripMenuItem();
             this.gSAGERADORDENIVEISANALOGICOSToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.uCEUNIDADEDECOMUNICACAOEXTERNAToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.demoGaugesVerticaisToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripConectar = new System.Windows.Forms.ToolStripButton();
@@ -133,6 +134,7 @@
             // 
             this.mnuFerramentas.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.gSAGERADORDENIVEISANALOGICOSToolStripMenuItem,
+            this.uCEUNIDADEDECOMUNICACAOEXTERNAToolStripMenuItem,
             this.demoGaugesVerticaisToolStripMenuItem});
             this.mnuFerramentas.Name = "mnuFerramentas";
             this.mnuFerramentas.Size = new System.Drawing.Size(104, 24);
@@ -144,6 +146,13 @@
             this.gSAGERADORDENIVEISANALOGICOSToolStripMenuItem.Size = new System.Drawing.Size(368, 26);
             this.gSAGERADORDENIVEISANALOGICOSToolStripMenuItem.Text = "GSA - GERADOR DE SINAIS ANALOGICOS";
             this.gSAGERADORDENIVEISANALOGICOSToolStripMenuItem.Click += new System.EventHandler(this.gSAGERADORDENIVEISANALOGICOSToolStripMenuItem_Click);
+            // 
+            // uCEUNIDADEDECOMUNICACAOEXTERNAToolStripMenuItem
+            // 
+            this.uCEUNIDADEDECOMUNICACAOEXTERNAToolStripMenuItem.Name = "uCEUNIDADEDECOMUNICACAOEXTERNAToolStripMenuItem";
+            this.uCEUNIDADEDECOMUNICACAOEXTERNAToolStripMenuItem.Size = new System.Drawing.Size(368, 26);
+            this.uCEUNIDADEDECOMUNICACAOEXTERNAToolStripMenuItem.Text = "UCE - UNIDADE DE COMUNICACAO EXTERNA";
+            this.uCEUNIDADEDECOMUNICACAOEXTERNAToolStripMenuItem.Click += new System.EventHandler(this.uCEUNIDADEDECOMUNICACAOEXTERNAToolStripMenuItem_Click);
             // 
             // demoGaugesVerticaisToolStripMenuItem
             // 
@@ -230,6 +239,7 @@
         private System.Windows.Forms.ToolStripStatusLabel tsNomeInterface;
         private System.Windows.Forms.ToolStripMenuItem mnuFerramentas;
         private System.Windows.Forms.ToolStripMenuItem gSAGERADORDENIVEISANALOGICOSToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem uCEUNIDADEDECOMUNICACAOEXTERNAToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem demoGaugesVerticaisToolStripMenuItem;
     }
 }

@@ -1,9 +1,34 @@
 #include <Arduino.h>
 #include "GwSpiBus.h"
 #include "GwDeviceTable.h"
+#include "GwTlv.h"
 
 void GwSpiBus::csLow(int cs){ digitalWrite(cs, LOW); }
 void GwSpiBus::csHigh(int cs){ digitalWrite(cs, HIGH); }
+
+void GwSpiBus::resetSnapshot(uint8_t addr)
+{
+    _lastSnapshot = GwSpiDiagnostic::Snapshot{};
+    _lastSnapshot.valid = true;
+    _lastSnapshot.addr = addr;
+    _lastSnapshot.layer = GwSpiDiagnostic::LayerGwSpiBus;
+}
+
+void GwSpiBus::captureBytes(uint8_t* dest, const uint8_t* src, size_t len, uint8_t& lenOut)
+{
+    lenOut = 0;
+    if (!dest || !src) return;
+
+    const size_t count = (len > GwSpiDiagnostic::kMaxFrameBytes)
+        ? GwSpiDiagnostic::kMaxFrameBytes
+        : len;
+
+    for (size_t index = 0; index < count; index++) {
+        dest[index] = src[index];
+    }
+
+    lenOut = (uint8_t)count;
+}
 
 void GwSpiBus::begin(uint32_t hz, int8_t sckPin, int8_t misoPin, int8_t mosiPin)
 {
@@ -23,6 +48,9 @@ bool GwSpiBus::transact(uint8_t addr,
                         uint16_t timeoutMs)
 {
     rxLen = 0;
+    resetSnapshot(addr);
+    captureBytes(_lastSnapshot.tx, tx, txLen, _lastSnapshot.txLen);
+    _lastSnapshot.phase = GwSpiDiagnostic::PhaseWrite;
 
     GwDeviceEntry e{};
     if (!GwDeviceTable::get(addr, e)) return false;
@@ -42,12 +70,17 @@ bool GwSpiBus::transact(uint8_t addr,
     csHigh(cs);
     _spi.endTransaction();
 
-    // Espera por IRQ (se houver)
+    // A UCE sinaliza resposta pronta via IRQ, mas a leitura continua
+    // síncrona e curta em dois bursts SPI para preservar o contrato atual.
     uint32_t t0 = millis();
-    if (e.spiIrqPin >= 0) {
+    if (e.spiUseIrq && e.spiIrqPin >= 0) {
+        _lastSnapshot.phase = GwSpiDiagnostic::PhaseWaitResponseReady;
         pinMode(e.spiIrqPin, INPUT_PULLUP);
         while (digitalRead(e.spiIrqPin) == HIGH) {
-            if ((uint32_t)(millis() - t0) > timeoutMs) return false;
+            if ((uint32_t)(millis() - t0) > timeoutMs) {
+                _lastSnapshot.cause = GwSpiDiagnostic::CauseTimeoutWaitingIrq;
+                return false;
+            }
             delay(1);
         }
     } else {
@@ -57,6 +90,7 @@ bool GwSpiBus::transact(uint8_t addr,
     // FASE 2: READ header (CMD, LEN)
     uint8_t hdr[2] = {0,0};
 
+    _lastSnapshot.phase = GwSpiDiagnostic::PhaseReadHeader;
     _spi.beginTransaction(st);
     csLow(cs);
     hdr[0] = _spi.transfer(0x00);
@@ -64,22 +98,39 @@ bool GwSpiBus::transact(uint8_t addr,
     csHigh(cs);
     _spi.endTransaction();
 
+    _lastSnapshot.rx[0] = hdr[0];
+    _lastSnapshot.rx[1] = hdr[1];
+    _lastSnapshot.rxLen = 2;
+    _lastSnapshot.receivedLen = 2;
+
     const uint8_t len = hdr[1];
     const size_t total = (size_t)2 + (size_t)len + (size_t)1;
+    _lastSnapshot.expectedLen = (uint8_t)total;
     if (total > rxMax) return false;
 
     rx[0] = hdr[0];
     rx[1] = hdr[1];
 
     // READ payload + CRC
+    _lastSnapshot.phase = GwSpiDiagnostic::PhaseReadPayload;
     _spi.beginTransaction(st);
     csLow(cs);
     for (size_t i = 0; i < (size_t)len + 1; i++) {
         rx[2 + i] = _spi.transfer(0x00);
+        if ((size_t)(2 + i) < GwSpiDiagnostic::kMaxFrameBytes) {
+            _lastSnapshot.rx[2 + i] = rx[2 + i];
+        }
     }
     csHigh(cs);
     _spi.endTransaction();
 
     rxLen = total;
+    _lastSnapshot.rxLen = (uint8_t)((total > GwSpiDiagnostic::kMaxFrameBytes)
+        ? GwSpiDiagnostic::kMaxFrameBytes
+        : total);
+    _lastSnapshot.receivedLen = (uint8_t)total;
+    if (total >= 1) _lastSnapshot.crcReceived = rx[total - 1];
+    if (total >= 3) _lastSnapshot.crcCalculated = GwTlv::crc8(rx, total - 1);
+
     return true;
 }

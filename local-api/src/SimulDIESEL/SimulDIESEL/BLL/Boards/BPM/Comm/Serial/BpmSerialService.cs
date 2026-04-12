@@ -3,6 +3,7 @@ using System.IO.Ports;
 using SimulDIESEL.BLL.Boards.BPM.Backplane;
 using SimulDIESEL.BLL.Boards.BPM.XConn;
 using SimulDIESEL.BLL.Boards.GSA;
+using SimulDIESEL.BLL.Boards.UCE;
 using SimulDIESEL.DAL.Protocols.SDGW;
 using SimulDIESEL.DAL.Transport;
 using SimulDIESEL.DAL.Transport.Bluetooth;
@@ -62,6 +63,7 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
         public SdgwSession Sdgw => _session != null ? _session.Sdgw : null;
         public SdhClient Sdh => _session != null ? _session.Sdh : null;
         public GsaClient Gsa { get; private set; }
+        public UceClient Uce { get; private set; }
         public BpmClient Bpm { get; private set; }
         public BackplaneService Backplane { get; private set; }
         public XConnService XConn { get; private set; }
@@ -93,6 +95,7 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
             Bluetooth = new Comm.Bluetooth.BpmBluetoothService(this);
             Network = new Comm.Network.BpmNetworkService();
             Gsa = new GsaClient(Sdh, Sdgw);
+            Uce = new UceClient(Sdh, Sdgw);
             Bpm = new BpmClient(Sdh, this, Backplane, XConn);
         }
 
@@ -172,8 +175,11 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
 
             if (Gsa != null)
                 Gsa.Dispose();
+            if (Uce != null)
+                Uce.Dispose();
 
             Gsa = null;
+            Uce = null;
             Bpm = null;
             _session.Dispose();
         }

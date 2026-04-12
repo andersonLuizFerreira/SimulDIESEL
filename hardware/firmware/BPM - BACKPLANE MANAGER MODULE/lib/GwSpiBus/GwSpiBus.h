@@ -1,5 +1,6 @@
 #pragma once
 #include "GwBus.h"
+#include "GwSpiDiagnostic.h"
 #include <SPI.h>
 
 class GwSpiBus : public IGwBus {
@@ -15,6 +16,7 @@ public:
                   uint16_t timeoutMs) override;
 
     bool isOk() const override { return _ok; }
+    const GwSpiDiagnostic::Snapshot& lastSnapshot() const { return _lastSnapshot; }
 
 private:
     SPIClass& _spi;
@@ -23,7 +25,10 @@ private:
     int8_t _sckPin;
     int8_t _misoPin;
     int8_t _mosiPin;
+    GwSpiDiagnostic::Snapshot _lastSnapshot;
 
     void csLow(int cs);
     void csHigh(int cs);
+    void resetSnapshot(uint8_t addr);
+    void captureBytes(uint8_t* dest, const uint8_t* src, size_t len, uint8_t& lenOut);
 };

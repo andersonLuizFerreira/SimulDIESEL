@@ -11,6 +11,7 @@ Esta página descreve o binding realmente implementado entre endereço lógico d
 | --- | --- | --- | --- | --- | --- |
 | `0x0` | `GW_ADDR_BPM` | `GatewayApp::handleGatewayLocal(...)` | interno | própria BPM | `IMPLEMENTADO` |
 | `0x1` | `GW_ADDR_GSA` | `GwDeviceTable::get(...)` | `I2C` | `0x23` | `IMPLEMENTADO` |
+| `0x2` | `GW_ADDR_UCE` | `GwDeviceTable::get(...)` | `SPI` | `CS=33`, `IRQ=27`, `RESET=23`, `SPI 18/26/25` | `IMPLEMENTADO` |
 | `0xF` | `GW_ADDR_BROADCAST` | `GatewayApp::onCommand(...)` | nenhum | ignorado no código atual | `PARCIALMENTE IMPLEMENTADO` |
 
 ## Quem chama quem
@@ -50,8 +51,9 @@ Esse segundo bloco é o que efetivamente materializa o binding lógico-físico d
 
 - **PLANEJADO**: tabela persistida ou configurável de devices.
 - **PLANEJADO**: binding amplo por `SDH target`.
-- **PLANEJADO**: múltiplas boards remotas além da GSA.
-- **PARCIALMENTE IMPLEMENTADO**: infraestrutura `SPI` pronta, porém sem entrada viva em `GwDeviceTable`.
+- **PARCIALMENTE IMPLEMENTADO**: catálogo remoto ainda é pequeno e bootstrap fixo.
+- **PLANEJADO**: tabela persistida ou configurável de devices.
+- **PLANEJADO**: múltiplas boards remotas além de GSA e UCE.
 
 ## Glossário
 

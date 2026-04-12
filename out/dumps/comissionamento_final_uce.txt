@@ -1,0 +1,205 @@
+OBJETIVO
+
+Consolidar a entrega funcional da UCE no projeto SimulDIESEL com saneamento final de código, atualização da documentação oficial, comissionamento técnico e avaliação de versionamento.
+
+ARQUIVOS SANEADOS
+
+- hardware/firmware/UCE - Unidade de comunicacao externa/src/main.cpp
+- hardware/firmware/BPM - BACKPLANE MANAGER MODULE/lib/GwSpiBus/GwSpiBus.cpp
+- local-api/src/SimulDIESEL/SimulDIESEL/BLL/FormsLogic/UCE/FrmUceLogic.cs
+- local-api/src/SimulDIESEL/SimulDIESEL/UI/frmUCE_UI.cs
+
+ARQUIVOS ANALISADOS
+
+HOST / API / UI
+- local-api/src/SimulDIESEL/SimulDIESEL/UI/frmUCE_UI.cs
+- local-api/src/SimulDIESEL/SimulDIESEL/BLL/FormsLogic/UCE/FrmUceLogic.cs
+- local-api/src/SimulDIESEL/SimulDIESEL/BLL/Boards/UCE/UceClient.cs
+- local-api/src/SimulDIESEL/SimulDIESEL/BLL/Boards/UCE/UceParsers.cs
+- local-api/src/SimulDIESEL/SimulDIESEL/BLL/Boards/UCE/UceGatewayDiagnosticLog.cs
+- local-api/src/SimulDIESEL/SimulDIESEL/DTL/Boards/UCE/UceLedResponse.cs
+- local-api/src/SimulDIESEL/SimulDIESEL/DAL/Protocols/SDGW/SdhValidator.cs
+- local-api/src/SimulDIESEL/SimulDIESEL/DAL/Protocols/SDGW/SdhToSdgwMapper.cs
+- local-api/src/SimulDIESEL/SimulDIESEL/DTL/Protocols/SDGW/GwProtocol.cs
+- local-api/src/SimulDIESEL/SimulDIESEL/DashBoard.cs
+- local-api/src/SimulDIESEL/SimulDIESEL/DashBoard.Designer.cs
+
+BPM
+- hardware/firmware/BPM - BACKPLANE MANAGER MODULE/include/SdgwDefs.h
+- hardware/firmware/BPM - BACKPLANE MANAGER MODULE/lib/GwDeviceTable/GwDeviceTable.cpp
+- hardware/firmware/BPM - BACKPLANE MANAGER MODULE/lib/GwRouter/GwRouter.cpp
+- hardware/firmware/BPM - BACKPLANE MANAGER MODULE/lib/GwSpiBus/GwSpiBus.cpp
+
+UCE
+- hardware/firmware/UCE - Unidade de comunicacao externa/src/main.cpp
+- hardware/firmware/UCE - Unidade de comunicacao externa/include/config.h
+- hardware/firmware/UCE - Unidade de comunicacao externa/lib/Transport/Transport.h
+- hardware/firmware/UCE - Unidade de comunicacao externa/lib/Transport/Transport.cpp
+- hardware/firmware/UCE - Unidade de comunicacao externa/lib/Link/Link.cpp
+- hardware/firmware/UCE - Unidade de comunicacao externa/lib/Service/Service.cpp
+- hardware/firmware/UCE - Unidade de comunicacao externa/lib/LedService/LedService.cpp
+
+ARQUIVOS ALTERADOS NESTA RODADA
+
+- hardware/firmware/UCE - Unidade de comunicacao externa/src/main.cpp
+- hardware/firmware/BPM - BACKPLANE MANAGER MODULE/lib/GwSpiBus/GwSpiBus.cpp
+- local-api/src/SimulDIESEL/SimulDIESEL/BLL/FormsLogic/UCE/FrmUceLogic.cs
+- local-api/src/SimulDIESEL/SimulDIESEL/UI/frmUCE_UI.cs
+- docs/official/04-firmware/boards/README.md
+- docs/official/04-firmware/boards/UCE/11-uce.md
+- docs/official/04-firmware/boards/BPM/01-bpm.md
+- docs/official/04-firmware/05-catalogo-baby-boards.md
+- docs/official/04-firmware/06-gateway-binding-logico-fisico.md
+- docs/official/03-hardware/03-barramentos.md
+- docs/official/05-software-dashboard/03-camada-hardware.md
+- docs/official/02-arquitetura/05-bll-do-host/02-clients-bpm-e-gsa.md
+- docs/official/06-protocolos/00-onboarding-comandos.md
+- docs/official/06-protocolos/07-uce-sdh-tlv.md
+- docs/official/08-casos-de-uso/03-testes-bancada.md
+- docs/official/10-testes/03-testes-integracao.md
+
+SANEAMENTO EXECUTADO
+
+1. Removido o blink temporário de bancada em src/main.cpp da UCE.
+2. Mantida apenas a composição permanente do firmware da UCE: Transport, Link, Service, LedService e DiagTrace.
+3. Removido IDisposable vazio em FrmUceLogic.cs.
+4. Removida chamada de Dispose sem ownership real em frmUCE_UI.cs.
+5. Atualizado comentário legado em GwSpiBus.cpp para refletir o fluxo SPI atual da UCE em dois bursts.
+
+ANALISE CONSOLIDADA DA SOLUCAO
+
+API / HOST
+- frmUCE_UI aciona FrmUceLogic, que usa BpmSerialService.Shared para acessar UceClient.
+- UceClient monta SdhCommand com target UCE.led e op set.
+- SdhValidator aceita UCE.led com argumento state=on|off.
+- SdhToSdgwMapper converte o comando para SDGW_CMD_UCE_TLV com TLV type 0x12, len 0x01 e CRC-8/ATM.
+- GwProtocol fixa o endereco logico da UCE em 0x2.
+
+BPM
+- GwDeviceTable publica a UCE como device remoto SPI em GW_ADDR_UCE.
+- GwRouter roteia address 0x2 para GwSpiBus.
+- GwSpiBus usa pinos BPM 18/26/25 para SPI, 33 para CS, 27 para IRQ e 23 para reset compartilhado.
+- O IRQ da UCE entra na BPM por GPIO27 com INPUT_PULLUP.
+- A leitura da resposta da UCE continua sincronizada em dois bursts SPI: header e payload+CRC.
+- O CRC da resposta é validado na BPM; em falha, GwRouter monta diagnostico de gateway para a rota da UCE.
+
+UCE
+- Transport opera o SPI0 nativo da Arduino Due em modo slave.
+- O CS da UCE usa PA28/NPCS0 em funcao periferica nativa, com pull-up habilitado por registrador PIOA->PIO_PUER.
+- A IRQ da UCE e pino de saida em D2 e nao recebe INPUT_PULLUP no lado da UCE.
+- Link valida o TLV recebido, recalcula CRC e monta a resposta síncrona.
+- Service despacha o comando 0x12 para LedService.
+- LedService aplica o estado no LED_BUILTIN e devolve o estado aceito.
+
+FLUXO FINAL PONTA A PONTA
+
+1. UI WinForms envia UCE.led set state=on|off.
+2. UceClient valida correlacao síncrona e usa SdhClient.
+3. SdhValidator e SdhToSdgwMapper convertem o comando para SDGW compacto.
+4. BPM recebe o frame SDGW, roteia o endereco 0x2 e transmite o TLV por SPI.
+5. UCE recebe, valida, aplica o LED_BUILTIN e prepara a resposta TLV com CRC.
+6. UCE sinaliza resposta pronta pela IRQ.
+7. BPM le a resposta em dois bursts SPI, valida o CRC e devolve o frame ao host.
+8. UceClient interpreta a resposta e a UI confirma o estado do LED_BUILTIN.
+
+DOCUMENTACAO OFICIAL ATUALIZADA
+
+- docs/official/04-firmware/boards/README.md
+- docs/official/04-firmware/boards/UCE/11-uce.md
+- docs/official/04-firmware/boards/BPM/01-bpm.md
+- docs/official/04-firmware/05-catalogo-baby-boards.md
+- docs/official/04-firmware/06-gateway-binding-logico-fisico.md
+- docs/official/03-hardware/03-barramentos.md
+- docs/official/05-software-dashboard/03-camada-hardware.md
+- docs/official/02-arquitetura/05-bll-do-host/02-clients-bpm-e-gsa.md
+- docs/official/06-protocolos/00-onboarding-comandos.md
+- docs/official/06-protocolos/07-uce-sdh-tlv.md
+- docs/official/08-casos-de-uso/03-testes-bancada.md
+- docs/official/10-testes/03-testes-integracao.md
+
+O que foi documentado:
+- papel arquitetural da UCE
+- contrato logico UCE.led
+- binding logico-fisico BPM <-> UCE
+- pinagem BPM <-> UCE
+- stack de firmware Transport -> Link -> Service -> LedService
+- observacoes eletricas de CS e IRQ
+- caso de uso validado do LED_BUILTIN
+
+TRECHOS RELEVANTES
+
+UCE main saneado:
+
+```cpp
+void loop() {
+  g_link.tick();
+  g_link.poll();
+  DiagTrace::flush();
+}
+```
+
+UCE CS com pull-up mantendo SPI nativo:
+
+```cpp
+PIOA->PIO_PDR = kUceSpiSignalPins;
+PIOA->PIO_ABSR &= ~kUceSpiSignalPins;
+PIOA->PIO_PUER = kUceSpiNativeCsPin;
+```
+
+BPM IRQ da UCE com pull-up:
+
+```cpp
+pinMode(e.spiIrqPin, INPUT_PULLUP);
+while (digitalRead(e.spiIrqPin) == HIGH) {
+```
+
+HOST sem Dispose vazio na FormsLogic da UCE:
+
+```csharp
+public sealed class FrmUceLogic
+{
+    public Task<UceCommandResult> SetBuiltinLedAsync(bool ligado)
+```
+
+RESULTADO DOS BUILDS
+
+HOST
+- dotnet build: FALHOU por incompatibilidade do SDK dotnet 9 com o projeto WinForms .NET Framework legado.
+- MSBuild 17.14 com OutDir alternativo: OK.
+- observacao: o executavel em bin\\Debug estava em uso, por isso a validacao final foi feita em C:\PROJETOS\SimulDIESEL\out\builds\host\.
+
+BPM
+- platformio run: OK.
+
+UCE
+- platformio run: OK.
+
+DOCUMENTACAO
+- estrutura oficial preservada em docs/official.
+- nenhuma estrutura paralela foi criada fora do ramo oficial.
+- foram adicionados apenas documentos novos dentro da arvore oficial existente: boards/UCE/11-uce.md e 06-protocolos/07-uce-sdh-tlv.md.
+
+VALIDACAO FUNCIONAL
+
+- caso de uso LED_BUILTIN da UCE permanece validado em bancada conforme evidencia funcional previamente confirmada.
+- nesta rodada nao foi refeita uma execucao fisica de bancada; o comissionamento final consolidou o estado funcional ja validado e os builds atuais.
+
+OBSERVACOES TECNICAS
+
+- o CS da UCE continua tecnicamente correto apenas por registrador PIO; pinMode(10, INPUT_PULLUP) nao e a abordagem valida no runtime atual.
+- a IRQ da UCE e saida; o pull-up aplicavel para ela fica no lado BPM.
+- nao houve necessidade de pull-up externo em MISO, MOSI e SCK para o caso validado.
+- o catalogo remoto vivo do gateway agora inclui GSA em I2C e UCE em SPI.
+
+STATUS FINAL DA ENTREGA
+
+- saneamento: OK
+- documentacao: OK
+- comissionamento: OK
+- funcional UCE LED_BUILTIN: OK
+- pendencias tecnicas abertas nesta entrega: nenhuma bloqueante
+
+VERSIONAMENTO
+
+- avaliacao: a entrega esta em condicao de commit tematico.
+- tag/versao: nao aplicada automaticamente neste comissionamento; o repositorio possui outras alteracoes em andamento fora deste escopo, entao a criacao de tag global exigiria uma consolidacao mais ampla do estado do projeto.

@@ -23,8 +23,8 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
 
         private const string BpmGatewayTarget = "BPM.gateway";
         private const string PingOp = "ping";
-        private const int DefaultGsaTimeoutMs = 400;
-        private const int DefaultGsaRetries = 2;
+        private const int DefaultBoardTimeoutMs = 400;
+        private const int DefaultBoardRetries = 2;
 
         public MappedSdgwCommand Map(SdhCommand command)
         {
@@ -36,6 +36,9 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
 
             if (command.Target.StartsWith("GSA.", StringComparison.OrdinalIgnoreCase))
                 return MapGsa(command);
+
+            if (command.Target.StartsWith("UCE.", StringComparison.OrdinalIgnoreCase))
+                return MapUce(command);
 
             throw new NotSupportedException("Mapeamento SDH->SDGW ainda não suporta target: " + command.Target + ".");
         }
@@ -119,8 +122,33 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
                 Cmd = GwProtocol.MakeCompactCommand(GwProtocol.GsaAddress, GwProtocol.GsaTlvTransactOp),
                 Payload = payload,
                 RequireAck = true,
-                TimeoutMs = DefaultGsaTimeoutMs,
-                Retries = DefaultGsaRetries
+                TimeoutMs = DefaultBoardTimeoutMs,
+                Retries = DefaultBoardRetries
+            };
+        }
+
+        private static MappedSdgwCommand MapUce(SdhCommand command)
+        {
+            byte[] payload;
+
+            if (string.Equals(command.Target, "UCE.led", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = BuildTlvPayload(
+                    GwProtocol.UceSetLedType,
+                    ParseState(command.Args["state"]) ? (byte)0x01 : (byte)0x00);
+            }
+            else
+            {
+                throw new NotSupportedException("Mapeamento SDH->SDGW ainda não suporta target: " + command.Target + ".");
+            }
+
+            return new MappedSdgwCommand
+            {
+                Cmd = GwProtocol.MakeCompactCommand(GwProtocol.UceAddress, GwProtocol.UceTlvTransactOp),
+                Payload = payload,
+                RequireAck = true,
+                TimeoutMs = DefaultBoardTimeoutMs,
+                Retries = DefaultBoardRetries
             };
         }
 

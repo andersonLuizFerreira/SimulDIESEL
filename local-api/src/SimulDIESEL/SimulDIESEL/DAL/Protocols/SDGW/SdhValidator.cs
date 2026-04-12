@@ -8,6 +8,7 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
     {
         private const string SupportedVersion = "sdh/1";
         private const string GsaBoard = "GSA";
+        private const string UceBoard = "UCE";
         private const string BpmBoard = "BPM";
         private const string BpmResource = "gateway";
         private const string BpmPingOp = "ping";
@@ -37,11 +38,29 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
                 return;
             }
 
+            if (string.Equals(target.Board, UceBoard, StringComparison.OrdinalIgnoreCase))
+            {
+                ValidateUceCommand(target, command);
+                return;
+            }
+
             if (string.Equals(target.Board, BpmBoard, StringComparison.OrdinalIgnoreCase) &&
                 string.Equals(target.Resource, BpmResource, StringComparison.OrdinalIgnoreCase) &&
                 string.IsNullOrWhiteSpace(target.Subresource))
             {
                 ValidateBpmGateway(command);
+                return;
+            }
+
+            throw new NotSupportedException("Target SDH não suportado nesta fase: " + command.Target + ".");
+        }
+
+        private static void ValidateUceCommand(SdhTarget target, SdhCommand command)
+        {
+            if (string.Equals(target.Resource, "led", StringComparison.OrdinalIgnoreCase) &&
+                string.IsNullOrWhiteSpace(target.Subresource))
+            {
+                ValidateUceLed(command);
                 return;
             }
 
@@ -81,6 +100,13 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
         }
 
         private static void ValidateGsaLed(SdhCommand command)
+        {
+            RequireOp(command, "set");
+            RequireArgCount(command, 1);
+            RequireStateArg(command);
+        }
+
+        private static void ValidateUceLed(SdhCommand command)
         {
             RequireOp(command, "set");
             RequireArgCount(command, 1);

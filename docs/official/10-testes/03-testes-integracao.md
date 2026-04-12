@@ -11,15 +11,15 @@ Os testes de integração mais relevantes do projeto são os que atravessam toda
 
 Historicamente, o caso mais representativo foi o fluxo do LED da GSA.
 
-Com a expansão atual da GSA no host, esse cenário continua válido como teste-base, mas já não é o único fluxo funcional relevante.
+Com a entrada da UCE no host e no gateway, esse cenário continua válido como teste-base, mas já não é o único fluxo funcional relevante.
 
 ## Caminho integrado real
 
 ```text
 WinForms
-  -> FrmGsaLogic / FrmBpmLogic
+  -> FrmGsaLogic / FrmUceLogic / FrmBpmLogic
   -> BpmSerialService.Shared
-  -> GsaClient / BpmClient
+  -> GsaClient / UceClient / BpmClient
   -> SdhClient
   -> SdgwSession
   -> SdGwTxScheduler
@@ -27,11 +27,11 @@ WinForms
   -> SerialTransport
   -> BPM / link do gateway / GatewayApp
   -> GwRouter
-  -> I2C
-  -> GSA
+  -> I2C / SPI
+  -> GSA / UCE
 ```
 
-## Cenário de integração mais representativo
+## Cenários de integração mais representativos
 
 Caso de teste: alterar o estado do LED embutido da GSA.
 
@@ -46,6 +46,17 @@ Caso de teste: alterar o estado do LED embutido da GSA.
 9. a GSA conclui a etapa física, aciona IRQ e publica `0x31`
 10. a BPM busca o evento e o reencaminha ao host
 11. o `GsaClient` valida a resposta síncrona e o evento físico final
+
+Caso de teste: alterar o estado do `LED_BUILTIN` da UCE.
+
+1. a UI dispara o comando em `frmUCE_UI`
+2. o `UceClient` monta `SdhCommand` para `UCE.led`
+3. o `SdhClient` valida e mapeia para `SDGW_CMD_UCE_TLV`
+4. o `SdGwTxScheduler` envia em prioridade `High`
+5. a BPM valida o frame e roteia a transação para `GwSpiBus`
+6. a UCE devolve a resposta TLV síncrona por `SPI`
+7. a BPM valida o `CRC` da resposta da UCE
+8. o `UceClient` confirma o estado aceito do `LED_BUILTIN`
 
 ## Evidências atuais de robustez
 
@@ -70,8 +81,10 @@ O conjunto de testes de integração ainda é pequeno em diversidade funcional.
 Hoje:
 
 - o caso GSA LED é o principal cenário ponta a ponta já exercitado
+- o caso UCE LED já foi validado em bancada com resposta síncrona e `CRC` estável
 - ainda faltam roteiros equivalentes para setpoint, status, offsets e fault event da GSA
 - o roteiro oficial precisa validar também o caminho físico `D21/D22`, `D4/D19` e `D23`
+- o roteiro oficial agora também cobre `SPI 18/26/25`, `CS 33`, `IRQ 27` e `RESET 23` para a UCE
 - ainda não há cobertura equivalente para múltiplas boards em paralelo
 - a recepção funcional ainda é baseada em frame lógico tipado do enlace
 

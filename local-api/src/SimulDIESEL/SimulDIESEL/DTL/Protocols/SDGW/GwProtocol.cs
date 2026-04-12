@@ -7,10 +7,12 @@ namespace SimulDIESEL.DTL.Protocols.SDGW
     {
         public const byte BpmAddress = 0x0;
         public const byte GsaAddress = 0x1;
+        public const byte UceAddress = 0x2;
         public const byte BroadcastAddress = 0xF;
 
         public const byte BpmPingOp = 0x0;
         public const byte GsaTlvTransactOp = 0x0;
+        public const byte UceTlvTransactOp = 0x0;
 
         // O LED builtin permanece em 0x12 por contrato.
         // O status por canal foi migrado para 0x1B para remover a
@@ -30,6 +32,8 @@ namespace SimulDIESEL.DTL.Protocols.SDGW
         public const byte GsaChannelFaultEventType = 0x30;
         public const byte GsaPhysicalOperationEventType = 0x31;
         public const byte GsaErrorType = 0x7F;
+        public const byte UceSetLedType = 0x12;
+        public const byte UceErrorType = 0x7F;
         public const byte GatewayErrorType = 0xFE;
 
         public const byte GsaOffsetKindVout = 0x01;

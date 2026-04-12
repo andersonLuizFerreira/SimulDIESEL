@@ -11,6 +11,8 @@ struct GwDeviceEntry {
     // SPI
     int8_t  spiCsPin;   // GPIO CS (se bus=SPI)
     int8_t  spiIrqPin;  // opcional
+    int8_t  resetPin;   // reset fisico associado ao device
+    bool    spiUseIrq;  // permite manter IRQ mapeada sem usá-la no fluxo síncrono atual
 };
 
 class GwDeviceTable {
