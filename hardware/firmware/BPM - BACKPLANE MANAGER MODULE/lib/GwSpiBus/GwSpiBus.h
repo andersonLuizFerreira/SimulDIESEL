@@ -5,8 +5,19 @@
 
 class GwSpiBus : public IGwBus {
 public:
+    enum class TransactError : uint8_t {
+        None = 0,
+        AddrUnmapped,
+        WrongBus,
+        MissingCs,
+        TimeoutWaitingIrq,
+        HeaderInvalid,
+        LengthInvalid,
+        FrameIncomplete,
+    };
+
     explicit GwSpiBus(SPIClass& spi = SPI)
-        : _spi(spi), _ok(true), _hz(8000000UL), _sckPin(-1), _misoPin(-1), _mosiPin(-1) {}
+        : _spi(spi), _ok(true), _hz(8000000UL), _sckPin(-1), _misoPin(-1), _mosiPin(-1), _lastError(TransactError::None) {}
 
     void begin(uint32_t hz, int8_t sckPin, int8_t misoPin, int8_t mosiPin);
 
@@ -17,6 +28,7 @@ public:
 
     bool isOk() const override { return _ok; }
     const GwSpiDiagnostic::Snapshot& lastSnapshot() const { return _lastSnapshot; }
+    TransactError lastError() const { return _lastError; }
 
 private:
     SPIClass& _spi;
@@ -26,6 +38,7 @@ private:
     int8_t _misoPin;
     int8_t _mosiPin;
     GwSpiDiagnostic::Snapshot _lastSnapshot;
+    TransactError _lastError;
 
     void csLow(int cs);
     void csHigh(int cs);

@@ -40,7 +40,7 @@ namespace SimulDIESEL.BLL.Boards.UCE
             UceOperationResult<UceLedResponse> result = await ExecuteOperationAsync<UceLedResponse>(
                 CreateLedCommand(on),
                 GwProtocol.UceSetLedType,
-                0x01,
+                GwProtocol.UceLedPayloadLength,
                 "LED builtin da UCE",
                 UceParsers.TryReadBuiltinLedResponse).ConfigureAwait(false);
 
@@ -51,6 +51,46 @@ namespace SimulDIESEL.BLL.Boards.UCE
                 result.Response.AcceptedState,
                 result.SendOutcome ?? SdGwLinkEngine.SendOutcome.Acked,
                 result.Message);
+        }
+
+        public Task<UceOperationResult<UceCanConfigResponse>> SetCanConfigAsync(string controller, int bitrateKbps, string mode)
+        {
+            return ExecuteOperationAsync<UceCanConfigResponse>(
+                CreateCanConfigCommand(controller, bitrateKbps, mode),
+                GwProtocol.UceCanConfigType,
+                GwProtocol.UceCanConfigPayloadLength,
+                "configuração CAN da UCE",
+                UceParsers.TryReadCanConfigResponse);
+        }
+
+        public Task<UceOperationResult<UceCanEnableResponse>> SetCanEnabledAsync(string controller, bool enabled)
+        {
+            return ExecuteOperationAsync<UceCanEnableResponse>(
+                CreateCanEnableCommand(controller, enabled),
+                GwProtocol.UceCanEnableType,
+                GwProtocol.UceCanEnablePayloadLength,
+                "habilitação CAN da UCE",
+                UceParsers.TryReadCanEnableResponse);
+        }
+
+        public Task<UceOperationResult<UceCanStatusResponse>> GetCanStatusAsync(string controller)
+        {
+            return ExecuteOperationAsync<UceCanStatusResponse>(
+                CreateCanStatusCommand(controller),
+                GwProtocol.UceCanStatusType,
+                GwProtocol.UceCanStatusResponsePayloadLength,
+                "status CAN da UCE",
+                UceParsers.TryReadCanStatusResponse);
+        }
+
+        public Task<UceOperationResult<UceCanResetResponse>> ResetCanAsync(string controller)
+        {
+            return ExecuteOperationAsync<UceCanResetResponse>(
+                CreateCanResetCommand(controller),
+                GwProtocol.UceCanResetType,
+                GwProtocol.UceCanResetResponsePayloadLength,
+                "reset CAN da UCE",
+                UceParsers.TryReadCanResetResponse);
         }
 
         private async Task<UceOperationResult<T>> ExecuteOperationAsync<T>(
@@ -193,6 +233,57 @@ namespace SimulDIESEL.BLL.Boards.UCE
             return command;
         }
 
+        private static SdhCommand CreateCanConfigCommand(string controller, int bitrateKbps, string mode)
+        {
+            var command = new SdhCommand
+            {
+                Target = "UCE.can.config",
+                Op = "set"
+            };
+
+            command.Args["controller"] = controller;
+            command.Args["bitrate"] = bitrateKbps.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            command.Args["mode"] = mode;
+            return command;
+        }
+
+        private static SdhCommand CreateCanEnableCommand(string controller, bool enabled)
+        {
+            var command = new SdhCommand
+            {
+                Target = "UCE.can.enable",
+                Op = "set"
+            };
+
+            command.Args["controller"] = controller;
+            command.Args["state"] = enabled ? "on" : "off";
+            return command;
+        }
+
+        private static SdhCommand CreateCanStatusCommand(string controller)
+        {
+            var command = new SdhCommand
+            {
+                Target = "UCE.can.status",
+                Op = "get"
+            };
+
+            command.Args["controller"] = controller;
+            return command;
+        }
+
+        private static SdhCommand CreateCanResetCommand(string controller)
+        {
+            var command = new SdhCommand
+            {
+                Target = "UCE.can",
+                Op = "reset"
+            };
+
+            command.Args["controller"] = controller;
+            return command;
+        }
+
         private static string TranslateOutcome(SdGwLinkEngine.SendOutcome outcome, string operationName)
         {
             switch (outcome)
@@ -228,31 +319,5 @@ namespace SimulDIESEL.BLL.Boards.UCE
             _disposed = true;
         }
 
-        private sealed class UceOperationResult<T>
-            where T : class
-        {
-            private UceOperationResult(bool success, T response, string message, SdGwLinkEngine.SendOutcome? sendOutcome)
-            {
-                Success = success;
-                Response = response;
-                Message = message ?? string.Empty;
-                SendOutcome = sendOutcome;
-            }
-
-            public bool Success { get; }
-            public T Response { get; }
-            public string Message { get; }
-            public SdGwLinkEngine.SendOutcome? SendOutcome { get; }
-
-            public static UceOperationResult<T> Succeeded(T response, SdGwLinkEngine.SendOutcome sendOutcome, string message)
-            {
-                return new UceOperationResult<T>(true, response, message, sendOutcome);
-            }
-
-            public static UceOperationResult<T> Fail(string message, SdGwLinkEngine.SendOutcome? sendOutcome = null)
-            {
-                return new UceOperationResult<T>(false, null, message, sendOutcome);
-            }
-        }
     }
 }

@@ -6,6 +6,8 @@
 #include "GwErr.h"
 #include "GwSpiDiagnostic.h"
 
+class GwSpiBus;
+
 class GwRouter {
 public:
     GwRouter(IGwBus& i2c, IGwBus& spi)
@@ -27,6 +29,7 @@ private:
     void captureSpiDiag(uint8_t addr, GwErr err, const GwSpiDiagnostic::Snapshot& snapshot);
     void finalizeSpiCrcDiag(uint8_t addr, GwErr err, const uint8_t* respBuf, size_t respLen, bool spiUseIrq);
     uint8_t detectPossibleCause(const GwSpiDiagnostic::Snapshot& snapshot, bool spiUseIrq) const;
+    GwErr mapSpiTransactFailure(const GwSpiBus& spiBus, bool spiUseIrq) const;
 
     IGwBus& _i2c;
     IGwBus& _spi;

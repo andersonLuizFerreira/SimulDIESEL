@@ -130,7 +130,7 @@ Objetivo:
 - entender o subconjunto SDH hoje suportado pela GSA e pela UCE;
 - compreender os contratos TLV binários entre gateway e board;
 - entender status, enable, offsets e evento de fault da GSA;
-- entender o contrato compacto de `UCE.led`.
+- entender o contrato compacto de `UCE.led` e `UCE.can.*`.
 
 Tempo estimado: 25 minutos.
 

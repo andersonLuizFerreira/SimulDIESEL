@@ -1,25 +1,15 @@
 #include <Arduino.h>
-#include "Transport.h"
-#include "DiagTrace.h"
-#include "LedService.h"
-#include "Service.h"
-#include "Link.h"
+#include "app/UceApp.h"
+#include "diag/trace/DiagTrace.h"
 
-static Transport g_transport;
-static LedService g_led;
-static Service g_service(g_led);
-static Link g_link(g_transport, g_service);
+static UceApp g_app;
 
 void setup() {
-  DiagTrace::begin();
-  g_led.begin();
-  g_service.begin();
-  g_transport.begin();
-  g_link.begin();
+  g_app.begin();
 }
 
 void loop() {
-  g_link.tick();
-  g_link.poll();
+  g_app.tick();
+  g_app.poll();
   DiagTrace::flush();
 }

@@ -12,28 +12,48 @@ A UCE é uma board remota controlada pela BPM por `SPI` em modo slave.
 Ela fica entre:
 
 - acima: BPM por `SPI`, `CS`, `IRQ` e reset físico
-- abaixo: `Transport`, `Link`, `Service` e `LedService`
+- abaixo, no fluxo lógico: `Transport`, `Link`, `Service`, `LedService` e `CanService`
+
+## Árvore física atual da UCE
+
+Na árvore real do firmware da UCE, esses blocos não ficam mais em diretórios achatados. A organização física vigente é funcional:
+
+- `lib/core/transport`
+- `lib/core/link`
+- `lib/core/service`
+- `lib/core/runtime`
+- `lib/services/led`
+- `lib/services/can`
+- `lib/protocol/tlv`
+- `lib/diag/trace`
+- `lib/drivers/can`
+- `lib/hal/board`
+- `lib/hal/transceivers`
 
 ## Arquivos e classes reais
 
 | arquivo real | classe/bloco | acima de | abaixo de | status |
 | --- | --- | --- | --- | --- |
 | `src/main.cpp` | composição estática da UCE | BPM | `Transport`, `Link`, serviços | `IMPLEMENTADO` |
-| `lib/Transport/Transport.h` | `Transport` | `Link` | `SPI0` nativo da Arduino Due | `IMPLEMENTADO` |
-| `lib/Link/Link.h` | `Link` | `Transport` | `Service` | `IMPLEMENTADO` |
-| `lib/Service/Service.h` | `Service` | `Link` | `LedService` | `IMPLEMENTADO` |
-| `lib/LedService/LedService.h` | `LedService` | `Service` | `LED_BUILTIN` | `IMPLEMENTADO` |
-| `lib/DiagTrace/DiagTrace.h` | `DiagTrace` | firmware inteiro | `SerialUSB` | `IMPLEMENTADO` |
+| `lib/app/UceApp.h` | `UceApp` | `main.cpp` | `Transport`, `Link`, `Service`, `LedService`, `CanService` | `IMPLEMENTADO` |
+| `lib/core/transport/Transport.h` | `Transport` | `Link` | `SPI0` nativo da Arduino Due | `IMPLEMENTADO` |
+| `lib/core/link/Link.h` | `Link` | `Transport` | `Service` | `IMPLEMENTADO` |
+| `lib/core/service/Service.h` | `Service` | `Link` | `LedService`, `CanService` | `IMPLEMENTADO` |
+| `lib/services/led/LedService.h` | `LedService` | `Service` | `LED_BUILTIN` | `IMPLEMENTADO` |
+| `lib/services/can/CanService.h` | `CanService` | `Service` | `Sam3xCanDriver`, transceiver e `CanConfig`/`CanStatus` | `IMPLEMENTADO` |
+| `lib/drivers/can/Sam3xCanDriver.h` | `Sam3xCanDriver` | `CanService` | periférico CAN da Arduino Due | `IMPLEMENTADO` |
+| `lib/protocol/tlv/Tlv.h` | `Tlv` | `Link`, `Service` | contrato TLV da UCE | `IMPLEMENTADO` |
+| `lib/diag/trace/DiagTrace.h` | `DiagTrace` | firmware inteiro | `SerialUSB` | `IMPLEMENTADO` |
 
-## Empilhamento real
+## Empilhamento lógico real
 
 ```text
 SPI da BPM
   -> Transport
   -> Link
   -> Service
-  -> LedService
-  -> LED_BUILTIN da Arduino Due
+  -> LedService / CanService
+  -> LED_BUILTIN / controlador CAN da Arduino Due
 ```
 
 ## Conectores físicos confirmados
@@ -53,8 +73,19 @@ As definições vivas estão em `include/config.h` na UCE e `include/SdgwDefs.h`
 
 - endereço lógico da UCE no gateway: `0x2`
 - operação compacta usada entre host e BPM: `GW_OP_UCE_TLV_TRANSACT = 0x0`
-- comando funcional validado em bancada: `UCE.led set state=on|off`
-- TLV funcional atual da UCE: `type 0x12`, `len 0x01`, valor `0x00` ou `0x01`
+- rota compacta da UCE continua única para LED e CAN: `SDGW_CMD_UCE_TLV`
+- comandos SDH implementados hoje:
+  - `UCE.led set state=on|off`
+  - `UCE.can.config set controller=can0|can1 bitrate=125|250|500|1000 mode=normal|listen`
+  - `UCE.can.enable set controller=can0|can1 state=on|off`
+  - `UCE.can.status get controller=can0|can1`
+  - `UCE.can reset controller=can0|can1`
+- TLVs funcionais da UCE hoje:
+  - LED: `type 0x12`, `len 0x01`
+  - CAN config: `type 0x20`, `len 0x03`
+  - CAN enable: `type 0x21`, `len 0x02`
+  - CAN status: `type 0x22`, `len 0x01` na request e `len 0x04` na response
+  - CAN reset: `type 0x23`, `len 0x01` na request e `len 0x02` na response
 - erro funcional da UCE: `type 0x7F`
 
 ## Observações elétricas confirmadas
@@ -66,7 +97,7 @@ As definições vivas estão em `include/config.h` na UCE e `include/SdgwDefs.h`
 
 ## Caso de uso validado
 
-O caso funcional validado em bancada é o acionamento do `LED_BUILTIN` da Arduino Due.
+O caso funcional já validado em bancada continua sendo o acionamento do `LED_BUILTIN` da Arduino Due.
 
 Fluxo confirmado:
 
@@ -76,6 +107,38 @@ Fluxo confirmado:
 4. a UCE sinaliza resposta pronta por `IRQ`
 5. a BPM lê `header` e `payload+CRC` em dois bursts SPI
 6. o host confirma o estado aplicado do `LED_BUILTIN`
+
+## Feature CAN nesta rodada
+
+A UCE agora também expõe configuração da porta CAN pela mesma rota compacta já existente.
+
+Escopo efetivamente implementado no código:
+
+- configuração de controller, bitrate e modo
+- habilitação e desabilitação da interface
+- leitura de status síncrono
+- reset funcional da interface por comando
+
+Encadeamento lógico da feature:
+
+```text
+frmUCE_UI
+  -> FrmUceLogic
+  -> UceClient
+  -> BPM / GW_OP_UCE_TLV_TRANSACT
+  -> Transport
+  -> Link
+  -> Service
+  -> CanService
+```
+
+Observações importantes:
+
+- a UI atual trabalha fixamente com `controller=can0`
+- a BPM não ganhou rota nova; continua apenas roteando `0x2` para a UCE por `SPI`
+- o `Service` da UCE passou a despachar CAN por `switch(tlv.t)` usando `CMD_CAN_CONFIG`, `CMD_CAN_ENABLE`, `CMD_CAN_STATUS` e `CMD_CAN_RESET`
+- o LED permanece como recurso residual de validação de rota, não como foco funcional da tela
+- esta rodada confirmou compilação de host, BPM e UCE, mas não registrou validação física em bancada da feature CAN
 
 ## Comentário orientado a código
 

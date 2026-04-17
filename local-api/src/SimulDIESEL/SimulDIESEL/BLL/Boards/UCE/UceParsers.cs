@@ -12,7 +12,7 @@ namespace SimulDIESEL.BLL.Boards.UCE
             response = null;
 
             byte[] data;
-            if (!TryReadTlv(frame, GwProtocol.UceSetLedType, 0x01, "LED builtin da UCE", out data, out error))
+            if (!TryReadTlv(frame, GwProtocol.UceSetLedType, GwProtocol.UceLedPayloadLength, "LED builtin da UCE", out data, out error))
                 return false;
 
             response = new UceLedResponse
@@ -72,24 +72,171 @@ namespace SimulDIESEL.BLL.Boards.UCE
             if (!TryReadTlv(frame, GwProtocol.UceErrorType, 0x03, "erro funcional da UCE", out data, out error))
                 return false;
 
+            string requestName = DescribeRequestType(data[0]);
             switch (data[2])
             {
                 case 0x03:
-                    message = "A UCE rejeitou o comando do LED por state inválido.";
+                    message = "A UCE rejeitou " + requestName + " por valor inválido.";
                     return true;
                 case 0x07:
-                    message = "A UCE informou que o comando não é suportado.";
+                    message = "A UCE informou que " + requestName + " não é suportado.";
                     return true;
                 case 0x08:
-                    message = "A UCE rejeitou a operação por payload inválido.";
+                    message = "A UCE rejeitou " + requestName + " por payload inválido.";
                     return true;
                 case 0x09:
-                    message = "A UCE rejeitou a operação por CRC TLV inválido.";
+                    message = "A UCE rejeitou " + requestName + " por CRC TLV inválido.";
                     return true;
                 default:
                     message = "A UCE retornou erro funcional desconhecido 0x" + data[2].ToString("X2") + ".";
                     return true;
             }
+        }
+
+        public static bool TryReadCanConfigResponse(SdgwFrame frame, out UceCanConfigResponse response, out string error)
+        {
+            response = null;
+
+            byte[] data;
+            if (!TryReadTlv(frame, GwProtocol.UceCanConfigType, GwProtocol.UceCanConfigPayloadLength, "configuração CAN da UCE", out data, out error))
+                return false;
+
+            UceCanController controller;
+            if (!UceCanProtocol.TryDecodeController(data[0], out controller))
+            {
+                error = "Resposta da UCE com controller CAN inválido.";
+                return false;
+            }
+
+            int bitrateKbps;
+            if (!UceCanProtocol.TryDecodeBitrate(data[1], out bitrateKbps))
+            {
+                error = "Resposta da UCE com bitrate CAN inválido.";
+                return false;
+            }
+
+            UceCanMode mode;
+            if (!UceCanProtocol.TryDecodeMode(data[2], out mode))
+            {
+                error = "Resposta da UCE com modo CAN inválido.";
+                return false;
+            }
+
+            response = new UceCanConfigResponse
+            {
+                Controller = controller,
+                AcceptedBitrateKbps = bitrateKbps,
+                AcceptedMode = mode
+            };
+
+            return true;
+        }
+
+        public static bool TryReadCanEnableResponse(SdgwFrame frame, out UceCanEnableResponse response, out string error)
+        {
+            response = null;
+
+            byte[] data;
+            if (!TryReadTlv(frame, GwProtocol.UceCanEnableType, GwProtocol.UceCanEnablePayloadLength, "habilitação CAN da UCE", out data, out error))
+                return false;
+
+            UceCanController controller;
+            if (!UceCanProtocol.TryDecodeController(data[0], out controller))
+            {
+                error = "Resposta da UCE com controller CAN inválido.";
+                return false;
+            }
+
+            if (data[1] != GwProtocol.UceCanStateOff && data[1] != GwProtocol.UceCanStateOn)
+            {
+                error = "Resposta da UCE com estado CAN inválido.";
+                return false;
+            }
+
+            response = new UceCanEnableResponse
+            {
+                Controller = controller,
+                EffectiveEnabled = data[1] == GwProtocol.UceCanStateOn
+            };
+
+            return true;
+        }
+
+        public static bool TryReadCanStatusResponse(SdgwFrame frame, out UceCanStatusResponse response, out string error)
+        {
+            response = null;
+
+            byte[] data;
+            if (!TryReadTlv(frame, GwProtocol.UceCanStatusType, GwProtocol.UceCanStatusResponsePayloadLength, "status CAN da UCE", out data, out error))
+                return false;
+
+            UceCanController controller;
+            if (!UceCanProtocol.TryDecodeController(data[0], out controller))
+            {
+                error = "Resposta da UCE com controller CAN inválido.";
+                return false;
+            }
+
+            UceCanInterfaceState state;
+            if (!UceCanProtocol.TryDecodeState(data[1], out state))
+            {
+                error = "Resposta da UCE com estado de interface CAN inválido.";
+                return false;
+            }
+
+            int bitrateKbps;
+            if (!UceCanProtocol.TryDecodeBitrate(data[2], out bitrateKbps))
+            {
+                error = "Resposta da UCE com bitrate CAN inválido.";
+                return false;
+            }
+
+            UceCanMode mode;
+            if (!UceCanProtocol.TryDecodeMode(data[3], out mode))
+            {
+                error = "Resposta da UCE com modo CAN inválido.";
+                return false;
+            }
+
+            response = new UceCanStatusResponse
+            {
+                Controller = controller,
+                State = state,
+                BitrateKbps = bitrateKbps,
+                Mode = mode
+            };
+
+            return true;
+        }
+
+        public static bool TryReadCanResetResponse(SdgwFrame frame, out UceCanResetResponse response, out string error)
+        {
+            response = null;
+
+            byte[] data;
+            if (!TryReadTlv(frame, GwProtocol.UceCanResetType, GwProtocol.UceCanResetResponsePayloadLength, "reset CAN da UCE", out data, out error))
+                return false;
+
+            UceCanController controller;
+            if (!UceCanProtocol.TryDecodeController(data[0], out controller))
+            {
+                error = "Resposta da UCE com controller CAN inválido.";
+                return false;
+            }
+
+            if (data[1] != GwProtocol.UceCanResetFailed && data[1] != GwProtocol.UceCanResetSucceeded)
+            {
+                error = "Resposta da UCE com status de reset CAN inválido.";
+                return false;
+            }
+
+            response = new UceCanResetResponse
+            {
+                Controller = controller,
+                ResetSucceeded = data[1] == GwProtocol.UceCanResetSucceeded
+            };
+
+            return true;
         }
 
         private static bool TryReadTlv(SdgwFrame frame, byte expectedType, byte expectedLen, string operationName, out byte[] data, out string error)
@@ -182,6 +329,25 @@ namespace SimulDIESEL.BLL.Boards.UCE
                 Buffer.BlockCopy(frame.Payload, 2, data, 0, valueLength);
 
             return true;
+        }
+
+        private static string DescribeRequestType(byte requestType)
+        {
+            switch (requestType)
+            {
+                case GwProtocol.UceSetLedType:
+                    return "o comando do LED builtin da UCE";
+                case GwProtocol.UceCanConfigType:
+                    return "a configuração CAN da UCE";
+                case GwProtocol.UceCanEnableType:
+                    return "a habilitação CAN da UCE";
+                case GwProtocol.UceCanStatusType:
+                    return "a leitura de status CAN da UCE";
+                case GwProtocol.UceCanResetType:
+                    return "o reset CAN da UCE";
+                default:
+                    return "a operação solicitada para a UCE";
+            }
         }
     }
 }

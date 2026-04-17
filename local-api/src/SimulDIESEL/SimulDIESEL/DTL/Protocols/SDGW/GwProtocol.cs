@@ -33,8 +33,37 @@ namespace SimulDIESEL.DTL.Protocols.SDGW
         public const byte GsaPhysicalOperationEventType = 0x31;
         public const byte GsaErrorType = 0x7F;
         public const byte UceSetLedType = 0x12;
+        public const byte UceCanConfigType = 0x20;
+        public const byte UceCanEnableType = 0x21;
+        public const byte UceCanStatusType = 0x22;
+        public const byte UceCanResetType = 0x23;
         public const byte UceErrorType = 0x7F;
         public const byte GatewayErrorType = 0xFE;
+
+        public const byte UceLedPayloadLength = 0x01;
+        public const byte UceCanConfigPayloadLength = 0x03;
+        public const byte UceCanEnablePayloadLength = 0x02;
+        public const byte UceCanStatusRequestPayloadLength = 0x01;
+        public const byte UceCanStatusResponsePayloadLength = 0x04;
+        public const byte UceCanResetRequestPayloadLength = 0x01;
+        public const byte UceCanResetResponsePayloadLength = 0x02;
+
+        public const byte UceCanControllerCan0 = 0x00;
+        public const byte UceCanControllerCan1 = 0x01;
+        public const byte UceCanBitrate125Code = 0x00;
+        public const byte UceCanBitrate250Code = 0x01;
+        public const byte UceCanBitrate500Code = 0x02;
+        public const byte UceCanBitrate1000Code = 0x03;
+        public const byte UceCanModeNormal = 0x00;
+        public const byte UceCanModeListen = 0x01;
+        public const byte UceCanStateOff = 0x00;
+        public const byte UceCanStateOn = 0x01;
+        public const byte UceCanInterfaceDisabled = 0x00;
+        public const byte UceCanInterfaceConfigured = 0x01;
+        public const byte UceCanInterfaceOpen = 0x02;
+        public const byte UceCanInterfaceFault = 0x03;
+        public const byte UceCanResetFailed = 0x00;
+        public const byte UceCanResetSucceeded = 0x01;
 
         public const byte GsaOffsetKindVout = 0x01;
         public const byte GsaOffsetKindVread = 0x02;

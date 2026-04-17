@@ -36,9 +36,13 @@ Os contratos semânticos aparecem no host e convergem para `SDGW_CMD_GSA_TLV`:
 
 ### UCE
 
-O contrato semântico vivo da UCE hoje é mínimo e converge para `SDGW_CMD_UCE_TLV`:
+O contrato semântico vivo da UCE converge para `SDGW_CMD_UCE_TLV` e continua usando a mesma rota compacta para LED e CAN:
 
 - `UCE.led`
+- `UCE.can.config`
+- `UCE.can.enable`
+- `UCE.can.status`
+- `UCE.can`
 
 ## Comentário orientado a código
 

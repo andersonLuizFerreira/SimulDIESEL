@@ -3,6 +3,11 @@
 #include "GwDeviceTable.h"
 #include "GwTlv.h"
 
+namespace {
+constexpr uint8_t kCurrentUceMinPayloadLen = 1;
+constexpr uint8_t kCurrentUceMaxPayloadLen = (uint8_t)(GwSpiDiagnostic::kMaxFrameBytes - 3);
+}
+
 void GwSpiBus::csLow(int cs){ digitalWrite(cs, LOW); }
 void GwSpiBus::csHigh(int cs){ digitalWrite(cs, HIGH); }
 
@@ -48,14 +53,24 @@ bool GwSpiBus::transact(uint8_t addr,
                         uint16_t timeoutMs)
 {
     rxLen = 0;
+    _lastError = TransactError::None;
     resetSnapshot(addr);
     captureBytes(_lastSnapshot.tx, tx, txLen, _lastSnapshot.txLen);
     _lastSnapshot.phase = GwSpiDiagnostic::PhaseWrite;
 
     GwDeviceEntry e{};
-    if (!GwDeviceTable::get(addr, e)) return false;
-    if (e.bus != GW_BUS_SPI) return false;
-    if (e.spiCsPin < 0) return false;
+    if (!GwDeviceTable::get(addr, e)) {
+        _lastError = TransactError::AddrUnmapped;
+        return false;
+    }
+    if (e.bus != GW_BUS_SPI) {
+        _lastError = TransactError::WrongBus;
+        return false;
+    }
+    if (e.spiCsPin < 0) {
+        _lastError = TransactError::MissingCs;
+        return false;
+    }
 
     const int cs = e.spiCsPin;
     pinMode(cs, OUTPUT);
@@ -79,6 +94,7 @@ bool GwSpiBus::transact(uint8_t addr,
         while (digitalRead(e.spiIrqPin) == HIGH) {
             if ((uint32_t)(millis() - t0) > timeoutMs) {
                 _lastSnapshot.cause = GwSpiDiagnostic::CauseTimeoutWaitingIrq;
+                _lastError = TransactError::TimeoutWaitingIrq;
                 return false;
             }
             delay(1);
@@ -103,10 +119,31 @@ bool GwSpiBus::transact(uint8_t addr,
     _lastSnapshot.rxLen = 2;
     _lastSnapshot.receivedLen = 2;
 
+    if (hdr[0] == 0x00) {
+        _lastSnapshot.cause = GwSpiDiagnostic::CauseFirstByteMisaligned;
+        _lastError = TransactError::HeaderInvalid;
+        return false;
+    }
+
     const uint8_t len = hdr[1];
+    if (len < kCurrentUceMinPayloadLen) {
+        _lastSnapshot.cause = GwSpiDiagnostic::CauseLengthMismatch;
+        _lastError = TransactError::HeaderInvalid;
+        return false;
+    }
+    if (len > kCurrentUceMaxPayloadLen) {
+        _lastSnapshot.cause = GwSpiDiagnostic::CauseLengthMismatch;
+        _lastError = TransactError::LengthInvalid;
+        return false;
+    }
+
     const size_t total = (size_t)2 + (size_t)len + (size_t)1;
     _lastSnapshot.expectedLen = (uint8_t)total;
-    if (total > rxMax) return false;
+    if (total > rxMax) {
+        _lastSnapshot.cause = GwSpiDiagnostic::CauseLengthMismatch;
+        _lastError = TransactError::LengthInvalid;
+        return false;
+    }
 
     rx[0] = hdr[0];
     rx[1] = hdr[1];

@@ -13,9 +13,9 @@ Esta página fixa **onde** cada barramento físico confirmado entra na bancada.
 | Bluetooth SPP | host | BPM | firmware BPM e `local-api` | `IMPLEMENTADO` |
 | `I2C` físico | BPM `21/22` | GSA `A4/A5` | `SdgwDefs.h`, `config.h`, esquemático GSA | `IMPLEMENTADO` |
 | `IRQ` dedicado | GSA `D4` | BPM `19` | `SdgwDefs.h`, `config.h` | `IMPLEMENTADO` |
-| `SPI` | BPM `18/26/25` | UCE `SCK/MISO/MOSI` | `SdgwDefs.h`, `config.h`, `GwSpiBus`, `Transport` | `IMPLEMENTADO` |
-| `CS` dedicado | BPM `33` | UCE `D10 / PA28 / NPCS0` | `SdgwDefs.h`, `config.h`, `Transport` | `IMPLEMENTADO` |
-| `IRQ` dedicado | UCE `D2` | BPM `27` | `SdgwDefs.h`, `config.h`, `GwSpiBus`, `Transport` | `IMPLEMENTADO` |
+| `SPI` | BPM `18/26/25` | UCE `SCK/MISO/MOSI` | `SdgwDefs.h`, `config.h`, `GwSpiBus`, `lib/core/transport/Transport.*` | `IMPLEMENTADO` |
+| `CS` dedicado | BPM `33` | UCE `D10 / PA28 / NPCS0` | `SdgwDefs.h`, `config.h`, `lib/core/transport/Transport.*` | `IMPLEMENTADO` |
+| `IRQ` dedicado | UCE `D2` | BPM `27` | `SdgwDefs.h`, `config.h`, `GwSpiBus`, `lib/core/transport/Transport.*` | `IMPLEMENTADO` |
 | reset compartilhado | BPM `23` | reset físico da GSA e da UCE | `SdgwDefs.h`, `config.h` | `IMPLEMENTADO` |
 | `I2C` lógico | GSA `D2/D3` | `TCA9548A` + `MCP4725` | `config.h`, firmware GSA | `IMPLEMENTADO` |
 

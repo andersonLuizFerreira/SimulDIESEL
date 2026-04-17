@@ -7,7 +7,7 @@
 
 Este documento fixa o contrato lógico hoje implementado para a UCE.
 
-Nesta entrega, a UCE expõe um caso funcional compacto e validado em bancada: o comando `UCE.led`.
+Nesta entrega, a UCE mantém o caso funcional do `LED_BUILTIN` e passa a expor também a configuração da porta CAN pela mesma rota compacta já existente.
 
 ## Endereçamento lógico
 
@@ -17,13 +17,18 @@ Nesta entrega, a UCE expõe um caso funcional compacto e validado em bancada: o 
 | operação compacta | `0x0` | `GW_OP_UCE_TLV_TRANSACT` |
 | comando compacto | `0x20` | `SDGW_CMD_UCE_TLV` |
 
-## Comando SDH suportado
+## Comandos SDH suportados
 
-Forma canônica:
+Formas canônicas:
 
 ```text
 UCE.led set state=on
 UCE.led set state=off
+
+UCE.can.config set controller=can0 bitrate=250 mode=normal
+UCE.can.enable set controller=can0 state=on
+UCE.can.status get controller=can0
+UCE.can reset controller=can0
 ```
 
 Regras de validação:
@@ -31,6 +36,20 @@ Regras de validação:
 - `target` deve ser `UCE.led`
 - `op` deve ser `set`
 - `state` deve ser `on` ou `off`
+
+Para CAN:
+
+- `target` pode ser `UCE.can.config`, `UCE.can.enable`, `UCE.can.status` ou `UCE.can`
+- `op` deve ser `set`, `get` ou `reset`, conforme o target
+- `controller` deve ser `can0` ou `can1`
+- `bitrate` deve ser `125`, `250`, `500` ou `1000`
+- `mode` deve ser `normal` ou `listen`
+- `state` deve ser `on` ou `off`
+
+Observação de UI:
+
+- a tela `frmUCE_UI` usa hoje apenas `controller=can0`
+- o comando `UCE.can reset ...` está implementado no host e na UCE, mas não está ligado a um controle visual da UI nesta rodada
 
 ## TLV transportado entre BPM e UCE
 
@@ -58,6 +77,149 @@ Exemplos:
 | `len` | `0x01` |
 | `value` | estado aceito pela UCE |
 | `crc` | `CRC-8/ATM` |
+
+## TLVs CAN da UCE
+
+Todos os TLVs CAN continuam encapsulados no mesmo binding lógico-físico da UCE:
+
+- endereço lógico `0x2`
+- operação compacta `GW_OP_UCE_TLV_TRANSACT = 0x0`
+- transporte BPM <-> UCE por `SPI`
+- despacho interno da UCE por `switch(tlv.t)`
+
+### `0x20` - `CMD_CAN_CONFIG`
+
+Request com payload fixo de `3` bytes:
+
+| byte | semântica |
+| --- | --- |
+| `0` | `controller` |
+| `1` | `bitrate_code` |
+| `2` | `mode` |
+
+Response com payload fixo de `3` bytes:
+
+| byte | semântica |
+| --- | --- |
+| `0` | `controller` aceito |
+| `1` | `bitrate_code` aceito |
+| `2` | `mode` aceito |
+
+Semântica funcional:
+
+- mapeia para `CanService::configure(...)`
+- a UCE converte `bitrate_code` para `bitrateKbps` real antes de chamar `CanService`
+
+### `0x21` - `CMD_CAN_ENABLE`
+
+Request com payload fixo de `2` bytes:
+
+| byte | semântica |
+| --- | --- |
+| `0` | `controller` |
+| `1` | `state` |
+
+Response com payload fixo de `2` bytes:
+
+| byte | semântica |
+| --- | --- |
+| `0` | `controller` efetivo |
+| `1` | `state` efetivo |
+
+Semântica funcional:
+
+- `state=on` mapeia para `CanService::open()`
+- `state=off` mapeia para `CanService::close()`
+
+### `0x22` - `CMD_CAN_STATUS`
+
+Request com payload fixo de `1` byte:
+
+| byte | semântica |
+| --- | --- |
+| `0` | `controller` |
+
+Response com payload fixo de `4` bytes:
+
+| byte | semântica |
+| --- | --- |
+| `0` | `controller` |
+| `1` | `interface_state` |
+| `2` | `bitrate_code` |
+| `3` | `mode` |
+
+Semântica funcional:
+
+- mapeia para `CanService::status()`
+- a response é síncrona, compacta e sem canal de evento paralelo
+
+### `0x23` - `CMD_CAN_RESET`
+
+Request com payload fixo de `1` byte:
+
+| byte | semântica |
+| --- | --- |
+| `0` | `controller` |
+
+Response com payload fixo de `2` bytes:
+
+| byte | semântica |
+| --- | --- |
+| `0` | `controller` |
+| `1` | `reset_status` |
+
+Semântica funcional:
+
+- mapeia para `CanService::reset()`
+- a base foi implementada para manter o contrato coerente, mesmo sem botão de reset na UI
+
+## Codificações CAN implementadas
+
+### `controller`
+
+| código | valor |
+| --- | --- |
+| `0x00` | `can0` |
+| `0x01` | `can1` |
+
+### `bitrate_code`
+
+| código | valor |
+| --- | --- |
+| `0x00` | `125 kbps` |
+| `0x01` | `250 kbps` |
+| `0x02` | `500 kbps` |
+| `0x03` | `1000 kbps` |
+
+### `mode`
+
+| código | valor |
+| --- | --- |
+| `0x00` | `normal` |
+| `0x01` | `listen` |
+
+### `state` de enable
+
+| código | valor |
+| --- | --- |
+| `0x00` | `off` |
+| `0x01` | `on` |
+
+### `interface_state`
+
+| código | valor |
+| --- | --- |
+| `0x00` | `disabled` |
+| `0x01` | `configured` |
+| `0x02` | `open` |
+| `0x03` | `fault` |
+
+### `reset_status`
+
+| código | valor |
+| --- | --- |
+| `0x00` | `failed` |
+| `0x01` | `success` |
 
 ## Erros
 
@@ -90,6 +252,8 @@ Na rota da UCE, a BPM também pode anexar diagnóstico de `SPI` e `CRC` quando a
 
 ## Fluxo ponta a ponta
 
+Na extremidade da UCE, a sequência abaixo descreve o pipeline lógico. A árvore física correspondente hoje fica em `lib/core/transport`, `lib/core/link`, `lib/core/service`, `lib/services/led`, `lib/services/can`, `lib/protocol/tlv`, `lib/drivers/can` e `lib/diag/trace`.
+
 ```text
 frmUCE_UI
   -> FrmUceLogic
@@ -98,8 +262,17 @@ frmUCE_UI
   -> SdhValidator / SdhToSdgwMapper
   -> SdgwSession
   -> BPM / GwRouter / GwSpiBus
-  -> UCE / Transport / Link / Service / LedService
+  -> UCE (fluxo lógico: Transport -> Link -> Service -> LedService / CanService)
 ```
+
+## Limites desta entrega
+
+- não há loopback
+- não há canal assíncrono novo da UCE no host
+- não há tráfego de frames CAN de dados nesta feature
+- não há tabela de mensagens, J1939 ou payload de tráfego CAN
+- a UI não seleciona `can1`; permanece fixa em `can0`
+- a validação física em bancada da nova feature CAN ainda não está registrada nesta rodada
 
 ## Observações elétricas relevantes
 

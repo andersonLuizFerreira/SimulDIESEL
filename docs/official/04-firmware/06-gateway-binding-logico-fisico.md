@@ -47,6 +47,24 @@ if (!GwDeviceTable::get(addr, e)) return GWERR_ADDR_UNMAPPED;
 
 Esse segundo bloco é o que efetivamente materializa o binding lógico-físico do gateway atual.
 
+## O que a rota da UCE transporta hoje
+
+O binding `0x2 -> SPI -> UCE` permanece único. Nesta rodada ele continua carregando:
+
+- `UCE.led`
+- `UCE.can.config`
+- `UCE.can.enable`
+- `UCE.can.status`
+- `UCE.can reset`
+
+Todos esses comandos reutilizam o mesmo:
+
+- endereço lógico `GW_ADDR_UCE = 0x2`
+- `GW_OP_UCE_TLV_TRANSACT = 0x0`
+- comando compacto `SDGW_CMD_UCE_TLV`
+
+Ou seja: a feature CAN da UCE não abriu rota paralela nova na BPM.
+
 ## O que ainda não existe
 
 - **PLANEJADO**: tabela persistida ou configurável de devices.

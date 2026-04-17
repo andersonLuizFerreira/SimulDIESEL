@@ -18,6 +18,35 @@ void GwRouter::captureSpiDiag(uint8_t addr, GwErr err, const GwSpiDiagnostic::Sn
     _lastDiag.status = (uint8_t)err;
 }
 
+GwErr GwRouter::mapSpiTransactFailure(const GwSpiBus& spiBus, bool spiUseIrq) const
+{
+    switch (spiBus.lastError()) {
+        case GwSpiBus::TransactError::TimeoutWaitingIrq:
+            return GWERR_TIMEOUT;
+        case GwSpiBus::TransactError::HeaderInvalid:
+            return GWERR_HEADER_INVALID;
+        case GwSpiBus::TransactError::LengthInvalid:
+            return GWERR_LENGTH_INVALID;
+        case GwSpiBus::TransactError::FrameIncomplete:
+            return GWERR_FRAME_INCOMPLETE;
+        default:
+            break;
+    }
+
+    const GwSpiDiagnostic::Snapshot& snapshot = spiBus.lastSnapshot();
+    const uint8_t cause = detectPossibleCause(snapshot, spiUseIrq);
+    switch (cause) {
+        case GwSpiDiagnostic::CauseIncompleteFrame:
+            return GWERR_FRAME_INCOMPLETE;
+        case GwSpiDiagnostic::CauseLengthMismatch:
+            return GWERR_LENGTH_INVALID;
+        case GwSpiDiagnostic::CauseFirstByteMisaligned:
+            return GWERR_HEADER_INVALID;
+        default:
+            return GWERR_TIMEOUT;
+    }
+}
+
 uint8_t GwRouter::detectPossibleCause(const GwSpiDiagnostic::Snapshot& snapshot, bool spiUseIrq) const
 {
     if (snapshot.phase == GwSpiDiagnostic::PhaseWaitResponseReady) {
@@ -117,8 +146,12 @@ GwErr GwRouter::route(uint8_t cmd,
     if (!bus->transact(addr, reqTlv, reqTlvLen, respBuf, respMax, rxLen, timeoutMs)) {
         if (e.bus == GW_BUS_SPI) {
             GwSpiBus* spiBus = static_cast<GwSpiBus*>(&_spi);
-            captureSpiDiag(addr, GWERR_TIMEOUT, spiBus->lastSnapshot());
-            _lastDiag.cause = detectPossibleCause(_lastDiag, e.spiUseIrq);
+            const GwErr mappedErr = mapSpiTransactFailure(*spiBus, e.spiUseIrq);
+            captureSpiDiag(addr, mappedErr, spiBus->lastSnapshot());
+            if (_lastDiag.cause == GwSpiDiagnostic::CauseUnknown) {
+                _lastDiag.cause = detectPossibleCause(_lastDiag, e.spiUseIrq);
+            }
+            return mappedErr;
         }
         return GWERR_TIMEOUT;
     }

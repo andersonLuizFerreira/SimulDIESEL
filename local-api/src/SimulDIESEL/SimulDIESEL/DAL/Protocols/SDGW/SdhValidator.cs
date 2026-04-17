@@ -64,6 +64,12 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
                 return;
             }
 
+            if (string.Equals(target.Resource, "can", StringComparison.OrdinalIgnoreCase))
+            {
+                ValidateUceCan(target, command);
+                return;
+            }
+
             throw new NotSupportedException("Target SDH não suportado nesta fase: " + command.Target + ".");
         }
 
@@ -111,6 +117,46 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
             RequireOp(command, "set");
             RequireArgCount(command, 1);
             RequireStateArg(command);
+        }
+
+        private static void ValidateUceCan(SdhTarget target, SdhCommand command)
+        {
+            if (string.Equals(target.Subresource, "config", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireOp(command, "set");
+                RequireArgCount(command, 3);
+                RequireControllerArg(command);
+                RequireCanBitrateArg(command);
+                RequireCanModeArg(command);
+                return;
+            }
+
+            if (string.Equals(target.Subresource, "enable", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireOp(command, "set");
+                RequireArgCount(command, 2);
+                RequireControllerArg(command);
+                RequireStateArg(command);
+                return;
+            }
+
+            if (string.Equals(target.Subresource, "status", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireOp(command, "get");
+                RequireArgCount(command, 1);
+                RequireControllerArg(command);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(target.Subresource))
+            {
+                RequireOp(command, "reset");
+                RequireArgCount(command, 1);
+                RequireControllerArg(command);
+                return;
+            }
+
+            throw new NotSupportedException("Target SDH não suportado nesta fase: " + command.Target + ".");
         }
 
         private static void ValidateGsaChannel(SdhTarget target, SdhCommand command)
@@ -297,6 +343,50 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
             }
 
             return kind;
+        }
+
+        private static string RequireControllerArg(SdhCommand command)
+        {
+            string controller;
+            if (!command.Args.TryGetValue("controller", out controller) || string.IsNullOrWhiteSpace(controller))
+                throw new InvalidOperationException("Argumento obrigatório ausente para " + command.Target + ": controller.");
+
+            if (!string.Equals(controller, "can0", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(controller, "can1", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Controller inválido para " + command.Target + ". Valores aceitos: can0, can1.");
+            }
+
+            return controller;
+        }
+
+        private static int RequireCanBitrateArg(SdhCommand command)
+        {
+            int bitrate = RequireIntArg(command, "bitrate");
+            if (bitrate != 125 &&
+                bitrate != 250 &&
+                bitrate != 500 &&
+                bitrate != 1000)
+            {
+                throw new InvalidOperationException("Bitrate inválido para " + command.Target + ". Valores aceitos: 125, 250, 500, 1000.");
+            }
+
+            return bitrate;
+        }
+
+        private static string RequireCanModeArg(SdhCommand command)
+        {
+            string mode;
+            if (!command.Args.TryGetValue("mode", out mode) || string.IsNullOrWhiteSpace(mode))
+                throw new InvalidOperationException("Argumento obrigatório ausente para " + command.Target + ": mode.");
+
+            if (!string.Equals(mode, "normal", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(mode, "listen", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Mode inválido para " + command.Target + ". Valores aceitos: normal, listen.");
+            }
+
+            return mode;
         }
     }
 }
