@@ -1,23 +1,31 @@
 #pragma once
+
 #include "GwBus.h"
-#include "GwSpiDiagnostic.h"
 #include <SPI.h>
 
 class GwSpiBus : public IGwBus {
 public:
-    enum class TransactError : uint8_t {
-        None = 0,
-        AddrUnmapped,
-        WrongBus,
-        MissingCs,
-        TimeoutWaitingIrq,
-        HeaderInvalid,
-        LengthInvalid,
-        FrameIncomplete,
+    static constexpr size_t FixedLedRequestLen = 4;
+    static constexpr size_t FixedLedResponseLen = 4;
+    static constexpr size_t FixedLedBurstLen = FixedLedRequestLen + FixedLedResponseLen;
+
+    struct DiagnosticSnapshot {
+        bool valid = false;
+        uint8_t phase = 0x00;
+        uint8_t cause = 0x00;
+        uint8_t txLen = 0x00;
+        uint8_t rxLen = 0x00;
+        uint8_t expectedLength = 0x00;
+        uint8_t receivedLength = 0x00;
+        uint8_t crcCalculated = 0x00;
+        uint8_t crcReceived = 0x00;
+        uint8_t responseStart = 0xFF;
+        uint8_t tx[FixedLedRequestLen] = {0};
+        uint8_t rx[FixedLedBurstLen] = {0};
     };
 
     explicit GwSpiBus(SPIClass& spi = SPI)
-        : _spi(spi), _ok(true), _hz(8000000UL), _sckPin(-1), _misoPin(-1), _mosiPin(-1), _lastError(TransactError::None) {}
+        : _spi(spi), _hz(1000000UL), _sckPin(-1), _misoPin(-1), _mosiPin(-1) {}
 
     void begin(uint32_t hz, int8_t sckPin, int8_t misoPin, int8_t mosiPin);
 
@@ -26,22 +34,18 @@ public:
                   uint8_t* rx, size_t rxMax, size_t& rxLen,
                   uint16_t timeoutMs) override;
 
-    bool isOk() const override { return _ok; }
-    const GwSpiDiagnostic::Snapshot& lastSnapshot() const { return _lastSnapshot; }
-    TransactError lastError() const { return _lastError; }
+    bool isOk() const override { return true; }
+    const DiagnosticSnapshot& lastDiagnostic() const { return _lastDiagnostic; }
 
 private:
     SPIClass& _spi;
-    bool _ok;
     uint32_t _hz;
     int8_t _sckPin;
     int8_t _misoPin;
     int8_t _mosiPin;
-    GwSpiDiagnostic::Snapshot _lastSnapshot;
-    TransactError _lastError;
+    DiagnosticSnapshot _lastDiagnostic;
 
-    void csLow(int cs);
-    void csHigh(int cs);
-    void resetSnapshot(uint8_t addr);
-    void captureBytes(uint8_t* dest, const uint8_t* src, size_t len, uint8_t& lenOut);
+    static void csLow(int cs);
+    static void csHigh(int cs);
+    static bool isFixedUceLedRequest(uint8_t addr, const uint8_t* tx, size_t txLen);
 };

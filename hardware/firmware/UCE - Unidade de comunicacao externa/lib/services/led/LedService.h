@@ -1,15 +1,13 @@
 #pragma once
 
-#include <Arduino.h>
-
-#include "defs.h"
+#include <stdint.h>
 
 class LedService {
 public:
   void begin();
-  int get() const;
-  int set(int state);
+  bool set(bool on);
+  bool state() const;
 
 private:
-  int _state = 0;
+  bool _state = false;
 };

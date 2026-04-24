@@ -4,14 +4,13 @@
 
 #include "GwBus.h"
 #include "GwErr.h"
-#include "GwSpiDiagnostic.h"
-
-class GwSpiBus;
+#include "GwI2cBus.h"
+#include "GwSpiBus.h"
 
 class GwRouter {
 public:
-    GwRouter(IGwBus& i2c, IGwBus& spi)
-    : _i2c(i2c), _spi(spi), _lastDiag() {}
+    GwRouter(GwI2cBus& i2c, GwSpiBus& spi)
+    : _i2c(i2c), _spi(spi) {}
 
     // Roteia uma requisicao para a baby board externa indicada por
     // GW_CMD_ADDR(cmd). A BPM local (ADDR 0) nao passa por aqui.
@@ -25,13 +24,6 @@ public:
     bool buildGatewayErrorPayload(uint8_t cmd, GwErr err, uint8_t* out, size_t outMax, size_t& outLen) const;
 
 private:
-    void resetLastDiag();
-    void captureSpiDiag(uint8_t addr, GwErr err, const GwSpiDiagnostic::Snapshot& snapshot);
-    void finalizeSpiCrcDiag(uint8_t addr, GwErr err, const uint8_t* respBuf, size_t respLen, bool spiUseIrq);
-    uint8_t detectPossibleCause(const GwSpiDiagnostic::Snapshot& snapshot, bool spiUseIrq) const;
-    GwErr mapSpiTransactFailure(const GwSpiBus& spiBus, bool spiUseIrq) const;
-
-    IGwBus& _i2c;
-    IGwBus& _spi;
-    GwSpiDiagnostic::Snapshot _lastDiag;
+    GwI2cBus& _i2c;
+    GwSpiBus& _spi;
 };

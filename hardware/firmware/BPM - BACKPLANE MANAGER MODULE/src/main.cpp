@@ -31,8 +31,7 @@ static GwRouter router(i2cBus, spiBus);
 static GatewayApp app(sdgwLink, router);
 
 void setup() {
-  // Reserva o GPIO23 exclusivamente para o reset global e sobe o
-  // barramento SPI com pinagem explicita fora do mapeamento padrao.
+  // Reserva o GPIO23 exclusivamente para o reset global.
   digitalWrite(BPM_GLOBAL_RESET_PIN, BPM_GLOBAL_RESET_INACTIVE_LEVEL);
   pinMode(BPM_GLOBAL_RESET_PIN, OUTPUT);
 
@@ -42,7 +41,7 @@ void setup() {
   bluetoothTransport.setTextEnabled(true);
 
   i2cBus.begin(BPM_GSA_I2C_SDA_PIN, BPM_GSA_I2C_SCL_PIN, 400000);
-  spiBus.begin(BPM_SPI_CLOCK_HZ,
+  spiBus.begin(1000000UL,
                BPM_SPI_SCK_PIN,
                BPM_SPI_MISO_PIN,
                BPM_SPI_MOSI_PIN);

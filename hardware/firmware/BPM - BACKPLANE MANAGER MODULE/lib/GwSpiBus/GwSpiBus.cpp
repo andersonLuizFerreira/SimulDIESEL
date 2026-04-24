@@ -1,38 +1,20 @@
 #include <Arduino.h>
+#include <string.h>
+
 #include "GwSpiBus.h"
 #include "GwDeviceTable.h"
 #include "GwTlv.h"
+#include "SdgwDefs.h"
 
 namespace {
-constexpr uint8_t kCurrentUceMinPayloadLen = 1;
-constexpr uint8_t kCurrentUceMaxPayloadLen = (uint8_t)(GwSpiDiagnostic::kMaxFrameBytes - 3);
-}
-
-void GwSpiBus::csLow(int cs){ digitalWrite(cs, LOW); }
-void GwSpiBus::csHigh(int cs){ digitalWrite(cs, HIGH); }
-
-void GwSpiBus::resetSnapshot(uint8_t addr)
-{
-    _lastSnapshot = GwSpiDiagnostic::Snapshot{};
-    _lastSnapshot.valid = true;
-    _lastSnapshot.addr = addr;
-    _lastSnapshot.layer = GwSpiDiagnostic::LayerGwSpiBus;
-}
-
-void GwSpiBus::captureBytes(uint8_t* dest, const uint8_t* src, size_t len, uint8_t& lenOut)
-{
-    lenOut = 0;
-    if (!dest || !src) return;
-
-    const size_t count = (len > GwSpiDiagnostic::kMaxFrameBytes)
-        ? GwSpiDiagnostic::kMaxFrameBytes
-        : len;
-
-    for (size_t index = 0; index < count; index++) {
-        dest[index] = src[index];
-    }
-
-    lenOut = (uint8_t)count;
+constexpr uint8_t kDiagPhaseWrite = 0x01;
+constexpr uint8_t kDiagPhaseWaitResponseReady = 0x02;
+constexpr uint8_t kDiagPhaseReadPayload = 0x04;
+constexpr uint8_t kDiagPhaseFinalCrcValidation = 0x05;
+constexpr uint8_t kDiagCauseFirstByteMisaligned = 0x01;
+constexpr uint8_t kDiagCausePreloadFailure = 0x02;
+constexpr uint8_t kDiagCauseTimeoutWaitingIrq = 0x06;
+constexpr uint8_t kDiagCauseIncompleteFrame = 0x07;
 }
 
 void GwSpiBus::begin(uint32_t hz, int8_t sckPin, int8_t misoPin, int8_t mosiPin)
@@ -41,9 +23,6 @@ void GwSpiBus::begin(uint32_t hz, int8_t sckPin, int8_t misoPin, int8_t mosiPin)
     _sckPin = sckPin;
     _misoPin = misoPin;
     _mosiPin = mosiPin;
-
-    // Inicializa o barramento SPI com pinagem explicita para evitar o
-    // mapeamento padrao do ESP32, que conflita com o reset global em GPIO23.
     _spi.begin(_sckPin, _misoPin, _mosiPin, -1);
 }
 
@@ -53,121 +32,128 @@ bool GwSpiBus::transact(uint8_t addr,
                         uint16_t timeoutMs)
 {
     rxLen = 0;
-    _lastError = TransactError::None;
-    resetSnapshot(addr);
-    captureBytes(_lastSnapshot.tx, tx, txLen, _lastSnapshot.txLen);
-    _lastSnapshot.phase = GwSpiDiagnostic::PhaseWrite;
+    memset(&_lastDiagnostic, 0, sizeof(_lastDiagnostic));
+    _lastDiagnostic.expectedLength = GwSpiBus::FixedLedResponseLen;
+    _lastDiagnostic.responseStart = 0xFF;
+
+    if (!tx || !rx || rxMax < 4 || !GwTlv::validatePacket(tx, txLen)) {
+        return false;
+    }
+
+    _lastDiagnostic.txLen = (uint8_t)((txLen < GwSpiBus::FixedLedRequestLen) ? txLen : GwSpiBus::FixedLedRequestLen);
+    memcpy(_lastDiagnostic.tx, tx, _lastDiagnostic.txLen);
 
     GwDeviceEntry e{};
-    if (!GwDeviceTable::get(addr, e)) {
-        _lastError = TransactError::AddrUnmapped;
+    if (!GwDeviceTable::get(addr, e) || e.bus != GW_BUS_SPI || e.spiCsPin < 0) {
         return false;
     }
-    if (e.bus != GW_BUS_SPI) {
-        _lastError = TransactError::WrongBus;
-        return false;
-    }
-    if (e.spiCsPin < 0) {
-        _lastError = TransactError::MissingCs;
+
+    if (!isFixedUceLedRequest(addr, tx, txLen)) {
+        (void)timeoutMs;
         return false;
     }
 
     const int cs = e.spiCsPin;
+    const int irq = e.spiIrqPin;
     pinMode(cs, OUTPUT);
     csHigh(cs);
+    if (irq >= 0) {
+        pinMode(irq, INPUT_PULLUP);
+    }
 
     SPISettings st(_hz, SPI_MSBFIRST, SPI_MODE0);
+    uint8_t burstRx[GwSpiBus::FixedLedBurstLen] = {0};
 
-    // FASE 1: WRITE
     _spi.beginTransaction(st);
     csLow(cs);
-    for (size_t i = 0; i < txLen; i++) _spi.transfer(tx[i]);
-    csHigh(cs);
-    _spi.endTransaction();
+    for (size_t index = 0; index < GwSpiBus::FixedLedRequestLen; ++index) {
+        burstRx[index] = _spi.transfer(tx[index]);
+    }
 
-    // A UCE sinaliza resposta pronta via IRQ, mas a leitura continua
-    // síncrona e curta em dois bursts SPI para preservar o contrato atual.
-    uint32_t t0 = millis();
-    if (e.spiUseIrq && e.spiIrqPin >= 0) {
-        _lastSnapshot.phase = GwSpiDiagnostic::PhaseWaitResponseReady;
-        pinMode(e.spiIrqPin, INPUT_PULLUP);
-        while (digitalRead(e.spiIrqPin) == HIGH) {
-            if ((uint32_t)(millis() - t0) > timeoutMs) {
-                _lastSnapshot.cause = GwSpiDiagnostic::CauseTimeoutWaitingIrq;
-                _lastError = TransactError::TimeoutWaitingIrq;
-                return false;
-            }
-            delay(1);
+    const uint32_t deadline = millis() + timeoutMs;
+    while (irq >= 0 && digitalRead(irq) != LOW) {
+        if ((int32_t)(millis() - deadline) >= 0) {
+            csHigh(cs);
+            _spi.endTransaction();
+            memcpy(_lastDiagnostic.rx, burstRx, sizeof(burstRx));
+            _lastDiagnostic.rxLen = GwSpiBus::FixedLedBurstLen;
+            _lastDiagnostic.valid = true;
+            _lastDiagnostic.phase = kDiagPhaseWaitResponseReady;
+            _lastDiagnostic.cause = kDiagCauseTimeoutWaitingIrq;
+            _lastDiagnostic.receivedLength = 0;
+            return false;
         }
-    } else {
-        delay(1);
+        delayMicroseconds(10);
     }
 
-    // FASE 2: READ header (CMD, LEN)
-    uint8_t hdr[2] = {0,0};
-
-    _lastSnapshot.phase = GwSpiDiagnostic::PhaseReadHeader;
-    _spi.beginTransaction(st);
-    csLow(cs);
-    hdr[0] = _spi.transfer(0x00);
-    hdr[1] = _spi.transfer(0x00);
+    for (size_t index = GwSpiBus::FixedLedRequestLen; index < GwSpiBus::FixedLedBurstLen; ++index) {
+        burstRx[index] = _spi.transfer(0x00);
+    }
     csHigh(cs);
     _spi.endTransaction();
 
-    _lastSnapshot.rx[0] = hdr[0];
-    _lastSnapshot.rx[1] = hdr[1];
-    _lastSnapshot.rxLen = 2;
-    _lastSnapshot.receivedLen = 2;
+    memcpy(_lastDiagnostic.rx, burstRx, sizeof(burstRx));
+    _lastDiagnostic.rxLen = GwSpiBus::FixedLedBurstLen;
 
-    if (hdr[0] == 0x00) {
-        _lastSnapshot.cause = GwSpiDiagnostic::CauseFirstByteMisaligned;
-        _lastError = TransactError::HeaderInvalid;
-        return false;
-    }
-
-    const uint8_t len = hdr[1];
-    if (len < kCurrentUceMinPayloadLen) {
-        _lastSnapshot.cause = GwSpiDiagnostic::CauseLengthMismatch;
-        _lastError = TransactError::HeaderInvalid;
-        return false;
-    }
-    if (len > kCurrentUceMaxPayloadLen) {
-        _lastSnapshot.cause = GwSpiDiagnostic::CauseLengthMismatch;
-        _lastError = TransactError::LengthInvalid;
-        return false;
-    }
-
-    const size_t total = (size_t)2 + (size_t)len + (size_t)1;
-    _lastSnapshot.expectedLen = (uint8_t)total;
-    if (total > rxMax) {
-        _lastSnapshot.cause = GwSpiDiagnostic::CauseLengthMismatch;
-        _lastError = TransactError::LengthInvalid;
-        return false;
-    }
-
-    rx[0] = hdr[0];
-    rx[1] = hdr[1];
-
-    // READ payload + CRC
-    _lastSnapshot.phase = GwSpiDiagnostic::PhaseReadPayload;
-    _spi.beginTransaction(st);
-    csLow(cs);
-    for (size_t i = 0; i < (size_t)len + 1; i++) {
-        rx[2 + i] = _spi.transfer(0x00);
-        if ((size_t)(2 + i) < GwSpiDiagnostic::kMaxFrameBytes) {
-            _lastSnapshot.rx[2 + i] = rx[2 + i];
+    size_t responseStart = GwSpiBus::FixedLedRequestLen;
+    for (size_t index = GwSpiBus::FixedLedRequestLen; index < GwSpiBus::FixedLedBurstLen; ++index) {
+        if (burstRx[index] != 0x00) {
+            responseStart = index;
+            break;
         }
     }
-    csHigh(cs);
-    _spi.endTransaction();
 
-    rxLen = total;
-    _lastSnapshot.rxLen = (uint8_t)((total > GwSpiDiagnostic::kMaxFrameBytes)
-        ? GwSpiDiagnostic::kMaxFrameBytes
-        : total);
-    _lastSnapshot.receivedLen = (uint8_t)total;
-    if (total >= 1) _lastSnapshot.crcReceived = rx[total - 1];
-    if (total >= 3) _lastSnapshot.crcCalculated = GwTlv::crc8(rx, total - 1);
+    if (responseStart < GwSpiBus::FixedLedBurstLen) {
+        _lastDiagnostic.responseStart = (uint8_t)responseStart;
+    }
 
-    return true;
+    if ((responseStart + GwSpiBus::FixedLedResponseLen) > GwSpiBus::FixedLedBurstLen) {
+        _lastDiagnostic.valid = true;
+        _lastDiagnostic.phase = kDiagPhaseReadPayload;
+        _lastDiagnostic.cause = kDiagCauseIncompleteFrame;
+        _lastDiagnostic.receivedLength = 0;
+        (void)timeoutMs;
+        return false;
+    }
+
+    for (size_t index = 0; index < GwSpiBus::FixedLedResponseLen; ++index) {
+        rx[index] = burstRx[responseStart + index];
+    }
+    rxLen = GwSpiBus::FixedLedResponseLen;
+    _lastDiagnostic.receivedLength = (uint8_t)rxLen;
+    _lastDiagnostic.crcReceived = rx[rxLen - 1];
+    _lastDiagnostic.crcCalculated = GwTlv::crc8(rx, rxLen - 1);
+    (void)timeoutMs;
+
+    const bool packetOk = GwTlv::validatePacket(rx, rxLen);
+    if (!packetOk) {
+        _lastDiagnostic.valid = true;
+        _lastDiagnostic.phase = kDiagPhaseFinalCrcValidation;
+        _lastDiagnostic.cause = (responseStart > GwSpiBus::FixedLedRequestLen)
+            ? kDiagCauseFirstByteMisaligned
+            : kDiagCausePreloadFailure;
+    }
+
+    return packetOk;
+}
+
+void GwSpiBus::csLow(int cs)
+{
+    digitalWrite(cs, LOW);
+}
+
+void GwSpiBus::csHigh(int cs)
+{
+    digitalWrite(cs, HIGH);
+}
+
+bool GwSpiBus::isFixedUceLedRequest(uint8_t addr, const uint8_t* tx, size_t txLen)
+{
+    if (addr != GW_ADDR_UCE || !tx || txLen != 4) {
+        return false;
+    }
+
+    return tx[0] == UCE_CMD_SET_LED &&
+           tx[1] == 0x01 &&
+           (tx[2] == 0x00 || tx[2] == 0x01);
 }

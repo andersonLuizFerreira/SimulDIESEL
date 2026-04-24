@@ -1,15 +1,14 @@
 #include <Arduino.h>
-#include "app/UceApp.h"
-#include "diag/trace/DiagTrace.h"
+#include "core/transport/Transport.h"
 
-static UceApp g_app;
+namespace {
+Transport g_transport;
+}
 
 void setup() {
-  g_app.begin();
+  g_transport.begin();
 }
 
 void loop() {
-  g_app.tick();
-  g_app.poll();
-  DiagTrace::flush();
+  delay(1);
 }

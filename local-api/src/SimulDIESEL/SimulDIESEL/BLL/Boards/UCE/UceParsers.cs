@@ -38,7 +38,7 @@ namespace SimulDIESEL.BLL.Boards.UCE
             }
 
             UceGatewayDiagnostic diagnostic = UceGatewayDiagnosticLog.Create(data);
-            if (data[0] == 0xE4)
+            if (diagnostic.HasExtendedData)
                 UceGatewayDiagnosticLog.Append(diagnostic);
 
             switch (data[0])
@@ -50,7 +50,9 @@ namespace SimulDIESEL.BLL.Boards.UCE
                     message = "A BPM informou indisponibilidade no barramento SPI da UCE.";
                     return true;
                 case 0xE3:
-                    message = "A BPM informou timeout ao falar com a UCE via SPI.";
+                    message = diagnostic.HasExtendedData
+                        ? UceGatewayDiagnosticLog.BuildTimeoutMessage(diagnostic)
+                        : "A BPM informou timeout ao falar com a UCE via SPI.";
                     return true;
                 case 0xE4:
                     message = UceGatewayDiagnosticLog.BuildCrcMessage(diagnostic);

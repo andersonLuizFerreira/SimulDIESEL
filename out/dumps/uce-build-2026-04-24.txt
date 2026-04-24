@@ -1,0 +1,7 @@
+Command: py -3 -m platformio run
+Workdir: G:\PROJETOS\SIMULADORES\SimulDIESEL\hardware\firmware\UCE - Unidade de comunicacao externa
+Result: SUCCESS
+Environment: dueUSB
+Board: Arduino Due (USB Native Port)
+RAM: 4.2% (4112 / 98304 bytes)
+Flash: 2.8% (14632 / 524288 bytes)

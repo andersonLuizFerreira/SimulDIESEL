@@ -1,17 +1,19 @@
+#include <Arduino.h>
+
+#include "defs.h"
 #include "services/led/LedService.h"
 
 void LedService::begin() {
   pinMode(LED_PIN, OUTPUT);
-  _state = 0;
-  digitalWrite(LED_PIN, LOW);
+  set(false);
 }
 
-int LedService::get() const {
+bool LedService::set(bool on) {
+  _state = on;
+  digitalWrite(LED_PIN, on ? HIGH : LOW);
   return _state;
 }
 
-int LedService::set(int state) {
-  _state = (state != 0) ? 1 : 0;
-  digitalWrite(LED_PIN, _state ? HIGH : LOW);
+bool LedService::state() const {
   return _state;
 }

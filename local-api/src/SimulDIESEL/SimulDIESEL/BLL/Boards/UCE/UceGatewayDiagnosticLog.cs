@@ -191,6 +191,15 @@ namespace SimulDIESEL.BLL.Boards.UCE
                 UceGatewayDiagnostic.LogFilePath;
         }
 
+        public static string BuildTimeoutMessage(UceGatewayDiagnostic diagnostic)
+        {
+            return "A BPM informou timeout ao falar com a UCE via SPI." +
+                Environment.NewLine +
+                "Consulte:" +
+                Environment.NewLine +
+                UceGatewayDiagnostic.LogFilePath;
+        }
+
         private static void AppendFrameInterpretation(StringBuilder builder, UceGatewayDiagnostic diagnostic)
         {
             if (diagnostic == null || diagnostic.RxBytes == null || diagnostic.RxBytes.Length < 2)

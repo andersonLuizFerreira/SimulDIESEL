@@ -13,11 +13,12 @@
 #define BPM_GLOBAL_RESET_ACTIVE_LEVEL LOW
 #define BPM_GLOBAL_RESET_INACTIVE_LEVEL HIGH
 
-// SPI dedicado da BPM.
+// ============================================================
+// SPI - UCE backplane
+// ============================================================
 #define BPM_SPI_SCK_PIN       18
 #define BPM_SPI_MISO_PIN      26
 #define BPM_SPI_MOSI_PIN      25
-#define BPM_SPI_CLOCK_HZ      8000000UL
 #define BPM_UCE_SPI_CS_PIN    33
 #define BPM_UCE_IRQ_PIN       27
 #define BPM_UCE_RESET_PIN     BPM_GLOBAL_RESET_PIN
@@ -61,6 +62,7 @@
 // COBS worst-case: len + len/254 + 1  (250 => 252) + delimiter => 253
 // Mantemos folga para robustez
 #define SDGW_MAX_ENCODED_FRAME          384
+#define GW_SPI_PACKET_LIMIT             64
 
 // Cache de resposta para retransmissão (ACK/ERR + delimiter)
 // 64 é suficiente para ACK/ERR + 1 byte de erro, mas deixamos folga
