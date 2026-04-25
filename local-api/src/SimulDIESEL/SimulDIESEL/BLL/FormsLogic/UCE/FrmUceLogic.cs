@@ -10,12 +10,12 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
     {
         private const string DefaultCanController = "can0";
 
-        private readonly UceClient _uceClient;
+        private readonly IUceDispatcher _uceDispatcher;
         private readonly Func<bool> _isLinked;
 
-        public FrmUceLogic(UceClient uceClient, Func<bool> isLinked)
+        public FrmUceLogic(IUceDispatcher uceDispatcher, Func<bool> isLinked)
         {
-            _uceClient = uceClient ?? throw new ArgumentNullException(nameof(uceClient));
+            _uceDispatcher = uceDispatcher ?? throw new ArgumentNullException(nameof(uceDispatcher));
             _isLinked = isLinked ?? throw new ArgumentNullException(nameof(isLinked));
         }
 
@@ -27,7 +27,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
         public static FrmUceLogic CreateDefault()
         {
             BpmSerialService service = BpmSerialService.Shared;
-            return new FrmUceLogic(service.Uce, () => service.IsLinked);
+            return new FrmUceLogic(service.BoardDispatcher.Uce, () => service.IsLinked);
         }
 
         public Task<UceCommandResult> SetBuiltinLedAsync(bool ligado)
@@ -35,7 +35,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             if (!_isLinked())
                 return Task.FromResult(UceCommandResult.Fail("Link serial não está em estado Linked."));
 
-            return _uceClient.SetBuiltinLedAsync(ligado);
+            return _uceDispatcher.SetBuiltinLedAsync(ligado);
         }
 
         public Task<UceOperationResult<UceCanConfigResponse>> SetCanConfigAsync(int bitrateKbps, string mode)
@@ -43,7 +43,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             if (!_isLinked())
                 return FailWhenNotLinked<UceCanConfigResponse>();
 
-            return _uceClient.SetCanConfigAsync(DefaultCanController, bitrateKbps, mode);
+            return _uceDispatcher.SetCanConfigAsync(DefaultCanController, bitrateKbps, mode);
         }
 
         public Task<UceOperationResult<UceCanEnableResponse>> SetCanEnabledAsync(bool enabled)
@@ -51,7 +51,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             if (!_isLinked())
                 return FailWhenNotLinked<UceCanEnableResponse>();
 
-            return _uceClient.SetCanEnabledAsync(DefaultCanController, enabled);
+            return _uceDispatcher.SetCanEnabledAsync(DefaultCanController, enabled);
         }
 
         public Task<UceOperationResult<UceCanStatusResponse>> GetCanStatusAsync()
@@ -59,7 +59,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             if (!_isLinked())
                 return FailWhenNotLinked<UceCanStatusResponse>();
 
-            return _uceClient.GetCanStatusAsync(DefaultCanController);
+            return _uceDispatcher.GetCanStatusAsync(DefaultCanController);
         }
 
         public Task<UceOperationResult<UceCanResetResponse>> ResetCanAsync()
@@ -67,7 +67,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             if (!_isLinked())
                 return FailWhenNotLinked<UceCanResetResponse>();
 
-            return _uceClient.ResetCanAsync(DefaultCanController);
+            return _uceDispatcher.ResetCanAsync(DefaultCanController);
         }
 
         private static Task<UceOperationResult<T>> FailWhenNotLinked<T>()

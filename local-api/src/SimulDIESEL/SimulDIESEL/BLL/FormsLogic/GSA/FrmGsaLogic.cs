@@ -12,17 +12,17 @@ namespace SimulDIESEL.BLL.FormsLogic.GSA
     /// </summary>
     public sealed class FrmGsaLogic : IDisposable
     {
-        private readonly GsaClient _gsaClient;
+        private readonly IGsaDispatcher _gsaDispatcher;
         private readonly Func<bool> _isLinked;
         private bool _disposed;
 
-        public FrmGsaLogic(GsaClient gsaClient, Func<bool> isLinked)
+        public FrmGsaLogic(IGsaDispatcher gsaDispatcher, Func<bool> isLinked)
         {
-            _gsaClient = gsaClient ?? throw new ArgumentNullException(nameof(gsaClient));
+            _gsaDispatcher = gsaDispatcher ?? throw new ArgumentNullException(nameof(gsaDispatcher));
             _isLinked = isLinked ?? throw new ArgumentNullException(nameof(isLinked));
 
-            _gsaClient.ChannelFaultEventReceived += OnChannelFaultEventReceived;
-            _gsaClient.PhysicalOperationEventReceived += OnPhysicalOperationEventReceived;
+            _gsaDispatcher.ChannelFaultEventReceived += OnChannelFaultEventReceived;
+            _gsaDispatcher.PhysicalOperationEventReceived += OnPhysicalOperationEventReceived;
         }
 
         public event Action<GsaChannelFaultEvent> ChannelFaultEventReceived;
@@ -36,7 +36,7 @@ namespace SimulDIESEL.BLL.FormsLogic.GSA
         public static FrmGsaLogic CreateDefault()
         {
             BpmSerialService service = BpmSerialService.Shared;
-            return new FrmGsaLogic(service.Gsa, () => service.IsLinked);
+            return new FrmGsaLogic(service.BoardDispatcher.Gsa, () => service.IsLinked);
         }
 
         public Task<GsaCommandResult> SetBuiltinLedAsync(bool ligado)
@@ -44,7 +44,7 @@ namespace SimulDIESEL.BLL.FormsLogic.GSA
             if (!_isLinked())
                 return Task.FromResult(GsaCommandResult.Fail("Link serial não está em estado Linked."));
 
-            return _gsaClient.SetBuiltinLedAsync(ligado);
+            return _gsaDispatcher.SetBuiltinLedAsync(ligado);
         }
 
         public Task<GsaOperationResult<GsaChannelSetpointResponse>> SetChannelSetpointAsync(int channel, byte value)
@@ -52,7 +52,7 @@ namespace SimulDIESEL.BLL.FormsLogic.GSA
             if (!_isLinked())
                 return FailWhenNotLinked<GsaChannelSetpointResponse>();
 
-            return _gsaClient.SetChannelSetpointAsync(new GsaChannelSetpointRequest
+            return _gsaDispatcher.SetChannelSetpointAsync(new GsaChannelSetpointRequest
             {
                 Channel = channel,
                 Value = value
@@ -64,7 +64,7 @@ namespace SimulDIESEL.BLL.FormsLogic.GSA
             if (!_isLinked())
                 return FailWhenNotLinked<GsaChannelEnableResponse>();
 
-            return _gsaClient.SetChannelEnableAsync(new GsaChannelEnableRequest
+            return _gsaDispatcher.SetChannelEnableAsync(new GsaChannelEnableRequest
             {
                 Channel = channel,
                 State = state
@@ -76,7 +76,7 @@ namespace SimulDIESEL.BLL.FormsLogic.GSA
             if (!_isLinked())
                 return FailWhenNotLinked<GsaChannelsEnableResponse>();
 
-            return _gsaClient.SetChannelsEnableAsync(new GsaChannelsEnableRequest
+            return _gsaDispatcher.SetChannelsEnableAsync(new GsaChannelsEnableRequest
             {
                 State = state
             });
@@ -87,7 +87,7 @@ namespace SimulDIESEL.BLL.FormsLogic.GSA
             if (!_isLinked())
                 return FailWhenNotLinked<GsaChannelStatusResponse>();
 
-            return _gsaClient.GetChannelStatusAsync(new GsaChannelStatusRequest
+            return _gsaDispatcher.GetChannelStatusAsync(new GsaChannelStatusRequest
             {
                 Channel = channel
             });
@@ -98,7 +98,7 @@ namespace SimulDIESEL.BLL.FormsLogic.GSA
             if (!_isLinked())
                 return FailWhenNotLinked<GsaChannelsStatusResponse>();
 
-            return _gsaClient.GetChannelsStatusAsync();
+            return _gsaDispatcher.GetChannelsStatusAsync();
         }
 
         public Task<GsaOperationResult<GsaChannelFaultResetResponse>> ResetChannelFaultAsync(int channel)
@@ -106,7 +106,7 @@ namespace SimulDIESEL.BLL.FormsLogic.GSA
             if (!_isLinked())
                 return FailWhenNotLinked<GsaChannelFaultResetResponse>();
 
-            return _gsaClient.ResetChannelFaultAsync(new GsaChannelFaultResetRequest
+            return _gsaDispatcher.ResetChannelFaultAsync(new GsaChannelFaultResetRequest
             {
                 Channel = channel
             });
@@ -117,7 +117,7 @@ namespace SimulDIESEL.BLL.FormsLogic.GSA
             if (!_isLinked())
                 return FailWhenNotLinked<GsaChannelOffsetResponse>();
 
-            return _gsaClient.SetChannelOffsetAsync(new GsaChannelOffsetSetRequest
+            return _gsaDispatcher.SetChannelOffsetAsync(new GsaChannelOffsetSetRequest
             {
                 Channel = channel,
                 Kind = kind,
@@ -130,7 +130,7 @@ namespace SimulDIESEL.BLL.FormsLogic.GSA
             if (!_isLinked())
                 return FailWhenNotLinked<GsaChannelOffsetResponse>();
 
-            return _gsaClient.GetChannelOffsetAsync(new GsaChannelOffsetGetRequest
+            return _gsaDispatcher.GetChannelOffsetAsync(new GsaChannelOffsetGetRequest
             {
                 Channel = channel,
                 Kind = kind
@@ -142,7 +142,7 @@ namespace SimulDIESEL.BLL.FormsLogic.GSA
             if (!_isLinked())
                 return FailWhenNotLinked<GsaChannelOffsetSaveResponse>();
 
-            return _gsaClient.SaveChannelOffsetAsync(new GsaChannelOffsetSaveRequest
+            return _gsaDispatcher.SaveChannelOffsetAsync(new GsaChannelOffsetSaveRequest
             {
                 Channel = channel
             });
@@ -153,7 +153,7 @@ namespace SimulDIESEL.BLL.FormsLogic.GSA
             if (!_isLinked())
                 return FailWhenNotLinked<GsaChannelOffsetResetResponse>();
 
-            return _gsaClient.ResetChannelOffsetAsync(new GsaChannelOffsetResetRequest
+            return _gsaDispatcher.ResetChannelOffsetAsync(new GsaChannelOffsetResetRequest
             {
                 Channel = channel
             });
@@ -164,7 +164,7 @@ namespace SimulDIESEL.BLL.FormsLogic.GSA
             if (!_isLinked())
                 return FailWhenNotLinked<GsaOffsetResetResponse>();
 
-            return _gsaClient.ResetOffsetsAsync();
+            return _gsaDispatcher.ResetOffsetsAsync();
         }
 
         private void OnChannelFaultEventReceived(GsaChannelFaultEvent faultEvent)
@@ -188,8 +188,8 @@ namespace SimulDIESEL.BLL.FormsLogic.GSA
             if (_disposed)
                 return;
 
-            _gsaClient.ChannelFaultEventReceived -= OnChannelFaultEventReceived;
-            _gsaClient.PhysicalOperationEventReceived -= OnPhysicalOperationEventReceived;
+            _gsaDispatcher.ChannelFaultEventReceived -= OnChannelFaultEventReceived;
+            _gsaDispatcher.PhysicalOperationEventReceived -= OnPhysicalOperationEventReceived;
             _disposed = true;
         }
     }

@@ -1,13 +1,13 @@
 #pragma once
 
 #include "GwBus.h"
+#include "SdgwDefs.h"
 #include <SPI.h>
 
 class GwSpiBus : public IGwBus {
 public:
-    static constexpr size_t FixedLedRequestLen = 4;
-    static constexpr size_t FixedLedResponseLen = 4;
-    static constexpr size_t FixedLedBurstLen = FixedLedRequestLen + FixedLedResponseLen;
+    static constexpr size_t MaxPacketLen = GW_SPI_PACKET_LIMIT;
+    static constexpr size_t MaxBurstLen = MaxPacketLen;
 
     struct DiagnosticSnapshot {
         bool valid = false;
@@ -20,8 +20,8 @@ public:
         uint8_t crcCalculated = 0x00;
         uint8_t crcReceived = 0x00;
         uint8_t responseStart = 0xFF;
-        uint8_t tx[FixedLedRequestLen] = {0};
-        uint8_t rx[FixedLedBurstLen] = {0};
+        uint8_t tx[MaxPacketLen] = {0};
+        uint8_t rx[MaxBurstLen] = {0};
     };
 
     explicit GwSpiBus(SPIClass& spi = SPI)
@@ -47,5 +47,10 @@ private:
 
     static void csLow(int cs);
     static void csHigh(int cs);
-    static bool isFixedUceLedRequest(uint8_t addr, const uint8_t* tx, size_t txLen);
+    static bool buildTxFrame(const uint8_t* tx, size_t txLen, uint8_t* out, size_t outMax, size_t& packetLen);
+    static bool waitIrqLevel(int irq, int level, uint32_t deadline);
+    static bool transferFrame(SPIClass& spi, const uint8_t* txFrame, uint8_t* rxFrame, size_t len);
+    static bool extractPacket(const uint8_t* frame, size_t frameLen, uint8_t* rx, size_t rxMax, size_t& rxLen);
 };
+
+using SpiLink = GwSpiBus;
