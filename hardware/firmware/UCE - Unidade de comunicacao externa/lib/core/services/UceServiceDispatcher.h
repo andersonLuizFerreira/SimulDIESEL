@@ -2,12 +2,13 @@
 
 #include <stdint.h>
 
+#include "services/can/CanService.h"
 #include "services/led/LedService.h"
 
 class UceServiceDispatcher {
 public:
-  explicit UceServiceDispatcher(LedService& led)
-      : _led(led) {}
+  UceServiceDispatcher(LedService& led, CanService& can)
+      : _led(led), _can(can) {}
 
   void begin();
 
@@ -21,4 +22,5 @@ public:
 
 private:
   LedService& _led;
+  CanService& _can;
 };
