@@ -51,9 +51,12 @@ As definições vivas estão em `include/SdgwDefs.h`.
 | `I2C SCL` | `22` | `A5` da GSA | `IMPLEMENTADO` |
 | `IRQ` de entrada | `19` | `D4` da GSA | `IMPLEMENTADO` |
 | `reset` global | `23` | reset externo da GSA | `IMPLEMENTADO` |
-| `SPI SCK` | `18` | barramento `SPI` futuro | `PARCIALMENTE IMPLEMENTADO` |
-| `SPI MISO` | `26` | barramento `SPI` futuro | `PARCIALMENTE IMPLEMENTADO` |
-| `SPI MOSI` | `25` | barramento `SPI` futuro | `PARCIALMENTE IMPLEMENTADO` |
+| `SPI SCK` | `18` | UCE `SPI SCK` | `IMPLEMENTADO` |
+| `SPI MISO` | `26` | UCE `SPI MISO` | `IMPLEMENTADO` |
+| `SPI MOSI` | `25` | UCE `SPI MOSI` | `IMPLEMENTADO` |
+| `SPI CS` | `33` | UCE `D10 / NPCS0` | `IMPLEMENTADO` |
+| `IRQ` de entrada | `27` | UCE `D2` | `IMPLEMENTADO` |
+| `reset` compartilhado | `23` | reset físico da GSA e da UCE | `IMPLEMENTADO` |
 
 ## Comentário orientado a código
 

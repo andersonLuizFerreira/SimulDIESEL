@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using SimulDIESEL.DTL.Boards.GSA;
+using SimulDIESEL.DTL.Boards.UCE;
 using SimulDIESEL.DTL.Protocols.SDGW;
 
 namespace SimulDIESEL.DAL.Protocols.SDGW
@@ -23,8 +24,8 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
 
         private const string BpmGatewayTarget = "BPM.gateway";
         private const string PingOp = "ping";
-        private const int DefaultGsaTimeoutMs = 400;
-        private const int DefaultGsaRetries = 2;
+        private const int DefaultBoardTimeoutMs = 400;
+        private const int DefaultBoardRetries = 2;
 
         public MappedSdgwCommand Map(SdhCommand command)
         {
@@ -36,6 +37,9 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
 
             if (command.Target.StartsWith("GSA.", StringComparison.OrdinalIgnoreCase))
                 return MapGsa(command);
+
+            if (command.Target.StartsWith("UCE.", StringComparison.OrdinalIgnoreCase))
+                return MapUce(command);
 
             throw new NotSupportedException("Mapeamento SDH->SDGW ainda não suporta target: " + command.Target + ".");
         }
@@ -119,8 +123,61 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
                 Cmd = GwProtocol.MakeCompactCommand(GwProtocol.GsaAddress, GwProtocol.GsaTlvTransactOp),
                 Payload = payload,
                 RequireAck = true,
-                TimeoutMs = DefaultGsaTimeoutMs,
-                Retries = DefaultGsaRetries
+                TimeoutMs = DefaultBoardTimeoutMs,
+                Retries = DefaultBoardRetries
+            };
+        }
+
+        private static MappedSdgwCommand MapUce(SdhCommand command)
+        {
+            byte[] payload;
+
+            if (string.Equals(command.Target, "UCE.led", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = BuildTlvPayload(
+                    GwProtocol.UceSetLedType,
+                    ParseState(command.Args["state"]) ? (byte)0x01 : (byte)0x00);
+            }
+            else if (string.Equals(command.Target, "UCE.can.config", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = BuildTlvPayload(
+                    GwProtocol.UceCanConfigType,
+                    ParseUceController(command),
+                    ParseUceBitrateCode(command),
+                    ParseUceMode(command));
+            }
+            else if (string.Equals(command.Target, "UCE.can.enable", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = BuildTlvPayload(
+                    GwProtocol.UceCanEnableType,
+                    ParseUceController(command),
+                    ParseState(command.Args["state"]) ? GwProtocol.UceCanStateOn : GwProtocol.UceCanStateOff);
+            }
+            else if (string.Equals(command.Target, "UCE.can.status", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = BuildTlvPayload(
+                    GwProtocol.UceCanStatusType,
+                    ParseUceController(command));
+            }
+            else if (string.Equals(command.Target, "UCE.can", StringComparison.OrdinalIgnoreCase) &&
+                     string.Equals(command.Op, "reset", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = BuildTlvPayload(
+                    GwProtocol.UceCanResetType,
+                    ParseUceController(command));
+            }
+            else
+            {
+                throw new NotSupportedException("Mapeamento SDH->SDGW ainda não suporta target: " + command.Target + ".");
+            }
+
+            return new MappedSdgwCommand
+            {
+                Cmd = GwProtocol.MakeCompactCommand(GwProtocol.UceAddress, GwProtocol.UceTlvTransactOp),
+                Payload = payload,
+                RequireAck = true,
+                TimeoutMs = DefaultBoardTimeoutMs,
+                Retries = DefaultBoardRetries
             };
         }
 
@@ -212,6 +269,39 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
                 return GwProtocol.GsaOffsetKindIread;
 
             throw new InvalidOperationException("Kind inválido para mapeamento SDH->SDGW: " + kind + ".");
+        }
+
+        private static byte ParseUceController(SdhCommand command)
+        {
+            UceCanController controller;
+            if (!UceCanProtocol.TryParseController(command.Args["controller"], out controller) ||
+                !UceCanProtocol.TryEncodeController(controller, out byte code))
+            {
+                throw new InvalidOperationException("Controller inválido para mapeamento SDH->SDGW: " + command.Args["controller"] + ".");
+            }
+
+            return code;
+        }
+
+        private static byte ParseUceBitrateCode(SdhCommand command)
+        {
+            int bitrate = ParseInt(command, "bitrate");
+            if (!UceCanProtocol.TryEncodeBitrate(bitrate, out byte code))
+                throw new InvalidOperationException("Bitrate inválido para mapeamento SDH->SDGW: " + bitrate.ToString(CultureInfo.InvariantCulture) + ".");
+
+            return code;
+        }
+
+        private static byte ParseUceMode(SdhCommand command)
+        {
+            UceCanMode mode;
+            if (!UceCanProtocol.TryParseMode(command.Args["mode"], out mode) ||
+                !UceCanProtocol.TryEncodeMode(mode, out byte code))
+            {
+                throw new InvalidOperationException("Mode inválido para mapeamento SDH->SDGW: " + command.Args["mode"] + ".");
+            }
+
+            return code;
         }
     }
 }

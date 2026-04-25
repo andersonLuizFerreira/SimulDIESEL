@@ -153,6 +153,10 @@ build/
 # tools outputs
 tools/out/
 out/dumps/
+# Ignorar tudo em out EXCETO dumps técnicos
+out/*
+!out/dumps/
+!out/dumps/**
 
 docs/00_visao-geral/AUDITORIA_DOCS.md
 docs/00_visao-geral/CONSISTENCIA_DOCS.md

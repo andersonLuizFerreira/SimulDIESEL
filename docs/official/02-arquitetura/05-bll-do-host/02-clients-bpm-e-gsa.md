@@ -1,7 +1,7 @@
 ⬅ [Retornar para BLL do Host](../05-bll-do-host.md)
 ⬅ [Retornar para Índice Geral](../../../00-INDICE.md)
 
-# Clients BPM e GSA
+# Clients BPM, GSA e UCE
 
 ## Posição estrutural
 
@@ -13,6 +13,7 @@ Os clients ficam abaixo das fachadas e acima da DAL. Eles são o último degrau 
 | --- | --- | --- | --- | --- | --- |
 | `BLL/Boards/BPM/BpmClient.cs` | `BpmClient` | `FrmBpmLogic` | `SdhClient` | `IMPLEMENTADO` | `BpmStatusDto`, `BpmCommandResult` |
 | `BLL/Boards/GSA/GsaClient.cs` | `GsaClient` | `FrmGsaLogic`, `frmGSA_UI` | `SdhClient`, `SdgwSession` | `IMPLEMENTADO` | `GsaCommandResult`, `GsaOperationResult<T>`, eventos assíncronos |
+| `BLL/Boards/UCE/UceClient.cs` | `UceClient` | `FrmUceLogic`, `frmUCE_UI` | `SdhClient`, `SdgwSession` | `IMPLEMENTADO` | `UceCommandResult`, `UceOperationResult<T>`, respostas tipadas da CAN |
 | `BLL/Boards/BPM/Backplane/BackplaneService.cs` | `BackplaneService` | `BpmClient` | nenhum | `PARCIALMENTE IMPLEMENTADO` | status textual de expansão |
 | `BLL/Boards/BPM/XConn/XConnService.cs` | `XConnService` | `BpmClient` | nenhum | `PARCIALMENTE IMPLEMENTADO` | status textual de expansão |
 | `BLL/Boards/BPM/Comm/Network/BpmNetworkService.cs` | `BpmNetworkService` | `BpmSerialService.Network` | nenhum | `PLANEJADO` | mensagem de não implementado |
@@ -28,6 +29,13 @@ Os clients ficam abaixo das fachadas e acima da DAL. Eles são o último degrau 
 - `GsaClient` assina `SdgwSession.FrameReceived` e `SdgwSession.EventReceived` no construtor.
 - Cada operação pública cria um `SdhCommand` concreto, como `GSA.channel.setpoint` ou `GSA.channel.offset`.
 - O client mantém um `_requestGate` e um `_pendingRequest`, então a correlação síncrona da GSA é serializada no host atual.
+
+## Fluxo estrutural do client UCE
+
+- `UceClient` assina `SdgwSession.FrameReceived` no construtor.
+- Cada operação pública cria um `SdhCommand` concreto, hoje para `UCE.led`, `UCE.can.config`, `UCE.can.enable`, `UCE.can.status` e `UCE.can reset`.
+- O client mantém `_requestGate` e `_pendingRequest`, então a correlação síncrona da UCE segue o mesmo padrão seguro da GSA, mas sem fluxo de evento assíncrono dedicado nesta entrega.
+- Para CAN, o client usa `UceOperationResult<T>` e parsers tipados para `config`, `enable`, `status` e `reset`.
 
 ## Trecho comentado: BPM
 
@@ -96,7 +104,7 @@ O que esse trecho faz:
 
 ## Classificação dos blocos
 
-- `IMPLEMENTADO`: `BpmClient`, `GsaClient`, ping BPM, LED GSA, setpoint, enable, status, faults, offsets e eventos.
+- `IMPLEMENTADO`: `BpmClient`, `GsaClient`, `UceClient`, ping BPM, LED GSA, LED UCE, CAN da UCE, setpoint, enable, status, faults, offsets e eventos da GSA.
 - `PARCIALMENTE IMPLEMENTADO`: `BackplaneService` e `XConnService` estão conectados à BLL, mas ainda não têm descida real.
 - `PLANEJADO`: `BpmNetworkService`.
 

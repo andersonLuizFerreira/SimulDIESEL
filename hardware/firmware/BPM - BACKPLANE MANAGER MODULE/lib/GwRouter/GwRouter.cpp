@@ -4,6 +4,14 @@
 #include "GwTlv.h"
 #include "SdgwDefs.h"
 
+namespace {
+constexpr uint8_t kDiagVersion = 0x01;
+constexpr uint8_t kDiagLayerGwSpiBus = 0x02;
+constexpr uint8_t kDiagPhaseReadPayload = 0x04;
+constexpr uint8_t kDiagPhaseFinalCrcValidation = 0x05;
+constexpr size_t kDiagHeaderLen = 11;
+}
+
 GwErr GwRouter::route(uint8_t cmd,
                       const uint8_t* reqTlv, uint8_t reqTlvLen,
                       uint8_t* respBuf, size_t respMax, size_t& respLen,
@@ -17,15 +25,22 @@ GwErr GwRouter::route(uint8_t cmd,
     GwDeviceEntry e{};
     if (!GwDeviceTable::get(addr, e)) return GWERR_ADDR_UNMAPPED;
 
-    // O host resolve o contrato interno da board; o gateway apenas roteia.
-    if (!GwTlv::validatePacket(reqTlv, reqTlvLen))
-        return GWERR_BAD_FRAME;
-
-    // escolhe bus
+    // Escolha concreta neste estado saneado:
+    // apenas a GSA permanece roteada ativamente.
     IGwBus* bus = nullptr;
-    if (e.bus == GW_BUS_I2C) bus = &_i2c;
-    else if (e.bus == GW_BUS_SPI) bus = &_spi;
-    else return GWERR_BUS_DOWN;
+    switch (e.bus) {
+        case GW_BUS_I2C:
+            bus = &_i2c;
+            break;
+        case GW_BUS_SPI:
+            bus = &_spi;
+            break;
+        default:
+            return GWERR_BUS_DOWN;
+    }
+
+    if (e.bus == GW_BUS_I2C && !GwTlv::validatePacket(reqTlv, reqTlvLen))
+        return GWERR_BAD_FRAME;
 
     if (!bus->isOk()) {
         // ainda pode tentar, mas aqui sinaliza já
@@ -41,6 +56,53 @@ GwErr GwRouter::route(uint8_t cmd,
 
     respLen = rxLen;
     return GWERR_OK;
+}
+
+bool GwRouter::buildGatewayErrorPayload(uint8_t cmd, GwErr err, uint8_t* out, size_t outMax, size_t& outLen) const
+{
+    outLen = 0;
+    if (!out || outMax < 3) return false;
+
+    const bool isUce = GW_CMD_ADDR(cmd) == GW_ADDR_UCE;
+    const GwSpiBus::DiagnosticSnapshot& diag = _spi.lastDiagnostic();
+    if (isUce && diag.valid &&
+        (err == GWERR_TIMEOUT || err == GWERR_BAD_CRC || err == GWERR_BAD_FRAME)) {
+        const size_t payloadLen = kDiagHeaderLen + diag.txLen + diag.rxLen;
+        if (outMax < payloadLen + 2) {
+            return false;
+        }
+
+        out[0] = SDGW_TLV_GATEWAY_ERR;
+        out[1] = (uint8_t)payloadLen;
+        out[2] = (uint8_t)err;
+        out[3] = kDiagVersion;
+        out[4] = kDiagLayerGwSpiBus;
+        out[5] = (diag.phase != 0x00) ? diag.phase : kDiagPhaseReadPayload;
+        out[6] = diag.cause;
+        out[7] = diag.txLen;
+        out[8] = diag.rxLen;
+        out[9] = diag.expectedLength;
+        out[10] = diag.receivedLength;
+        out[11] = diag.crcCalculated;
+        out[12] = diag.crcReceived;
+
+        size_t cursor = 13;
+        for (size_t index = 0; index < diag.txLen; ++index) {
+            out[cursor++] = diag.tx[index];
+        }
+        for (size_t index = 0; index < diag.rxLen; ++index) {
+            out[cursor++] = diag.rx[index];
+        }
+
+        outLen = cursor;
+        return true;
+    }
+
+    out[0] = SDGW_TLV_GATEWAY_ERR;
+    out[1] = 0x01;
+    out[2] = (uint8_t)err;
+    outLen = 3;
+    return true;
 }
 
 bool GwRouter::pollGsaEvent(uint8_t* respBuf, size_t respMax, size_t& respLen)

@@ -113,10 +113,14 @@ void GatewayApp::drainPendingGsaEvents()
 
 void GatewayApp::sendGatewayErrAsResponse(uint8_t cmd, GwErr err)
 {
-    uint8_t tlv[3];
-    tlv[0] = SDGW_TLV_GATEWAY_ERR;
-    tlv[1] = 0x01;
-    tlv[2] = (uint8_t)err;
+    uint8_t tlv[96];
+    size_t tlvLen = 0;
+    if (!_router.buildGatewayErrorPayload(cmd, err, tlv, sizeof(tlv), tlvLen) || tlvLen == 0) {
+        tlv[0] = SDGW_TLV_GATEWAY_ERR;
+        tlv[1] = 0x01;
+        tlv[2] = (uint8_t)err;
+        tlvLen = 3;
+    }
 
-    _link.sendResponse(cmd, tlv, sizeof(tlv));
+    _link.sendResponse(cmd, tlv, (uint8_t)tlvLen);
 }

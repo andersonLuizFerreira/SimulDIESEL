@@ -1,6 +1,6 @@
 using System;
-using System.Threading;
 using System.Threading.Tasks;
+using SimulDIESEL.BLL.Boards;
 using SimulDIESEL.DAL.Protocols.SDGW;
 using SimulDIESEL.DTL.Boards.GSA;
 using SimulDIESEL.DTL.Protocols.SDGW;
@@ -12,27 +12,20 @@ namespace SimulDIESEL.BLL.Boards.GSA
         private delegate bool GsaResponseParser<T>(SdgwFrame frame, out T response, out string error)
             where T : class;
 
-        private sealed class PendingGsaRequest
-        {
-            public TaskCompletionSource<SdgwFrame> ResponseSource { get; set; }
-            public Func<SdgwFrame, bool> MatchFrame { get; set; }
-        }
-
-        private const int ResponseTimeoutMs = 2000;
-
-        private readonly SdhClient _sdh;
         private readonly SdgwSession _sdgwSession;
-        private readonly SemaphoreSlim _requestGate = new SemaphoreSlim(1, 1);
+        private readonly BoardTlvDispatcher _dispatcher;
 
-        private PendingGsaRequest _pendingRequest;
         private bool _disposed;
 
         public GsaClient(SdhClient sdh, SdgwSession sdgwSession)
         {
-            _sdh = sdh ?? throw new ArgumentNullException(nameof(sdh));
             _sdgwSession = sdgwSession ?? throw new ArgumentNullException(nameof(sdgwSession));
+            _dispatcher = new BoardTlvDispatcher(
+                sdh,
+                sdgwSession,
+                GwProtocol.GsaAddress,
+                GwProtocol.GsaTlvTransactOp);
 
-            _sdgwSession.FrameReceived += OnFrameReceived;
             _sdgwSession.EventReceived += OnEventReceived;
         }
 
@@ -249,77 +242,39 @@ namespace SimulDIESEL.BLL.Boards.GSA
         {
             ThrowIfDisposed();
 
-            await _requestGate.WaitAsync().ConfigureAwait(false);
+            BoardTlvDispatchResult dispatchResult = await _dispatcher
+                .TransactAsync(command, frame => MatchesExpectedResponse(frame, expectedType, expectedLen, expectedChannel), operationName)
+                .ConfigureAwait(false);
+
+            if (!dispatchResult.Success)
+                return GsaOperationResult<T>.Fail(dispatchResult.Message, dispatchResult.SendOutcome);
+
             try
             {
-                _pendingRequest = new PendingGsaRequest
-                {
-                    ResponseSource = new TaskCompletionSource<SdgwFrame>(TaskCreationOptions.RunContinuationsAsynchronously),
-                    MatchFrame = frame => MatchesExpectedResponse(frame, expectedType, expectedLen, expectedChannel)
-                };
-
-                SdGwLinkEngine.SendOutcome outcome = await _sdh.SendAsync(
-                    command,
-                    SdGwTxPriority.High,
-                    operationName).ConfigureAwait(false);
-
-                if (outcome != SdGwLinkEngine.SendOutcome.Acked)
-                    return GsaOperationResult<T>.Fail(TranslateOutcome(outcome, operationName), outcome);
-
-                SdgwFrame responseFrame = await WaitForResponseAsync(_pendingRequest).ConfigureAwait(false);
-
                 GsaGatewayErrorResponse gatewayError;
                 string gatewayErrorParseMessage;
-                if (GsaParsers.TryReadGatewayError(responseFrame, out gatewayError, out gatewayErrorParseMessage))
-                    return GsaOperationResult<T>.Fail(gatewayError.Message, outcome);
+                if (GsaParsers.TryReadGatewayError(dispatchResult.Frame, out gatewayError, out gatewayErrorParseMessage))
+                    return GsaOperationResult<T>.Fail(gatewayError.Message, dispatchResult.SendOutcome);
 
                 GsaFunctionalErrorResponse functionalError;
                 string functionalErrorParseMessage;
-                if (GsaParsers.TryReadFunctionalError(responseFrame, out functionalError, out functionalErrorParseMessage))
-                    return GsaOperationResult<T>.FunctionalFail(functionalError, outcome);
+                if (GsaParsers.TryReadFunctionalError(dispatchResult.Frame, out functionalError, out functionalErrorParseMessage))
+                    return GsaOperationResult<T>.FunctionalFail(functionalError, dispatchResult.SendOutcome);
 
                 T response;
                 string error;
-                if (!parser(responseFrame, out response, out error))
-                    return GsaOperationResult<T>.Fail(error, outcome);
+                if (!parser(dispatchResult.Frame, out response, out error))
+                    return GsaOperationResult<T>.Fail(error, dispatchResult.SendOutcome);
 
                 return GsaOperationResult<T>.Succeeded(
                     response,
-                    outcome,
+                    dispatchResult.SendOutcome ?? SdGwLinkEngine.SendOutcome.Acked,
                     "Resposta síncrona recebida da GSA para " + operationName + ".");
-            }
-            catch (OperationCanceledException)
-            {
-                return GsaOperationResult<T>.Fail("Timeout aguardando a resposta da GSA para " + operationName + ".");
             }
             catch (Exception ex)
             {
                 return GsaOperationResult<T>.Fail("Falha ao processar a resposta da GSA para " + operationName + ": " + ex.Message);
             }
-            finally
-            {
-                _pendingRequest = null;
-                _requestGate.Release();
-            }
-        }
-
-        private void OnFrameReceived(SdgwFrame frame)
-        {
-            PendingGsaRequest pending = _pendingRequest;
-            if (pending == null || frame == null)
-                return;
-
-            if ((frame.Flags & 0x02) != 0)
-                return;
-
-            if (frame.Cmd != GwProtocol.MakeCompactCommand(GwProtocol.GsaAddress, GwProtocol.GsaTlvTransactOp))
-                return;
-
-            Func<SdgwFrame, bool> matcher = pending.MatchFrame;
-            if (matcher == null || !matcher(frame))
-                return;
-
-            pending.ResponseSource.TrySetResult(frame);
         }
 
         private void OnEventReceived(SdgwFrame frame)
@@ -344,26 +299,6 @@ namespace SimulDIESEL.BLL.Boards.GSA
                 return;
 
             ChannelFaultEventReceived?.Invoke(faultEvent);
-        }
-
-        private static Task<SdgwFrame> WaitForResponseAsync(PendingGsaRequest pendingRequest)
-        {
-            return WaitForResponseCoreAsync(pendingRequest);
-        }
-
-        private static async Task<SdgwFrame> WaitForResponseCoreAsync(PendingGsaRequest pendingRequest)
-        {
-            if (pendingRequest == null)
-                throw new OperationCanceledException();
-
-            Task finished = await Task.WhenAny(
-                pendingRequest.ResponseSource.Task,
-                Task.Delay(ResponseTimeoutMs)).ConfigureAwait(false);
-
-            if (finished != pendingRequest.ResponseSource.Task)
-                throw new OperationCanceledException();
-
-            return await pendingRequest.ResponseSource.Task.ConfigureAwait(false);
         }
 
         private static bool MatchesExpectedResponse(SdgwFrame frame, byte expectedType, byte expectedLen, int? expectedChannel)
@@ -443,25 +378,6 @@ namespace SimulDIESEL.BLL.Boards.GSA
             }
         }
 
-        private static string TranslateOutcome(SdGwLinkEngine.SendOutcome outcome, string operationName)
-        {
-            switch (outcome)
-            {
-                case SdGwLinkEngine.SendOutcome.Nacked:
-                    return "A BPM rejeitou o comando para " + operationName + ".";
-                case SdGwLinkEngine.SendOutcome.Timeout:
-                    return "Timeout aguardando ACK do gateway para " + operationName + ".";
-                case SdGwLinkEngine.SendOutcome.TransportDown:
-                    return "O transporte ativo da BPM está indisponível no momento.";
-                case SdGwLinkEngine.SendOutcome.Busy:
-                    return "O link estava temporariamente ocupado. Tente novamente.";
-                case SdGwLinkEngine.SendOutcome.Enqueued:
-                    return "O comando foi enfileirado, mas não houve confirmação do gateway.";
-                default:
-                    return "Falha ao enviar comando para " + operationName + ".";
-            }
-        }
-
         private void ThrowIfDisposed()
         {
             if (_disposed)
@@ -473,9 +389,8 @@ namespace SimulDIESEL.BLL.Boards.GSA
             if (_disposed)
                 return;
 
-            _sdgwSession.FrameReceived -= OnFrameReceived;
             _sdgwSession.EventReceived -= OnEventReceived;
-            _requestGate.Dispose();
+            _dispatcher.Dispose();
             _disposed = true;
         }
     }

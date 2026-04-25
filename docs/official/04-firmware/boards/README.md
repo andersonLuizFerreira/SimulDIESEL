@@ -7,7 +7,7 @@ Esta pasta agrupa as boards sob o ponto de vista do firmware embarcado.
 
 ## Estado real da pasta
 
-- **IMPLEMENTADO**: `BPM` e `GSA` têm firmware, arquivos, classes e fluxo observáveis.
+- **IMPLEMENTADO**: `BPM`, `GSA` e `UCE` têm firmware, arquivos, classes e fluxo observáveis.
 - **PLANEJADO**: `PSU`, `GSC`, `URL`, `SLU`, `UCO`, `UCS`, `UIOD` e `UHM` permanecem como placeholders documentais.
 - **LEGADO**: qualquer leitura que suponha firmware ativo para todas as boards listadas aqui.
 
@@ -16,6 +16,7 @@ Esta pasta agrupa as boards sob o ponto de vista do firmware embarcado.
 - [01. BPM](BPM/01-bpm.md)
 - [02. PSU](PSU/02-psu.md)
 - [03. GSA](GSA/03-gsa.md)
+- [11. UCE](UCE/11-uce.md)
 - [04. GSC](04-gsc.md)
 - [05. URL](05-url.md)
 - [06. SLU](06-slu.md)
@@ -26,7 +27,7 @@ Esta pasta agrupa as boards sob o ponto de vista do firmware embarcado.
 
 ## Leitura correta deste ramo
 
-- `BPM` e `GSA` devem ser lidas como páginas vivas de firmware.
+- `BPM`, `GSA` e `UCE` devem ser lidas como páginas vivas de firmware.
 - As demais pages ajudam a preservar nomenclatura e intenção do projeto, mas ainda não representam código embarcado implementado.
 
 ## Glossário
@@ -40,6 +41,7 @@ Esta pasta agrupa as boards sob o ponto de vista do firmware embarcado.
 - [BPM](BPM/01-bpm.md)
 - [PSU](PSU/02-psu.md)
 - [GSA](GSA/03-gsa.md)
+- [UCE](UCE/11-uce.md)
 - [GSC](04-gsc.md)
 - [URL](05-url.md)
 - [SLU](06-slu.md)

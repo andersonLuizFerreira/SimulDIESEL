@@ -118,18 +118,19 @@ Tempo estimado: 15 minutos.
 
 ---
 
-### 6. Contrato oficial da GSA
+### 6. Contratos oficiais das boards vivas
 
-Arquivo:
+Arquivos:
 
     docs/official/06-protocolos/06-gsa-sdh-tlv.md
+    docs/official/06-protocolos/07-uce-sdh-tlv.md
 
 Objetivo:
 
-- entender o subconjunto SDH hoje suportado pela GSA;
-- compreender o contrato TLV binário entre gateway e board;
-- entender status, enable, offsets e evento de fault;
-- entender o conflito histórico do type `0x12` e a migração oficial de `channel.status` para `0x1B`.
+- entender o subconjunto SDH hoje suportado pela GSA e pela UCE;
+- compreender os contratos TLV binários entre gateway e board;
+- entender status, enable, offsets e evento de fault da GSA;
+- entender o contrato compacto de `UCE.led` e `UCE.can.*`.
 
 Tempo estimado: 25 minutos.
 
@@ -188,6 +189,7 @@ Após seguir essa sequência, o engenheiro deverá ser capaz de:
 - Argumentos devem ser sempre explícitos.
 - O catálogo documental geral de SDH é maior que o subconjunto efetivamente suportado hoje no host.
 - Para a GSA, a referência oficial do contrato vigente é `docs/official/06-protocolos/06-gsa-sdh-tlv.md`.
+- Para a UCE, a referência oficial do contrato vigente é `docs/official/06-protocolos/07-uce-sdh-tlv.md`.
 
 ## Próximos passos recomendados
 

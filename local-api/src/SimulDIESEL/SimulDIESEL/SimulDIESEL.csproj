@@ -46,6 +46,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BLL\Boards\BoardDispatcher.cs" />
+    <Compile Include="BLL\Boards\BoardTlvDispatcher.cs" />
     <Compile Include="BLL\Boards\BPM\BpmClient.cs" />
     <Compile Include="BLL\Boards\BPM\BpmCommandResult.cs" />
     <Compile Include="BLL\Boards\BPM\BpmParsers.cs" />
@@ -56,12 +58,20 @@
     <Compile Include="BLL\Boards\BPM\Comm\Serial\BpmSerialService.cs" />
     <Compile Include="BLL\Boards\BPM\XConn\XConnService.cs" />
     <Compile Include="BLL\Boards\GSA\GsaClient.cs" />
+    <Compile Include="BLL\Boards\GSA\GsaDispatcher.cs" />
     <Compile Include="BLL\Boards\GSA\GsaChannelScaling.cs" />
     <Compile Include="BLL\Boards\GSA\GsaCommandResult.cs" />
     <Compile Include="BLL\Boards\GSA\GsaOperationResult.cs" />
     <Compile Include="BLL\Boards\GSA\GsaParsers.cs" />
+    <Compile Include="BLL\Boards\UCE\UceClient.cs" />
+    <Compile Include="BLL\Boards\UCE\UceDispatcher.cs" />
+    <Compile Include="BLL\Boards\UCE\UceCommandResult.cs" />
+    <Compile Include="BLL\Boards\UCE\UceGatewayDiagnosticLog.cs" />
+    <Compile Include="BLL\Boards\UCE\UceOperationResult.cs" />
+    <Compile Include="BLL\Boards\UCE\UceParsers.cs" />
     <Compile Include="BLL\FormsLogic\BPM\FrmBpmLogic.cs" />
     <Compile Include="BLL\FormsLogic\GSA\FrmGsaLogic.cs" />
+    <Compile Include="BLL\FormsLogic\UCE\FrmUceLogic.cs" />
     <Compile Include="DAL\Protocols\SDGW\SdhClient.cs" />
     <Compile Include="DAL\Protocols\SDGW\SdhTextParser.cs" />
     <Compile Include="DAL\Protocols\SDGW\SdhTextSerializer.cs" />
@@ -90,6 +100,9 @@
     <Compile Include="DTL\Boards\GSA\GsaCommon.cs" />
     <Compile Include="DTL\Boards\GSA\GsaRequests.cs" />
     <Compile Include="DTL\Boards\GSA\GsaResponses.cs" />
+    <Compile Include="DTL\Boards\UCE\UceCanProtocol.cs" />
+    <Compile Include="DTL\Boards\UCE\UceCanResponses.cs" />
+    <Compile Include="DTL\Boards\UCE\UceLedResponse.cs" />
     <Compile Include="DTL\Common\DeviceInfo.cs" />
     <Compile Include="DTL\Common\OperationStatusDto.cs" />
     <Compile Include="DTL\Protocols\SDGW\GwProtocol.cs" />
@@ -133,6 +146,12 @@
     </Compile>
     <Compile Include="UI\frmGSA_UI.Designer.cs">
       <DependentUpon>frmGSA_UI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\frmUCE_UI.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\frmUCE_UI.Designer.cs">
+      <DependentUpon>frmUCE_UI.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\frmBluetoothConnect.cs">
       <SubType>Form</SubType>

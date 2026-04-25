@@ -1,8 +1,10 @@
 using System;
 using System.IO.Ports;
+using SimulDIESEL.BLL.Boards;
 using SimulDIESEL.BLL.Boards.BPM.Backplane;
 using SimulDIESEL.BLL.Boards.BPM.XConn;
 using SimulDIESEL.BLL.Boards.GSA;
+using SimulDIESEL.BLL.Boards.UCE;
 using SimulDIESEL.DAL.Protocols.SDGW;
 using SimulDIESEL.DAL.Transport;
 using SimulDIESEL.DAL.Transport.Bluetooth;
@@ -62,6 +64,10 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
         public SdgwSession Sdgw => _session != null ? _session.Sdgw : null;
         public SdhClient Sdh => _session != null ? _session.Sdh : null;
         public GsaClient Gsa { get; private set; }
+        public IGsaDispatcher GsaDispatcher { get; private set; }
+        public UceClient Uce { get; private set; }
+        public IUceDispatcher UceDispatcher { get; private set; }
+        public IBoardDispatcher BoardDispatcher { get; private set; }
         public BpmClient Bpm { get; private set; }
         public BackplaneService Backplane { get; private set; }
         public XConnService XConn { get; private set; }
@@ -93,6 +99,10 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
             Bluetooth = new Comm.Bluetooth.BpmBluetoothService(this);
             Network = new Comm.Network.BpmNetworkService();
             Gsa = new GsaClient(Sdh, Sdgw);
+            Uce = new UceClient(Sdh, Sdgw);
+            GsaDispatcher = new GsaDispatcher(Gsa);
+            UceDispatcher = new UceDispatcher(Uce);
+            BoardDispatcher = new BoardDispatcher(UceDispatcher, GsaDispatcher);
             Bpm = new BpmClient(Sdh, this, Backplane, XConn);
         }
 
@@ -170,10 +180,19 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
             _session.InterfaceNameChanged -= OnSessionInterfaceNameChanged;
             _session.StateChanged -= OnSessionStateChanged;
 
+            IDisposable disposableGsaDispatcher = GsaDispatcher as IDisposable;
+            if (disposableGsaDispatcher != null)
+                disposableGsaDispatcher.Dispose();
             if (Gsa != null)
                 Gsa.Dispose();
+            if (Uce != null)
+                Uce.Dispose();
 
             Gsa = null;
+            GsaDispatcher = null;
+            Uce = null;
+            UceDispatcher = null;
+            BoardDispatcher = null;
             Bpm = null;
             _session.Dispose();
         }

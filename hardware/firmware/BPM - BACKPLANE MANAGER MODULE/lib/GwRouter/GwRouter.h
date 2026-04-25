@@ -4,10 +4,12 @@
 
 #include "GwBus.h"
 #include "GwErr.h"
+#include "GwI2cBus.h"
+#include "GwSpiBus.h"
 
 class GwRouter {
 public:
-    GwRouter(IGwBus& i2c, IGwBus& spi)
+    GwRouter(GwI2cBus& i2c, GwSpiBus& spi)
     : _i2c(i2c), _spi(spi) {}
 
     // Roteia uma requisicao para a baby board externa indicada por
@@ -19,8 +21,9 @@ public:
                 uint16_t timeoutMs);
 
     bool pollGsaEvent(uint8_t* respBuf, size_t respMax, size_t& respLen);
+    bool buildGatewayErrorPayload(uint8_t cmd, GwErr err, uint8_t* out, size_t outMax, size_t& outLen) const;
 
 private:
-    IGwBus& _i2c;
-    IGwBus& _spi;
+    GwI2cBus& _i2c;
+    GwSpiBus& _spi;
 };

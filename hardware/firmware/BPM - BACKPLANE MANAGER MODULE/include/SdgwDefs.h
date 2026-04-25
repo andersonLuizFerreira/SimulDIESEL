@@ -13,11 +13,15 @@
 #define BPM_GLOBAL_RESET_ACTIVE_LEVEL LOW
 #define BPM_GLOBAL_RESET_INACTIVE_LEVEL HIGH
 
-// SPI dedicado da BPM.
+// ============================================================
+// SPI - UCE backplane
+// ============================================================
 #define BPM_SPI_SCK_PIN       18
 #define BPM_SPI_MISO_PIN      26
 #define BPM_SPI_MOSI_PIN      25
-#define BPM_SPI_CLOCK_HZ      8000000UL
+#define BPM_UCE_SPI_CS_PIN    33
+#define BPM_UCE_IRQ_PIN       27
+#define BPM_UCE_RESET_PIN     BPM_GLOBAL_RESET_PIN
 
 // ============================================================
 // GSA - TLV commands (I2C payload)
@@ -34,6 +38,8 @@
 #define GSA_CMD_FAULT_EVENT    0x30
 #define GSA_CMD_PHYSICAL_EVENT 0x31
 #define GSA_CMD_FUNC_ERROR     0x7F
+#define UCE_CMD_SET_LED        0x12
+#define UCE_CMD_FUNC_ERROR     0x7F
 
 #define LED_BUILTIN  2
 // ============================================================
@@ -56,6 +62,7 @@
 // COBS worst-case: len + len/254 + 1  (250 => 252) + delimiter => 253
 // Mantemos folga para robustez
 #define SDGW_MAX_ENCODED_FRAME          384
+#define GW_SPI_PACKET_LIMIT             64
 
 // Cache de resposta para retransmissão (ACK/ERR + delimiter)
 // 64 é suficiente para ACK/ERR + 1 byte de erro, mas deixamos folga
@@ -129,6 +136,7 @@
 // ============================================================
 #define GW_ADDR_BPM         0x0
 #define GW_ADDR_GSA         0x1
+#define GW_ADDR_UCE         0x2
 #define GW_ADDR_BROADCAST   0xF
 
 #define GW_MAKE_CMD(addr, op4)   (uint8_t)((((addr) & 0x0F) << 4) | ((op4) & 0x0F))
@@ -140,7 +148,10 @@
 
 // GSA ops (0..15)
 #define GW_OP_GSA_TLV_TRANSACT   0x0
+// UCE ops (0..15)
+#define GW_OP_UCE_TLV_TRANSACT   0x0
 
 // Comandos compactos resolvidos pelo host.
 #define SDGW_CMD_BPM_PING        GW_MAKE_CMD(GW_ADDR_BPM, GW_OP_BPM_PING)
 #define SDGW_CMD_GSA_TLV         GW_MAKE_CMD(GW_ADDR_GSA, GW_OP_GSA_TLV_TRANSACT)
+#define SDGW_CMD_UCE_TLV         GW_MAKE_CMD(GW_ADDR_UCE, GW_OP_UCE_TLV_TRANSACT)

@@ -21,7 +21,7 @@ Na leitura lógica do host, a camada hardware do software é o conjunto de class
 | fila, framing e ACK | `SdGwTxScheduler`, `SdGwLinkEngine` | `IMPLEMENTADO` | stop-and-wait, COBS, CRC, timeout e retry |
 | watchdog de saúde | `SdGwLinkSupervisor` | `IMPLEMENTADO` | mede silêncio de RX válido e agenda ping |
 | adaptação física | `SwitchableTransport`, `SerialTransport`, `BluetoothTransport` | `IMPLEMENTADO` | entregam bytes ao endpoint físico ativo |
-| casos funcionais de board | `GsaClient`, `BpmClient` | `IMPLEMENTADO` | transformam resposta técnica em resultado funcional |
+| casos funcionais de board | `GsaClient`, `UceClient`, `BpmClient` | `IMPLEMENTADO` | transformam resposta técnica em resultado funcional; `UceClient` agora cobre LED e configuração CAN |
 
 ## Fluxos lógicos confirmados
 
@@ -31,15 +31,40 @@ Na leitura lógica do host, a camada hardware do software é o conjunto de class
 
 ### Caminho de comando
 
-`FrmGsaLogic` ou `BpmClient` chamam `SdhClient`, que valida o comando, mapeia o target para TLV SDGW e entrega o envio para `SdgwSession`.
+`FrmGsaLogic`, `FrmUceLogic` ou `BpmClient` chamam `SdhClient`, que valida o comando, mapeia o target para TLV SDGW e entrega o envio para `SdgwSession`.
+
+Na UCE, isso agora cobre dois grupos de uso:
+
+- LED residual: `UCE.led set state=on|off`
+- CAN: `UCE.can.config`, `UCE.can.enable`, `UCE.can.status` e `UCE.can reset`
 
 ### Caminho de resposta
 
 `SdGwLinkEngine` decodifica o frame, valida CRC, trata `ACK` e `ERR`, e `SdgwSession` repassa o frame lógico para quem estiver inscrito.
 
+Para a UCE, as respostas continuam síncronas e compactas. `UceParsers` agora interpreta:
+
+- confirmação do LED
+- resposta de `config`
+- resposta de `enable`
+- resposta de `status`
+- resposta de `reset`
+- erro funcional `0x7F`
+- erro de gateway `0xFE`
+
 ### Caminho de evento
 
-`GsaClient` consome `SdgwSession.EventReceived`, interpreta `fault` e resultado físico, e sobe esses eventos para `FrmGsaLogic` e `frmGSA_UI`.
+`GsaClient` consome `SdgwSession.EventReceived`, interpreta `fault` e resultado físico, e sobe esses eventos para `FrmGsaLogic` e `frmGSA_UI`. `UceClient` continua trabalhando apenas com resposta síncrona compacta e entrega o resultado para `FrmUceLogic` e `frmUCE_UI`; a feature CAN da UCE não abriu canal assíncrono novo no host.
+
+## Ponto específico da UI da UCE
+
+Na tela `frmUCE_UI`, a área CAN agora faz:
+
+- leitura inicial de `UCE.can.status get` ao carregar a janela
+- `UCE.can.config set` ao alterar velocidade ou modo
+- `UCE.can.enable set` ao marcar ou desmarcar a porta
+
+O controller segue fixo em `can0` na UI desta rodada.
 
 ## Trecho comentado: composição lógica do host
 
