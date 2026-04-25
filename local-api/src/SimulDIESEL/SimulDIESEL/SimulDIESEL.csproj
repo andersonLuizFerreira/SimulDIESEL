@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BLL\Boards\BoardDispatcher.cs" />
+    <Compile Include="BLL\Boards\BoardTlvDispatcher.cs" />
     <Compile Include="BLL\Boards\BPM\BpmClient.cs" />
     <Compile Include="BLL\Boards\BPM\BpmCommandResult.cs" />
     <Compile Include="BLL\Boards\BPM\BpmParsers.cs" />
