@@ -138,6 +138,47 @@ bool GwSpiBus::transact(uint8_t addr,
     return packetOk;
 }
 
+bool GwSpiBus::pollEvent(uint8_t addr,
+                         uint8_t* rx, size_t rxMax, size_t& rxLen,
+                         uint16_t timeoutMs)
+{
+    rxLen = 0;
+    if (!rx || rxMax < 3) {
+        return false;
+    }
+
+    GwDeviceEntry e{};
+    if (!GwDeviceTable::get(addr, e) || e.bus != GW_BUS_SPI || e.spiCsPin < 0) {
+        return false;
+    }
+
+    const int cs = e.spiCsPin;
+    const int irq = e.spiIrqPin;
+    pinMode(cs, OUTPUT);
+    csHigh(cs);
+    if (irq >= 0) {
+        pinMode(irq, INPUT_PULLUP);
+    }
+
+    SPISettings st(_hz, SPI_MSBFIRST, SPI_MODE0);
+    uint8_t readTx[GwSpiBus::MaxBurstLen] = {0};
+    uint8_t eventFrame[GwSpiBus::MaxBurstLen] = {0};
+
+    _spi.beginTransaction(st);
+    csLow(cs);
+    if (!waitIrqLevel(irq, LOW, millis() + timeoutMs)) {
+        csHigh(cs);
+        _spi.endTransaction();
+        return false;
+    }
+    transferFrame(_spi, readTx, eventFrame, GwSpiBus::MaxBurstLen);
+    csHigh(cs);
+    _spi.endTransaction();
+
+    return extractPacket(eventFrame, GwSpiBus::MaxBurstLen, rx, rxMax, rxLen) &&
+           GwTlv::validatePacket(rx, rxLen);
+}
+
 void GwSpiBus::csLow(int cs)
 {
     digitalWrite(cs, LOW);

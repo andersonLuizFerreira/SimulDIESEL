@@ -18,12 +18,14 @@ volatile uint8_t SpiLink::_rxBuf[SpiLink::BufferSize];
 volatile uint8_t SpiLink::_txBuf[SpiLink::BufferSize];
 volatile uint16_t SpiLink::_index = 0;
 volatile bool SpiLink::_rxReady = false;
+volatile bool SpiLink::_txPending = false;
 volatile bool SpiLink::_transferActive = false;
 
 void SpiLink::begin() {
   _self = this;
   _index = 0;
   _rxReady = false;
+  _txPending = false;
   _transferActive = false;
   memset((void*)_rxBuf, 0, BufferSize);
   memset((void*)_txBuf, 0, BufferSize);
@@ -55,6 +57,10 @@ bool SpiLink::available() const {
   return _rxReady;
 }
 
+bool SpiLink::txPending() const {
+  return _txPending;
+}
+
 bool SpiLink::read(uint8_t* dst, size_t& len) {
   len = 0;
   if (!dst || !_rxReady) {
@@ -77,8 +83,13 @@ bool SpiLink::write(const uint8_t* src, size_t len) {
   }
 
   noInterrupts();
+  if (_txPending || _transferActive) {
+    interrupts();
+    return false;
+  }
   memset((void*)_txBuf, 0, BufferSize);
   memcpy((void*)_txBuf, src, len);
+  _txPending = true;
   interrupts();
 
   pulseAttention();
@@ -125,6 +136,10 @@ void SpiLink::onSpiInterrupt() {
   if (status & SPI_SR_NSSR) {
     _transferActive = false;
     _rxReady = (_index == BufferSize);
+    if (_txPending) {
+      _txPending = false;
+      _txBuf[0] = 0;
+    }
     _index = 0;
     setIrqReady(false);
     SPI0->SPI_TDR = 0;

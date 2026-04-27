@@ -13,6 +13,7 @@ public:
 
   void begin();
   void poll();
+  bool publishEvent(uint8_t type, const uint8_t* value, uint8_t valueLen);
 
 private:
   static uint8_t crc8(const uint8_t* data, size_t len);
@@ -22,7 +23,13 @@ private:
   static bool findCobsFrame(const uint8_t* frame, size_t frameLen, size_t& cobsLen);
   static bool cobsEncode(const uint8_t* in, size_t inLen, uint8_t* out, size_t outMax, size_t& outLen);
   static bool cobsDecode(const uint8_t* in, size_t inLen, uint8_t* out, size_t outMax, size_t& outLen);
+  bool queueEvent(uint8_t type, const uint8_t* value, uint8_t valueLen);
+  bool drainPendingEvent();
 
   SpiLink& _link;
   UceServiceDispatcher& _dispatcher;
+  bool _pendingEvent = false;
+  uint8_t _pendingEventType = 0;
+  uint8_t _pendingEventValue[SpiLink::BufferSize - 3] = {0};
+  uint8_t _pendingEventValueLen = 0;
 };

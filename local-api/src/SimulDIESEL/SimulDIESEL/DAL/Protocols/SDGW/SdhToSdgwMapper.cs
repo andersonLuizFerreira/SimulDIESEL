@@ -159,6 +159,31 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
                     GwProtocol.UceCanStatusType,
                     ParseUceController(command));
             }
+            else if (string.Equals(command.Target, "UCE.can.rx", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = BuildTlvPayload(
+                    GwProtocol.UceCanRxPollType,
+                    ParseUceController(command));
+            }
+            else if (string.Equals(command.Target, "UCE.can.driverLog", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = BuildTlvPayload(
+                    GwProtocol.UceCanDriverLogPollType,
+                    ParseUceController(command));
+            }
+            else if (string.Equals(command.Target, "UCE.can.tx", StringComparison.OrdinalIgnoreCase) &&
+                     string.Equals(command.Op, "send", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = BuildTlvPayload(GwProtocol.UceCanTxType, BuildUceCanTxPayload(command));
+            }
+            else if (string.Equals(command.Target, "UCE.can.tx", StringComparison.OrdinalIgnoreCase) &&
+                     string.Equals(command.Op, "stop", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = BuildTlvPayload(
+                    GwProtocol.UceCanTxStopType,
+                    ParseUceController(command),
+                    ParseByte(command, "slot"));
+            }
             else if (string.Equals(command.Target, "UCE.can", StringComparison.OrdinalIgnoreCase) &&
                      string.Equals(command.Op, "reset", StringComparison.OrdinalIgnoreCase))
             {
@@ -228,6 +253,28 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
             return payload;
         }
 
+        private static byte[] BuildUceCanTxPayload(SdhCommand command)
+        {
+            byte[] payload = new byte[GwProtocol.UceCanTxRequestPayloadLength];
+            bool extended = ParseBool01(command, "extended");
+            uint id = ParseUInt32(command, "id") & (extended ? 0x1FFFFFFFU : 0x7FFU);
+            ushort period = checked((ushort)ParseInt(command, "period"));
+
+            payload[0] = ParseUceController(command);
+            payload[1] = extended ? (byte)0x01 : (byte)0x00;
+            payload[2] = ParseByte(command, "dlc");
+            payload[3] = (byte)(period & 0xFF);
+            payload[4] = (byte)((period >> 8) & 0xFF);
+            payload[5] = (byte)(id & 0xFF);
+            payload[6] = (byte)((id >> 8) & 0xFF);
+            payload[7] = (byte)((id >> 16) & 0xFF);
+            payload[8] = (byte)((id >> 24) & 0xFF);
+            for (int i = 0; i < 8; ++i)
+                payload[9 + i] = ParseByte(command, "d" + i.ToString(CultureInfo.InvariantCulture));
+
+            return payload;
+        }
+
         private static byte ParseChannel(SdhCommand command)
         {
             int channel = ParseInt(command, "channel");
@@ -250,6 +297,26 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
         {
             string rawValue = command.Args[argName];
             return int.Parse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture);
+        }
+
+        private static uint ParseUInt32(SdhCommand command, string argName)
+        {
+            string rawValue = command.Args[argName];
+            return uint.Parse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture);
+        }
+
+        private static bool ParseBool01(SdhCommand command, string argName)
+        {
+            string rawValue = command.Args[argName];
+            if (string.Equals(rawValue, "1", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(rawValue, "true", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            if (string.Equals(rawValue, "0", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(rawValue, "false", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            throw new InvalidOperationException("Argumento inválido para " + command.Target + ": " + argName + ".");
         }
 
         private static bool ParseState(string state)

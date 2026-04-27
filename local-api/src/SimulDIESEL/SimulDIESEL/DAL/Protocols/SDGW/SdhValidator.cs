@@ -148,6 +148,28 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
                 return;
             }
 
+            if (string.Equals(target.Subresource, "rx", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireOp(command, "poll");
+                RequireArgCount(command, 1);
+                RequireControllerArg(command);
+                return;
+            }
+
+            if (string.Equals(target.Subresource, "driverLog", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireOp(command, "poll");
+                RequireArgCount(command, 1);
+                RequireControllerArg(command);
+                return;
+            }
+
+            if (string.Equals(target.Subresource, "tx", StringComparison.OrdinalIgnoreCase))
+            {
+                ValidateUceCanTx(command);
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(target.Subresource))
             {
                 RequireOp(command, "reset");
@@ -204,6 +226,46 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
             }
 
             throw new NotSupportedException("Target SDH não suportado nesta fase: " + command.Target + ".");
+        }
+
+        private static void ValidateUceCanTx(SdhCommand command)
+        {
+            if (string.Equals(command.Op, "send", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireArgCount(command, 13);
+                RequireControllerArg(command);
+                bool extended = RequireBool01Arg(command, "extended");
+                uint id = RequireUInt32Arg(command, "id");
+                if (!extended && id > 0x7FFU)
+                    throw new InvalidOperationException("ID inválido para CAN STD. Valor máximo: 0x7FF.");
+                if (extended && id > 0x1FFFFFFFU)
+                    throw new InvalidOperationException("ID inválido para CAN EXT. Valor máximo: 0x1FFFFFFF.");
+
+                byte dlc = RequireByteArg(command, "dlc");
+                if (dlc > 8)
+                    throw new InvalidOperationException("DLC inválido para CAN_TX. Faixa aceita: 0..8.");
+
+                int period = RequireIntArg(command, "period");
+                if (period < 0 || period > ushort.MaxValue)
+                    throw new InvalidOperationException("Periodo inválido para CAN_TX. Faixa aceita: 0..65535 ms.");
+
+                for (int i = 0; i < 8; ++i)
+                    RequireByteArg(command, "d" + i.ToString(CultureInfo.InvariantCulture));
+
+                return;
+            }
+
+            if (string.Equals(command.Op, "stop", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireArgCount(command, 2);
+                RequireControllerArg(command);
+                byte slot = RequireByteArg(command, "slot");
+                if (slot != 0x00 && slot != 0xFF)
+                    throw new InvalidOperationException("Slot inválido para CAN_TX stop. Valores aceitos: 0 ou 255.");
+                return;
+            }
+
+            throw new NotSupportedException("Op SDH não suportada para " + command.Target + ": " + command.Op + ".");
         }
 
         private static void ValidateGsaChannels(SdhTarget target, SdhCommand command)
@@ -314,6 +376,36 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
             return parsedValue;
         }
 
+        private static uint RequireUInt32Arg(SdhCommand command, string argName)
+        {
+            string rawValue;
+            if (!command.Args.TryGetValue(argName, out rawValue) || string.IsNullOrWhiteSpace(rawValue))
+                throw new InvalidOperationException("Argumento obrigatório ausente para " + command.Target + ": " + argName + ".");
+
+            uint parsedValue;
+            if (!uint.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out parsedValue))
+                throw new InvalidOperationException("Argumento inválido para " + command.Target + ": " + argName + " deve ser uint32.");
+
+            return parsedValue;
+        }
+
+        private static bool RequireBool01Arg(SdhCommand command, string argName)
+        {
+            string rawValue;
+            if (!command.Args.TryGetValue(argName, out rawValue) || string.IsNullOrWhiteSpace(rawValue))
+                throw new InvalidOperationException("Argumento obrigatório ausente para " + command.Target + ": " + argName + ".");
+
+            if (string.Equals(rawValue, "1", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(rawValue, "true", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            if (string.Equals(rawValue, "0", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(rawValue, "false", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            throw new InvalidOperationException("Argumento inválido para " + command.Target + ": " + argName + " deve ser 0/1.");
+        }
+
         private static string RequireStateArg(SdhCommand command)
         {
             string state;
@@ -363,12 +455,17 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
         private static int RequireCanBitrateArg(SdhCommand command)
         {
             int bitrate = RequireIntArg(command, "bitrate");
-            if (bitrate != 125 &&
+            if (bitrate != 5 &&
+                bitrate != 10 &&
+                bitrate != 25 &&
+                bitrate != 50 &&
+                bitrate != 125 &&
                 bitrate != 250 &&
                 bitrate != 500 &&
+                bitrate != 800 &&
                 bitrate != 1000)
             {
-                throw new InvalidOperationException("Bitrate inválido para " + command.Target + ". Valores aceitos: 125, 250, 500, 1000.");
+                throw new InvalidOperationException("Bitrate inválido para " + command.Target + ". Valores aceitos: 5, 10, 25, 50, 125, 250, 500, 800, 1000.");
             }
 
             return bitrate;

@@ -1,0 +1,20 @@
+Gaps para fluxo CAN RX assincrono UCE -> API
+
+1. UCE nao tem fila RX CAN.
+2. UCE nao gera TLV espontaneo de CAN RX.
+3. UceTransport so escreve resposta apos comando recebido.
+4. SpiLink.write pulsa IRQ, mas CAN RX nao chama esse caminho.
+5. SpiLink tem buffer TX unico; precisa arbitragem para resposta vs evento.
+6. BPM conhece BPM_UCE_IRQ_PIN, mas nao faz attachInterrupt nele.
+7. BPM so drena evento assinc da GSA.
+8. GwRouter tem pollGsaEvent, mas nao pollUceEvent.
+9. GwSpiBus nao tem caminho explicito de leitura de evento espontaneo.
+10. SdgwLink suporta sendEvent, mas GatewayApp nao usa isso para UCE.
+11. API SdgwSession suporta EventReceived, mas UceClient nao assina.
+12. IUceDispatcher nao expoe evento CAN RX.
+13. FrmUceLogic nao repassa evento CAN RX.
+14. frmUCE_UI usa timer de polling e nao evento.
+
+Proxima acao recomendada:
+Definir CMD_CAN_RX_EVENT separado de CMD_CAN_RX_POLL antes de mexer em IRQ.
+

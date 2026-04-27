@@ -12,17 +12,24 @@ namespace SimulDIESEL.BLL.Boards.UCE
         private delegate bool UceResponseParser<T>(SdgwFrame frame, out T response, out string error)
             where T : class;
 
+        private readonly SdgwSession _sdgwSession;
         private readonly BoardTlvDispatcher _dispatcher;
         private bool _disposed;
 
         public UceClient(SdhClient sdh, SdgwSession sdgwSession)
         {
+            _sdgwSession = sdgwSession ?? throw new ArgumentNullException(nameof(sdgwSession));
             _dispatcher = new BoardTlvDispatcher(
                 sdh,
                 sdgwSession,
                 GwProtocol.UceAddress,
                 GwProtocol.UceTlvTransactOp);
+
+            _sdgwSession.EventReceived += OnEventReceived;
         }
+
+        public event Action<UceLedEvent> LedEventReceived;
+        public event Action<UceCanRxEvent> CanRxEventReceived;
 
         public async Task<UceCommandResult> SetBuiltinLedAsync(bool on)
         {
@@ -82,10 +89,66 @@ namespace SimulDIESEL.BLL.Boards.UCE
                 UceParsers.TryReadCanResetResponse);
         }
 
+        public Task<UceOperationResult<UceCanRxPollResponse>> PollCanRxAsync(string controller)
+        {
+            return ExecuteOperationAsync<UceCanRxPollResponse>(
+                CreateCanRxPollCommand(controller),
+                GwProtocol.UceCanRxPollType,
+                IsExpectedCanRxPollResponse,
+                "poll CAN_RX da UCE",
+                UceParsers.TryReadCanRxPollResponse);
+        }
+
+        public Task<UceOperationResult<UceCanDriverLogPollResponse>> PollCanDriverLogAsync(string controller)
+        {
+            return ExecuteOperationAsync<UceCanDriverLogPollResponse>(
+                CreateCanDriverLogPollCommand(controller),
+                GwProtocol.UceCanDriverLogPollType,
+                IsExpectedCanDriverLogPollResponse,
+                "poll de diagnóstico do driver CAN da UCE",
+                UceParsers.TryReadCanDriverLogPollResponse);
+        }
+
+        public Task<UceOperationResult<UceCanTxResponse>> SendCanAsync(string controller, bool extended, uint id, byte dlc, byte[] data, ushort periodMs)
+        {
+            return ExecuteOperationAsync<UceCanTxResponse>(
+                CreateCanTxCommand(controller, extended, id, dlc, data, periodMs),
+                GwProtocol.UceCanTxType,
+                GwProtocol.UceCanTxResponsePayloadLength,
+                "envio CAN_TX da UCE",
+                UceParsers.TryReadCanTxResponse);
+        }
+
+        public Task<UceOperationResult<UceCanTxStopResponse>> StopCanTxAsync(string controller)
+        {
+            return ExecuteOperationAsync<UceCanTxStopResponse>(
+                CreateCanTxStopCommand(controller),
+                GwProtocol.UceCanTxStopType,
+                GwProtocol.UceCanTxStopResponsePayloadLength,
+                "parada CAN_TX periódico da UCE",
+                UceParsers.TryReadCanTxStopResponse);
+        }
+
         private async Task<UceOperationResult<T>> ExecuteOperationAsync<T>(
             SdhCommand command,
             byte expectedType,
             byte expectedLen,
+            string operationName,
+                UceResponseParser<T> parser)
+            where T : class
+        {
+            return await ExecuteOperationAsync(
+                command,
+                expectedType,
+                frame => MatchesExpectedResponse(frame, expectedType, expectedLen),
+                operationName,
+                parser).ConfigureAwait(false);
+        }
+
+        private async Task<UceOperationResult<T>> ExecuteOperationAsync<T>(
+            SdhCommand command,
+            byte expectedType,
+            Func<SdgwFrame, bool> matchFrame,
             string operationName,
             UceResponseParser<T> parser)
             where T : class
@@ -93,7 +156,7 @@ namespace SimulDIESEL.BLL.Boards.UCE
             ThrowIfDisposed();
 
             BoardTlvDispatchResult dispatchResult = await _dispatcher
-                .TransactAsync(command, frame => MatchesExpectedResponse(frame, expectedType, expectedLen), operationName)
+                .TransactAsync(command, matchFrame, operationName)
                 .ConfigureAwait(false);
 
             if (!dispatchResult.Success)
@@ -143,6 +206,98 @@ namespace SimulDIESEL.BLL.Boards.UCE
                 frame.Payload[0] == GwProtocol.UceErrorType &&
                 frame.Payload[1] == 0x03 &&
                 frame.Payload[2] == expectedType)
+            {
+                return true;
+            }
+
+            if (frame.Payload.Length >= 3 &&
+                frame.Payload[0] == GwProtocol.GatewayErrorType &&
+                frame.Payload[1] >= 0x01)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private void OnEventReceived(SdgwFrame frame)
+        {
+            if (frame == null)
+                return;
+
+            if (frame.Cmd != GwProtocol.MakeCompactCommand(GwProtocol.UceAddress, GwProtocol.UceTlvTransactOp))
+                return;
+
+            UceLedEvent ledEvent;
+            string ledError;
+            if (UceParsers.TryReadLedEvent(frame, out ledEvent, out ledError))
+            {
+                LedEventReceived?.Invoke(ledEvent);
+                return;
+            }
+
+            UceCanRxEvent canRxEvent;
+            string canRxError;
+            if (UceParsers.TryReadCanRxEvent(frame, out canRxEvent, out canRxError))
+                CanRxEventReceived?.Invoke(canRxEvent);
+        }
+
+        private static bool IsExpectedCanRxPollResponse(SdgwFrame frame)
+        {
+            if (frame?.Payload == null)
+                return false;
+
+            if (frame.Payload.Length >= 4 &&
+                frame.Payload[0] == GwProtocol.UceCanRxPollType)
+            {
+                byte len = frame.Payload[1];
+                if (len >= 2 &&
+                    (len - 2) % GwProtocol.UceCanRxFrameLength == 0 &&
+                    (len - 2) / GwProtocol.UceCanRxFrameLength <= GwProtocol.UceCanRxMaxFramesPerResponse)
+                {
+                    return true;
+                }
+            }
+
+            if (frame.Payload.Length >= 5 &&
+                frame.Payload[0] == GwProtocol.UceErrorType &&
+                frame.Payload[1] == 0x03 &&
+                frame.Payload[2] == GwProtocol.UceCanRxPollType)
+            {
+                return true;
+            }
+
+            if (frame.Payload.Length >= 3 &&
+                frame.Payload[0] == GwProtocol.GatewayErrorType &&
+                frame.Payload[1] >= 0x01)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsExpectedCanDriverLogPollResponse(SdgwFrame frame)
+        {
+            if (frame?.Payload == null)
+                return false;
+
+            if (frame.Payload.Length >= 4 &&
+                frame.Payload[0] == GwProtocol.UceCanDriverLogPollType)
+            {
+                byte len = frame.Payload[1];
+                if (len >= 2 &&
+                    (len - 2) % GwProtocol.UceCanDriverLogEntryLength == 0 &&
+                    (len - 2) / GwProtocol.UceCanDriverLogEntryLength <= GwProtocol.UceCanDriverLogMaxEntriesPerResponse)
+                {
+                    return true;
+                }
+            }
+
+            if (frame.Payload.Length >= 5 &&
+                frame.Payload[0] == GwProtocol.UceErrorType &&
+                frame.Payload[1] == 0x03 &&
+                frame.Payload[2] == GwProtocol.UceCanDriverLogPollType)
             {
                 return true;
             }
@@ -220,6 +375,65 @@ namespace SimulDIESEL.BLL.Boards.UCE
             return command;
         }
 
+        private static SdhCommand CreateCanRxPollCommand(string controller)
+        {
+            var command = new SdhCommand
+            {
+                Target = "UCE.can.rx",
+                Op = "poll"
+            };
+
+            command.Args["controller"] = controller;
+            return command;
+        }
+
+        private static SdhCommand CreateCanDriverLogPollCommand(string controller)
+        {
+            var command = new SdhCommand
+            {
+                Target = "UCE.can.driverLog",
+                Op = "poll"
+            };
+
+            command.Args["controller"] = controller;
+            return command;
+        }
+
+        private static SdhCommand CreateCanTxCommand(string controller, bool extended, uint id, byte dlc, byte[] data, ushort periodMs)
+        {
+            if (data == null || data.Length < 8)
+                throw new ArgumentException("Payload CAN_TX deve conter 8 bytes.", nameof(data));
+
+            var command = new SdhCommand
+            {
+                Target = "UCE.can.tx",
+                Op = "send"
+            };
+
+            command.Args["controller"] = controller;
+            command.Args["extended"] = extended ? "1" : "0";
+            command.Args["id"] = id.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            command.Args["dlc"] = dlc.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            command.Args["period"] = periodMs.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            for (int i = 0; i < 8; ++i)
+                command.Args["d" + i.ToString(System.Globalization.CultureInfo.InvariantCulture)] = data[i].ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+            return command;
+        }
+
+        private static SdhCommand CreateCanTxStopCommand(string controller)
+        {
+            var command = new SdhCommand
+            {
+                Target = "UCE.can.tx",
+                Op = "stop"
+            };
+
+            command.Args["controller"] = controller;
+            command.Args["slot"] = GwProtocol.UceCanTxStopAllSlots.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            return command;
+        }
+
         private void ThrowIfDisposed()
         {
             if (_disposed)
@@ -231,6 +445,7 @@ namespace SimulDIESEL.BLL.Boards.UCE
             if (_disposed)
                 return;
 
+            _sdgwSession.EventReceived -= OnEventReceived;
             _dispatcher.Dispose();
             _disposed = true;
         }

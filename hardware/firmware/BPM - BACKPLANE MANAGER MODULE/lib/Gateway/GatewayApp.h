@@ -23,8 +23,11 @@ public:
 
 private:
     static void onGsaIrqThunk();
+    static void onUceIrqThunk();
     void onGsaIrq();
+    void onUceIrq();
     void drainPendingGsaEvents();
+    void drainPendingUceEvents();
 
     void handleGatewayLocal(uint8_t cmd,
                             const uint8_t* data,
@@ -36,6 +39,7 @@ private:
     SdgwLink& _link;
     GwRouter& _router;
     volatile bool _gsaIrqLatched;
+    volatile bool _uceIrqLatched;
 
     static GatewayApp* _self;
 };

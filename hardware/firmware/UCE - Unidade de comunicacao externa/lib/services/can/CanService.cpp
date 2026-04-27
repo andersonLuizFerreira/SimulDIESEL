@@ -1,23 +1,72 @@
 #include "services/can/CanService.h"
 
+#include <Arduino.h>
+
 #include "defs.h"
 
 namespace {
 const uint8_t CAN_CONTROLLER_CAN0 = 0x00;
 const uint8_t CAN_CONTROLLER_CAN1 = 0x01;
-const uint8_t CAN_BITRATE_250_KBPS = 0x01;
 const uint8_t CAN_MODE_NORMAL = 0x00;
 const uint8_t CAN_STATE_OFF = 0x00;
 const uint8_t CAN_STATE_ON = 0x01;
 const uint8_t CAN_INTERFACE_DISABLED = 0x00;
 const uint8_t CAN_INTERFACE_CONFIGURED = 0x01;
 const uint8_t CAN_INTERFACE_OPEN = 0x02;
+const uint8_t CAN_RX_MAX_FRAMES_PER_RESPONSE = 3;
+const uint8_t CAN_RX_FRAME_WIRE_LEN = 14;
+const uint8_t CAN_RX_EVENT_FRAME_WIRE_LEN = 14;
+const uint8_t CAN_RX_EVENT_MAX_FRAMES = 1;
+const uint8_t CAN_DRIVER_LOG_MAX_ENTRIES_PER_RESPONSE = 6;
+const uint8_t CAN_DRIVER_LOG_ENTRY_WIRE_LEN = 8;
+const uint8_t CAN_TX_REQUEST_WIRE_LEN = 17;
+const uint8_t CAN_TX_STATUS_ACCEPTED_SENT = 0x00;
+const uint8_t CAN_TX_STATUS_INVALID_PAYLOAD = 0x01;
+const uint8_t CAN_TX_STATUS_CONTROLLER_DISABLED = 0x02;
+const uint8_t CAN_TX_STATUS_FAILED = 0x03;
+const uint8_t CAN_TX_STATUS_PERIODIC_STARTED = 0x04;
+const uint8_t CAN_TX_STATUS_PERIODIC_STOPPED = 0x05;
+const uint8_t CAN_TX_STOP_ALL = 0xFF;
+const uint8_t CAN_TX_SINGLE_SLOT = 0x00;
 }
 
 void CanService::begin() {
+  _driver.begin();
   for (uint8_t controller = 0; controller < ControllerCount; ++controller) {
     resetPort(controller);
   }
+  _periodicTx.active = false;
+  _periodicTx.controller = CAN_CONTROLLER_CAN0;
+  _periodicTx.lastSentMs = 0;
+  _periodicTx.periodMs = 0;
+  _rxHead = 0;
+  _rxCount = 0;
+  _rxDropped = 0;
+}
+
+void CanService::loop() {
+  collectRxFrames();
+  publishNextRxEvent();
+
+  if (_periodicTx.active) {
+    const uint32_t now = millis();
+    if ((uint32_t)(now - _periodicTx.lastSentMs) < _periodicTx.periodMs) {
+      return;
+    }
+
+    if (_ports[_periodicTx.controller].interfaceState != CAN_INTERFACE_OPEN) {
+      _periodicTx.active = false;
+      return;
+    }
+
+    _driver.send(_periodicTx.controller, _periodicTx.frame);
+    _periodicTx.lastSentMs = now;
+  }
+}
+
+void CanService::setEventPublisher(EventPublisher publisher, void* context) {
+  _eventPublisher = publisher;
+  _eventPublisherContext = context;
 }
 
 bool CanService::handleTlv(uint8_t type,
@@ -38,10 +87,22 @@ bool CanService::handleTlv(uint8_t type,
       return handleStatus(value, valueLen, responseValue, responseValueLen, errorCode);
     case CMD_CAN_RESET:
       return handleReset(value, valueLen, responseValue, responseValueLen, errorCode);
+    case CMD_CAN_RX_POLL:
+      return handleRxPoll(value, valueLen, responseValue, responseValueLen, errorCode);
+    case CMD_CAN_DRIVER_LOG_POLL:
+      return handleDriverLogPoll(value, valueLen, responseValue, responseValueLen, errorCode);
+    case CMD_CAN_TX:
+      return handleTx(value, valueLen, responseValue, responseValueLen, errorCode);
+    case CMD_CAN_TX_STOP:
+      return handleTxStop(value, valueLen, responseValue, responseValueLen, errorCode);
     default:
       errorCode = UCE_ERROR_COMMAND_NOT_SUPPORTED;
       return false;
   }
+}
+
+bool CanService::validateController(uint8_t controller) const {
+  return controller == CAN_CONTROLLER_CAN0 || controller == CAN_CONTROLLER_CAN1;
 }
 
 void CanService::resetPort(uint8_t controller) {
@@ -54,12 +115,8 @@ void CanService::resetPort(uint8_t controller) {
   _ports[controller].interfaceState = CAN_INTERFACE_DISABLED;
 }
 
-bool CanService::validateController(uint8_t controller) const {
-  return controller == CAN_CONTROLLER_CAN0 || controller == CAN_CONTROLLER_CAN1;
-}
-
 bool CanService::validateBitrate(uint8_t bitrateCode) const {
-  return bitrateCode <= 0x03;
+  return bitrateCode <= CAN_BITRATE_1000_KBPS;
 }
 
 bool CanService::validateMode(uint8_t modeCode) const {
@@ -84,6 +141,11 @@ bool CanService::handleConfig(const uint8_t* value,
   const uint8_t bitrateCode = value[1];
   const uint8_t modeCode = value[2];
   if (!validateController(controller) || !validateBitrate(bitrateCode) || !validateMode(modeCode)) {
+    errorCode = UCE_ERROR_INVALID_STATE;
+    return false;
+  }
+
+  if (!_driver.configure(controller, bitrateCode, modeCode)) {
     errorCode = UCE_ERROR_INVALID_STATE;
     return false;
   }
@@ -121,6 +183,12 @@ bool CanService::handleEnable(const uint8_t* value,
     return false;
   }
 
+  const bool driverOk = (requestedState == CAN_STATE_ON) ? _driver.open(controller) : _driver.close(controller);
+  if (!driverOk) {
+    errorCode = UCE_ERROR_INVALID_STATE;
+    return false;
+  }
+
   PortState& port = _ports[controller];
   port.interfaceState = (requestedState == CAN_STATE_ON) ? CAN_INTERFACE_OPEN : CAN_INTERFACE_DISABLED;
 
@@ -144,6 +212,12 @@ bool CanService::handleStatus(const uint8_t* value,
 
   const uint8_t controller = value[0];
   if (!validateController(controller)) {
+    errorCode = UCE_ERROR_INVALID_STATE;
+    return false;
+  }
+
+  CanDriver::Status status;
+  if (!_driver.getStatus(controller, status)) {
     errorCode = UCE_ERROR_INVALID_STATE;
     return false;
   }
@@ -175,10 +249,332 @@ bool CanService::handleReset(const uint8_t* value,
     return false;
   }
 
+  if (!_driver.reset(controller)) {
+    errorCode = UCE_ERROR_INVALID_STATE;
+    return false;
+  }
+
   resetPort(controller);
+  if (_periodicTx.active && _periodicTx.controller == controller) {
+    _periodicTx.active = false;
+  }
   if (responseValue) {
     responseValue[0] = controller;
     responseValue[1] = 0x01;
+  }
+  responseValueLen = 2;
+  return true;
+}
+
+bool CanService::handleRxPoll(const uint8_t* value,
+                              uint8_t valueLen,
+                              uint8_t* responseValue,
+                              uint8_t& responseValueLen,
+                              uint8_t& errorCode) {
+  if (!value || valueLen != 1) {
+    errorCode = UCE_ERROR_INVALID_PAYLOAD;
+    return false;
+  }
+
+  const uint8_t controller = value[0];
+  if (!validateController(controller)) {
+    errorCode = UCE_ERROR_INVALID_STATE;
+    return false;
+  }
+
+  CanDriver::Frame frames[CAN_RX_MAX_FRAMES_PER_RESPONSE];
+  uint8_t frameCount = copyQueuedRxFrames(controller, frames, CAN_RX_MAX_FRAMES_PER_RESPONSE);
+  if (frameCount < CAN_RX_MAX_FRAMES_PER_RESPONSE) {
+    uint8_t physicalCount = 0;
+    if (!_driver.pollReceived(controller, &frames[frameCount], CAN_RX_MAX_FRAMES_PER_RESPONSE - frameCount, physicalCount)) {
+      errorCode = UCE_ERROR_INVALID_STATE;
+      return false;
+    }
+    frameCount += physicalCount;
+  }
+
+  if (responseValue) {
+    responseValue[0] = controller;
+    responseValue[1] = frameCount;
+    uint8_t offset = 2;
+    for (uint8_t i = 0; i < frameCount; ++i) {
+      encodeRxFrameBigEndian(&responseValue[offset], frames[i]);
+      offset += CAN_RX_FRAME_WIRE_LEN;
+    }
+  }
+
+  responseValueLen = 2 + (frameCount * CAN_RX_FRAME_WIRE_LEN);
+  return true;
+}
+
+void CanService::collectRxFrames() {
+  for (uint8_t controller = 0; controller < ControllerCount; ++controller) {
+    if (_ports[controller].interfaceState != CAN_INTERFACE_OPEN) {
+      continue;
+    }
+
+    CanDriver::Frame frames[CAN_RX_MAX_FRAMES_PER_RESPONSE];
+    uint8_t frameCount = 0;
+    if (!_driver.pollReceived(controller, frames, CAN_RX_MAX_FRAMES_PER_RESPONSE, frameCount)) {
+      continue;
+    }
+
+    for (uint8_t i = 0; i < frameCount; ++i) {
+      enqueueRxFrame(controller, frames[i]);
+    }
+  }
+}
+
+bool CanService::enqueueRxFrame(uint8_t controller, const CanDriver::Frame& frame) {
+  if (_rxCount >= RxQueueCapacity) {
+    ++_rxDropped;
+    return false;
+  }
+
+  const uint8_t index = (uint8_t)((_rxHead + _rxCount) % RxQueueCapacity);
+  _rxQueue[index].controller = controller;
+  _rxQueue[index].frame = frame;
+  ++_rxCount;
+  return true;
+}
+
+bool CanService::dequeueRxFrame(QueuedRxFrame& queuedFrame) {
+  if (_rxCount == 0) {
+    return false;
+  }
+
+  queuedFrame = _rxQueue[_rxHead];
+  _rxHead = (uint8_t)((_rxHead + 1) % RxQueueCapacity);
+  --_rxCount;
+  return true;
+}
+
+bool CanService::peekRxFrame(QueuedRxFrame& queuedFrame) const {
+  if (_rxCount == 0) {
+    return false;
+  }
+
+  queuedFrame = _rxQueue[_rxHead];
+  return true;
+}
+
+bool CanService::publishNextRxEvent() {
+  if (!_eventPublisher) {
+    return false;
+  }
+
+  QueuedRxFrame queuedFrame;
+  if (!peekRxFrame(queuedFrame)) {
+    return false;
+  }
+
+  uint8_t payload[2 + (CAN_RX_EVENT_MAX_FRAMES * CAN_RX_EVENT_FRAME_WIRE_LEN)] = {0};
+  payload[0] = queuedFrame.controller;
+  payload[1] = 1;
+  encodeRxFrameLittleEndian(&payload[2], queuedFrame.frame);
+
+  if (!_eventPublisher(_eventPublisherContext, CMD_CAN_RX_EVENT, payload, sizeof(payload))) {
+    return false;
+  }
+
+  dequeueRxFrame(queuedFrame);
+  return true;
+}
+
+uint8_t CanService::copyQueuedRxFrames(uint8_t controller, CanDriver::Frame* frames, uint8_t maxFrames) {
+  if (!frames || maxFrames == 0 || _rxCount == 0) {
+    return 0;
+  }
+
+  uint8_t copied = 0;
+  uint8_t kept = 0;
+  QueuedRxFrame temp[RxQueueCapacity];
+  while (_rxCount > 0) {
+    QueuedRxFrame queuedFrame;
+    dequeueRxFrame(queuedFrame);
+    if (queuedFrame.controller == controller && copied < maxFrames) {
+      frames[copied++] = queuedFrame.frame;
+    } else if (kept < RxQueueCapacity) {
+      temp[kept++] = queuedFrame;
+    }
+  }
+
+  _rxHead = 0;
+  _rxCount = 0;
+  for (uint8_t i = 0; i < kept; ++i) {
+    enqueueRxFrame(temp[i].controller, temp[i].frame);
+  }
+
+  return copied;
+}
+
+void CanService::encodeRxFrameLittleEndian(uint8_t* out, const CanDriver::Frame& frame) const {
+  const bool extended = frame.extended;
+  const uint32_t id = frame.id & (extended ? 0x1FFFFFFFUL : 0x7FFUL);
+  out[0] = (uint8_t)(id & 0xFFU);
+  out[1] = (uint8_t)((id >> 8) & 0xFFU);
+  out[2] = (uint8_t)((id >> 16) & 0xFFU);
+  out[3] = (uint8_t)((id >> 24) & 0xFFU);
+  out[4] = (extended ? 0x01 : 0x00) | (frame.rtr ? 0x02 : 0x00);
+  out[5] = frame.dlc;
+  for (uint8_t dataIndex = 0; dataIndex < 8; ++dataIndex) {
+    out[6 + dataIndex] = frame.data[dataIndex];
+  }
+}
+
+void CanService::encodeRxFrameBigEndian(uint8_t* out, const CanDriver::Frame& frame) const {
+  const bool extended = frame.extended;
+  const uint32_t id = frame.id & (extended ? 0x1FFFFFFFUL : 0x7FFUL);
+  out[0] = (uint8_t)((id >> 24) & 0xFFU);
+  out[1] = (uint8_t)((id >> 16) & 0xFFU);
+  out[2] = (uint8_t)((id >> 8) & 0xFFU);
+  out[3] = (uint8_t)(id & 0xFFU);
+  out[4] = (extended ? 0x01 : 0x00) | (frame.rtr ? 0x02 : 0x00);
+  out[5] = frame.dlc;
+  for (uint8_t dataIndex = 0; dataIndex < 8; ++dataIndex) {
+    out[6 + dataIndex] = frame.data[dataIndex];
+  }
+}
+
+bool CanService::handleDriverLogPoll(const uint8_t* value,
+                                     uint8_t valueLen,
+                                     uint8_t* responseValue,
+                                     uint8_t& responseValueLen,
+                                     uint8_t& errorCode) {
+  if (!value || valueLen != 1) {
+    errorCode = UCE_ERROR_INVALID_PAYLOAD;
+    return false;
+  }
+
+  const uint8_t controller = value[0];
+  if (!validateController(controller)) {
+    errorCode = UCE_ERROR_INVALID_STATE;
+    return false;
+  }
+
+  CanDriver::LogEntry entries[CAN_DRIVER_LOG_MAX_ENTRIES_PER_RESPONSE];
+  uint8_t entryCount = 0;
+  if (!_driver.pollLog(controller, entries, CAN_DRIVER_LOG_MAX_ENTRIES_PER_RESPONSE, entryCount)) {
+    errorCode = UCE_ERROR_INVALID_STATE;
+    return false;
+  }
+
+  if (responseValue) {
+    responseValue[0] = controller;
+    responseValue[1] = entryCount;
+    uint8_t offset = 2;
+    for (uint8_t i = 0; i < entryCount; ++i) {
+      responseValue[offset++] = entries[i].timestampLow;
+      responseValue[offset++] = entries[i].eventCode;
+      responseValue[offset++] = entries[i].interfaceState;
+      responseValue[offset++] = entries[i].bitrateCode;
+      responseValue[offset++] = entries[i].modeCode;
+      responseValue[offset++] = entries[i].detail0;
+      responseValue[offset++] = entries[i].detail1;
+      responseValue[offset++] = entries[i].detail2;
+    }
+  }
+
+  responseValueLen = 2 + (entryCount * CAN_DRIVER_LOG_ENTRY_WIRE_LEN);
+  return true;
+}
+
+bool CanService::handleTx(const uint8_t* value,
+                          uint8_t valueLen,
+                          uint8_t* responseValue,
+                          uint8_t& responseValueLen,
+                          uint8_t& errorCode) {
+  if (responseValue) {
+    responseValue[0] = value && valueLen > 0 ? value[0] : 0x00;
+    responseValue[1] = CAN_TX_STATUS_INVALID_PAYLOAD;
+    responseValue[2] = CAN_TX_SINGLE_SLOT;
+  }
+  responseValueLen = 3;
+
+  if (!value || valueLen != CAN_TX_REQUEST_WIRE_LEN) {
+    return true;
+  }
+
+  const uint8_t controller = value[0];
+  const uint8_t flags = value[1];
+  const uint8_t dlc = value[2];
+  const uint16_t periodMs = (uint16_t)value[3] | ((uint16_t)value[4] << 8);
+  const bool extended = (flags & 0x01) != 0;
+  const bool rtr = (flags & 0x02) != 0;
+  const uint32_t id = ((uint32_t)value[5]) |
+                      ((uint32_t)value[6] << 8) |
+                      ((uint32_t)value[7] << 16) |
+                      ((uint32_t)value[8] << 24);
+
+  if (!validateController(controller) || (flags & 0xFC) != 0 || dlc > 8) {
+    return true;
+  }
+
+  if (_ports[controller].interfaceState != CAN_INTERFACE_OPEN) {
+    if (responseValue) {
+      responseValue[0] = controller;
+      responseValue[1] = CAN_TX_STATUS_CONTROLLER_DISABLED;
+    }
+    return true;
+  }
+
+  CanDriver::Frame frame;
+  frame.extended = extended;
+  frame.rtr = rtr;
+  frame.dlc = dlc;
+  frame.id = id & (extended ? 0x1FFFFFFFUL : 0x7FFUL);
+  for (uint8_t i = 0; i < 8; ++i) {
+    frame.data[i] = value[9 + i];
+  }
+
+  if (periodMs == 0) {
+    const bool sent = _driver.send(controller, frame);
+    if (responseValue) {
+      responseValue[0] = controller;
+      responseValue[1] = sent ? CAN_TX_STATUS_ACCEPTED_SENT : CAN_TX_STATUS_FAILED;
+    }
+    return true;
+  }
+
+  _periodicTx.active = true;
+  _periodicTx.controller = controller;
+  _periodicTx.frame = frame;
+  _periodicTx.periodMs = periodMs;
+  _periodicTx.lastSentMs = millis();
+  _driver.send(controller, frame);
+
+  if (responseValue) {
+    responseValue[0] = controller;
+    responseValue[1] = CAN_TX_STATUS_PERIODIC_STARTED;
+    responseValue[2] = CAN_TX_SINGLE_SLOT;
+  }
+  return true;
+}
+
+bool CanService::handleTxStop(const uint8_t* value,
+                              uint8_t valueLen,
+                              uint8_t* responseValue,
+                              uint8_t& responseValueLen,
+                              uint8_t& errorCode) {
+  if (!value || valueLen != 2 || !validateController(value[0])) {
+    errorCode = UCE_ERROR_INVALID_PAYLOAD;
+    return false;
+  }
+
+  const uint8_t controller = value[0];
+  const uint8_t slotOrAll = value[1];
+  if (slotOrAll != CAN_TX_SINGLE_SLOT && slotOrAll != CAN_TX_STOP_ALL) {
+    errorCode = UCE_ERROR_INVALID_PAYLOAD;
+    return false;
+  }
+
+  if (_periodicTx.active && _periodicTx.controller == controller) {
+    _periodicTx.active = false;
+  }
+
+  if (responseValue) {
+    responseValue[0] = controller;
+    responseValue[1] = CAN_TX_STATUS_PERIODIC_STOPPED;
   }
   responseValueLen = 2;
   return true;

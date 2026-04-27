@@ -14,7 +14,8 @@ GatewayApp* GatewayApp::_self = nullptr;
 GatewayApp::GatewayApp(SdgwLink& link, GwRouter& router)
     : _link(link),
       _router(router),
-      _gsaIrqLatched(false)
+      _gsaIrqLatched(false),
+      _uceIrqLatched(false)
 {
 }
 
@@ -22,9 +23,12 @@ void GatewayApp::begin()
 {
     _self = this;
     _gsaIrqLatched = false;
+    _uceIrqLatched = false;
 
     pinMode(BPM_GSA_IRQ_PIN, INPUT);
     attachInterrupt(digitalPinToInterrupt(BPM_GSA_IRQ_PIN), onGsaIrqThunk, FALLING);
+    pinMode(BPM_UCE_IRQ_PIN, INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(BPM_UCE_IRQ_PIN), onUceIrqThunk, FALLING);
 }
 
 void GatewayApp::onCommand(uint8_t cmd,
@@ -77,11 +81,13 @@ void GatewayApp::handleGatewayLocal(uint8_t cmd,
 
 void GatewayApp::tick()
 {
-    if (!_gsaIrqLatched && digitalRead(BPM_GSA_IRQ_PIN) != LOW) {
-        return;
+    if (_gsaIrqLatched || digitalRead(BPM_GSA_IRQ_PIN) == LOW) {
+        drainPendingGsaEvents();
     }
 
-    drainPendingGsaEvents();
+    if (_uceIrqLatched || digitalRead(BPM_UCE_IRQ_PIN) == LOW) {
+        drainPendingUceEvents();
+    }
 }
 
 void GatewayApp::onGsaIrqThunk()
@@ -91,9 +97,21 @@ void GatewayApp::onGsaIrqThunk()
     }
 }
 
+void GatewayApp::onUceIrqThunk()
+{
+    if (_self != nullptr) {
+        _self->onUceIrq();
+    }
+}
+
 void GatewayApp::onGsaIrq()
 {
     _gsaIrqLatched = true;
+}
+
+void GatewayApp::onUceIrq()
+{
+    _uceIrqLatched = true;
 }
 
 void GatewayApp::drainPendingGsaEvents()
@@ -109,6 +127,21 @@ void GatewayApp::drainPendingGsaEvents()
     }
 
     _gsaIrqLatched = (digitalRead(BPM_GSA_IRQ_PIN) == LOW);
+}
+
+void GatewayApp::drainPendingUceEvents()
+{
+    for (uint8_t index = 0; index < MaxEventsPerDrain; index++) {
+        uint8_t eventPacket[64];
+        size_t eventLen = 0;
+        if (!_router.pollUceEvent(eventPacket, sizeof(eventPacket), eventLen)) {
+            break;
+        }
+
+        _link.sendEvent(SDGW_CMD_UCE_TLV, eventPacket, (uint8_t)eventLen);
+    }
+
+    _uceIrqLatched = (digitalRead(BPM_UCE_IRQ_PIN) == LOW);
 }
 
 void GatewayApp::sendGatewayErrAsResponse(uint8_t cmd, GwErr err)

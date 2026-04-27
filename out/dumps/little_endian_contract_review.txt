@@ -1,0 +1,27 @@
+Revisao de endianess - UCE TLV
+
+Decisao:
+- Novos payloads TLV da UCE devem usar little-endian para campos multibyte.
+
+Contratos sem multibyte:
+- 0x12 LED
+- 0x20 CAN_CONFIG
+- 0x21 CAN_ENABLE
+- 0x22 CAN_STATUS
+- 0x23 CAN_RESET
+- 0x25 CAN_DRIVER_LOG_POLL atual
+- 0x27 CAN_TX_STOP
+
+Contratos little-endian:
+- 0x26 CAN_TX request
+  - periodMs: V[3] low, V[4] high
+  - id: V[5] LSB, V[8] MSB
+
+Contratos big-endian legados:
+- 0x24 CAN_RX_POLL response
+  - id: id[31:24], id[23:16], id[15:8], id[7:0]
+
+Recomendacao:
+- Nao mudar CAN_RX_POLL agora porque esta funcional em bancada.
+- Criar CAN_RX_EVENT futuro em little-endian.
+- Documentar explicitamente a diferenca entre CAN_RX_POLL legado e CAN_RX_EVENT novo.

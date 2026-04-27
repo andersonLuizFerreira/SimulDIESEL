@@ -20,6 +20,12 @@ namespace SimulDIESEL.DTL.Boards.UCE
         Fault = 0x03
     }
 
+    public enum UceCanIdKind
+    {
+        Standard,
+        Extended
+    }
+
     public static class UceCanProtocol
     {
         public static bool TryParseController(string rawValue, out UceCanController controller)
@@ -137,17 +143,32 @@ namespace SimulDIESEL.DTL.Boards.UCE
         {
             switch (bitrateKbps)
             {
-                case 125:
+                case 5:
                     code = 0x00;
                     return true;
-                case 250:
+                case 10:
                     code = 0x01;
                     return true;
-                case 500:
+                case 25:
                     code = 0x02;
                     return true;
-                case 1000:
+                case 50:
                     code = 0x03;
+                    return true;
+                case 125:
+                    code = 0x04;
+                    return true;
+                case 250:
+                    code = 0x05;
+                    return true;
+                case 500:
+                    code = 0x06;
+                    return true;
+                case 800:
+                    code = 0x07;
+                    return true;
+                case 1000:
+                    code = 0x08;
                     return true;
                 default:
                     code = 0x00;
@@ -160,15 +181,30 @@ namespace SimulDIESEL.DTL.Boards.UCE
             switch (code)
             {
                 case 0x00:
-                    bitrateKbps = 125;
+                    bitrateKbps = 5;
                     return true;
                 case 0x01:
-                    bitrateKbps = 250;
+                    bitrateKbps = 10;
                     return true;
                 case 0x02:
-                    bitrateKbps = 500;
+                    bitrateKbps = 25;
                     return true;
                 case 0x03:
+                    bitrateKbps = 50;
+                    return true;
+                case 0x04:
+                    bitrateKbps = 125;
+                    return true;
+                case 0x05:
+                    bitrateKbps = 250;
+                    return true;
+                case 0x06:
+                    bitrateKbps = 500;
+                    return true;
+                case 0x07:
+                    bitrateKbps = 800;
+                    return true;
+                case 0x08:
                     bitrateKbps = 1000;
                     return true;
                 default:
@@ -232,6 +268,29 @@ namespace SimulDIESEL.DTL.Boards.UCE
         public static bool IsEnabled(UceCanInterfaceState state)
         {
             return state == UceCanInterfaceState.Open;
+        }
+
+        public static string ToDisplayTxStatus(byte status)
+        {
+            switch (status)
+            {
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanTxStatusAcceptedSent:
+                    return "frame CAN enviado";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanTxStatusInvalidPayload:
+                    return "payload TX inválido";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanTxStatusControllerDisabled:
+                    return "controller CAN desabilitado";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanTxStatusFailed:
+                    return "falha no envio físico CAN";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanTxStatusPeriodicStarted:
+                    return "envio periódico iniciado";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanTxStatusPeriodicStopped:
+                    return "envio periódico parado";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanTxStatusNoFreePeriodicSlot:
+                    return "sem slot periódico livre";
+                default:
+                    return "status TX desconhecido 0x" + status.ToString("X2", System.Globalization.CultureInfo.InvariantCulture);
+            }
         }
     }
 }

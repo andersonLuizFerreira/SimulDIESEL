@@ -17,7 +17,12 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
         {
             _uceDispatcher = uceDispatcher ?? throw new ArgumentNullException(nameof(uceDispatcher));
             _isLinked = isLinked ?? throw new ArgumentNullException(nameof(isLinked));
+            _uceDispatcher.LedEventReceived += OnLedEventReceived;
+            _uceDispatcher.CanRxEventReceived += OnCanRxEventReceived;
         }
+
+        public event Action<UceLedEvent> LedEventReceived;
+        public event Action<UceCanRxEvent> CanRxEventReceived;
 
         public bool IsLinked
         {
@@ -70,10 +75,52 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             return _uceDispatcher.ResetCanAsync(DefaultCanController);
         }
 
+        public Task<UceOperationResult<UceCanRxPollResponse>> PollCanRxAsync()
+        {
+            if (!_isLinked())
+                return FailWhenNotLinked<UceCanRxPollResponse>();
+
+            return _uceDispatcher.PollCanRxAsync(DefaultCanController);
+        }
+
+        public Task<UceOperationResult<UceCanDriverLogPollResponse>> PollCanDriverLogAsync()
+        {
+            if (!_isLinked())
+                return FailWhenNotLinked<UceCanDriverLogPollResponse>();
+
+            return _uceDispatcher.PollCanDriverLogAsync(DefaultCanController);
+        }
+
+        public Task<UceOperationResult<UceCanTxResponse>> SendCanAsync(bool extended, uint id, byte dlc, byte[] data, ushort periodMs)
+        {
+            if (!_isLinked())
+                return FailWhenNotLinked<UceCanTxResponse>();
+
+            return _uceDispatcher.SendCanAsync(DefaultCanController, extended, id, dlc, data, periodMs);
+        }
+
+        public Task<UceOperationResult<UceCanTxStopResponse>> StopCanTxAsync()
+        {
+            if (!_isLinked())
+                return FailWhenNotLinked<UceCanTxStopResponse>();
+
+            return _uceDispatcher.StopCanTxAsync(DefaultCanController);
+        }
+
         private static Task<UceOperationResult<T>> FailWhenNotLinked<T>()
             where T : class
         {
             return Task.FromResult(UceOperationResult<T>.Fail("Link serial não está em estado Linked."));
+        }
+
+        private void OnLedEventReceived(UceLedEvent ledEvent)
+        {
+            LedEventReceived?.Invoke(ledEvent);
+        }
+
+        private void OnCanRxEventReceived(UceCanRxEvent canRxEvent)
+        {
+            CanRxEventReceived?.Invoke(canRxEvent);
         }
     }
 }

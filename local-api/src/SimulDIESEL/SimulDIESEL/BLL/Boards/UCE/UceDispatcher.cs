@@ -6,11 +6,18 @@ namespace SimulDIESEL.BLL.Boards.UCE
 {
     public interface IUceDispatcher
     {
+        event Action<UceLedEvent> LedEventReceived;
+        event Action<UceCanRxEvent> CanRxEventReceived;
+
         Task<UceCommandResult> SetBuiltinLedAsync(bool on);
         Task<UceOperationResult<UceCanConfigResponse>> SetCanConfigAsync(string controller, int bitrateKbps, string mode);
         Task<UceOperationResult<UceCanEnableResponse>> SetCanEnabledAsync(string controller, bool enabled);
         Task<UceOperationResult<UceCanStatusResponse>> GetCanStatusAsync(string controller);
         Task<UceOperationResult<UceCanResetResponse>> ResetCanAsync(string controller);
+        Task<UceOperationResult<UceCanRxPollResponse>> PollCanRxAsync(string controller);
+        Task<UceOperationResult<UceCanDriverLogPollResponse>> PollCanDriverLogAsync(string controller);
+        Task<UceOperationResult<UceCanTxResponse>> SendCanAsync(string controller, bool extended, uint id, byte dlc, byte[] data, ushort periodMs);
+        Task<UceOperationResult<UceCanTxStopResponse>> StopCanTxAsync(string controller);
     }
 
     public sealed class UceDispatcher : IUceDispatcher
@@ -20,7 +27,12 @@ namespace SimulDIESEL.BLL.Boards.UCE
         public UceDispatcher(UceClient client)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
+            _client.LedEventReceived += OnLedEventReceived;
+            _client.CanRxEventReceived += OnCanRxEventReceived;
         }
+
+        public event Action<UceLedEvent> LedEventReceived;
+        public event Action<UceCanRxEvent> CanRxEventReceived;
 
         public Task<UceCommandResult> SetBuiltinLedAsync(bool on)
         {
@@ -45,6 +57,36 @@ namespace SimulDIESEL.BLL.Boards.UCE
         public Task<UceOperationResult<UceCanResetResponse>> ResetCanAsync(string controller)
         {
             return _client.ResetCanAsync(controller);
+        }
+
+        public Task<UceOperationResult<UceCanRxPollResponse>> PollCanRxAsync(string controller)
+        {
+            return _client.PollCanRxAsync(controller);
+        }
+
+        public Task<UceOperationResult<UceCanDriverLogPollResponse>> PollCanDriverLogAsync(string controller)
+        {
+            return _client.PollCanDriverLogAsync(controller);
+        }
+
+        public Task<UceOperationResult<UceCanTxResponse>> SendCanAsync(string controller, bool extended, uint id, byte dlc, byte[] data, ushort periodMs)
+        {
+            return _client.SendCanAsync(controller, extended, id, dlc, data, periodMs);
+        }
+
+        public Task<UceOperationResult<UceCanTxStopResponse>> StopCanTxAsync(string controller)
+        {
+            return _client.StopCanTxAsync(controller);
+        }
+
+        private void OnLedEventReceived(UceLedEvent ledEvent)
+        {
+            LedEventReceived?.Invoke(ledEvent);
+        }
+
+        private void OnCanRxEventReceived(UceCanRxEvent canRxEvent)
+        {
+            CanRxEventReceived?.Invoke(canRxEvent);
         }
     }
 }

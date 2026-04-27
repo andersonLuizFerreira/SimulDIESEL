@@ -23,9 +23,12 @@ bool LedService::handleTlv(uint8_t type,
                            uint8_t valueLen,
                            uint8_t* responseValue,
                            uint8_t& responseValueLen,
-                           uint8_t& errorCode) {
+                           uint8_t& errorCode,
+                           uint8_t* eventValue,
+                           uint8_t& eventValueLen) {
   responseValueLen = 0;
   errorCode = 0;
+  eventValueLen = 0;
 
   if (type != CMD_LED_BUILTIN) {
     errorCode = UCE_ERROR_COMMAND_NOT_SUPPORTED;
@@ -47,5 +50,14 @@ bool LedService::handleTlv(uint8_t type,
     responseValue[0] = currentState ? 0x01 : 0x00;
   }
   responseValueLen = 1;
+
+  ++_eventCounter;
+  if (eventValue) {
+    eventValue[0] = currentState ? 0x01 : 0x00;
+    eventValue[1] = 0x01;
+    eventValue[2] = (uint8_t)(_eventCounter & 0xFFU);
+    eventValue[3] = (uint8_t)((_eventCounter >> 8) & 0xFFU);
+  }
+  eventValueLen = 4;
   return true;
 }

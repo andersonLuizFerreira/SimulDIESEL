@@ -34,6 +34,10 @@ public:
                   uint8_t* rx, size_t rxMax, size_t& rxLen,
                   uint16_t timeoutMs) override;
 
+    bool pollEvent(uint8_t addr,
+                   uint8_t* rx, size_t rxMax, size_t& rxLen,
+                   uint16_t timeoutMs);
+
     bool isOk() const override { return true; }
     const DiagnosticSnapshot& lastDiagnostic() const { return _lastDiagnostic; }
 

@@ -12,6 +12,7 @@ public:
   void begin();
 
   bool available() const;
+  bool txPending() const;
   bool read(uint8_t* dst, size_t& len);
   bool write(const uint8_t* src, size_t len);
 
@@ -30,6 +31,7 @@ private:
   static volatile uint8_t _txBuf[BufferSize];
   static volatile uint16_t _index;
   static volatile bool _rxReady;
+  static volatile bool _txPending;
   static volatile bool _transferActive;
 };
 

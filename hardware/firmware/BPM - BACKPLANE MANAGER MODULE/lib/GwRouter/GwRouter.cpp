@@ -117,3 +117,13 @@ bool GwRouter::pollGsaEvent(uint8_t* respBuf, size_t respMax, size_t& respLen)
 
     return GwTlv::validatePacket(respBuf, respLen);
 }
+
+bool GwRouter::pollUceEvent(uint8_t* respBuf, size_t respMax, size_t& respLen)
+{
+    respLen = 0;
+
+    GwSpiBus* spiBus = static_cast<GwSpiBus*>(&_spi);
+    if (!spiBus) return false;
+
+    return spiBus->pollEvent(GW_ADDR_UCE, respBuf, respMax, respLen, SDGW_GATEWAY_ROUTE_TIMEOUT_MS);
+}

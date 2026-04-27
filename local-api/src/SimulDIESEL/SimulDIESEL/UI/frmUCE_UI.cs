@@ -1,4 +1,6 @@
 using System;
+using System.Globalization;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using SimulDIESEL.BLL.Boards.UCE;
@@ -15,18 +17,34 @@ namespace SimulDIESEL.UI
         private bool _acceptedLedState;
         private bool _suppressLedEvent;
         private bool _suppressCanEvents;
+        private readonly Timer _canRxTimer;
+        private readonly Timer _canDriverLogTimer;
+        private bool _canRxPolling;
+        private bool _canDriverLogPolling;
+        private bool _canPeriodicTxActive;
 
         public frmUCE_UI()
         {
             InitializeComponent();
 
             _logic = FrmUceLogic.CreateDefault();
+            _logic.LedEventReceived += Logic_LedEventReceived;
+            _logic.CanRxEventReceived += Logic_CanRxEventReceived;
 
             chkLed.CheckedChanged += ChkLed_CheckedChanged;
             chkCanEnabled.CheckedChanged += CanControl_Changed;
             cmbCanSpeed.SelectedIndexChanged += CanControl_Changed;
             cmbCanMode.SelectedIndexChanged += CanControl_Changed;
+            btnEnable.Click += BtnEnable_Click;
             Load += FrmUCE_UI_Load;
+
+            _canRxTimer = new Timer();
+            _canRxTimer.Interval = 500;
+            _canRxTimer.Tick += CanRxTimer_Tick;
+
+            _canDriverLogTimer = new Timer();
+            _canDriverLogTimer.Interval = 500;
+            _canDriverLogTimer.Tick += CanDriverLogTimer_Tick;
 
             ApplyInitialCanUiState();
         }
@@ -45,10 +63,19 @@ namespace SimulDIESEL.UI
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             chkLed.CheckedChanged -= ChkLed_CheckedChanged;
+            _logic.LedEventReceived -= Logic_LedEventReceived;
+            _logic.CanRxEventReceived -= Logic_CanRxEventReceived;
             chkCanEnabled.CheckedChanged -= CanControl_Changed;
             cmbCanSpeed.SelectedIndexChanged -= CanControl_Changed;
             cmbCanMode.SelectedIndexChanged -= CanControl_Changed;
+            btnEnable.Click -= BtnEnable_Click;
             Load -= FrmUCE_UI_Load;
+            _canRxTimer.Stop();
+            _canRxTimer.Tick -= CanRxTimer_Tick;
+            _canRxTimer.Dispose();
+            _canDriverLogTimer.Stop();
+            _canDriverLogTimer.Tick -= CanDriverLogTimer_Tick;
+            _canDriverLogTimer.Dispose();
 
             base.OnFormClosed(e);
         }
@@ -58,8 +85,8 @@ namespace SimulDIESEL.UI
             _suppressCanEvents = true;
             try
             {
-                if (cmbCanSpeed.Items.Count > 1)
-                    cmbCanSpeed.SelectedIndex = 1;
+                if (cmbCanSpeed.Items.Count > 5)
+                    cmbCanSpeed.SelectedIndex = 5;
                 else if (cmbCanSpeed.Items.Count > 0)
                     cmbCanSpeed.SelectedIndex = 0;
 
@@ -79,6 +106,8 @@ namespace SimulDIESEL.UI
         private async void FrmUCE_UI_Load(object sender, EventArgs e)
         {
             await RefreshCanStatusAsync(false).ConfigureAwait(true);
+            // CAN_RX_EVENT assíncrono é o caminho primário; o poll fica preservado como fallback/diagnóstico.
+            _canDriverLogTimer.Start();
         }
 
         private async void ChkLed_CheckedChanged(object sender, EventArgs e)
@@ -103,6 +132,89 @@ namespace SimulDIESEL.UI
             await ApplyCanConfigAsync().ConfigureAwait(true);
         }
 
+        private async void CanRxTimer_Tick(object sender, EventArgs e)
+        {
+            if (_canRxPolling || !ReferenceEquals(tabUCE.SelectedTab, tabDados))
+                return;
+
+            _canRxPolling = true;
+            try
+            {
+                await PollCanRxAsync().ConfigureAwait(true);
+            }
+            finally
+            {
+                _canRxPolling = false;
+            }
+        }
+
+        private async void CanDriverLogTimer_Tick(object sender, EventArgs e)
+        {
+            if (_canDriverLogPolling)
+                return;
+
+            _canDriverLogPolling = true;
+            try
+            {
+                await PollCanDriverLogAsync().ConfigureAwait(true);
+            }
+            finally
+            {
+                _canDriverLogPolling = false;
+            }
+        }
+
+        private async void BtnEnable_Click(object sender, EventArgs e)
+        {
+            btnEnable.Enabled = false;
+            try
+            {
+                if (_canPeriodicTxActive)
+                {
+                    await StopCanTxAsync().ConfigureAwait(true);
+                    return;
+                }
+
+                CanTxInput input;
+                string validationError;
+                if (!TryReadCanTxInput(out input, out validationError))
+                {
+                    ShowOperationError(validationError);
+                    return;
+                }
+
+                UceOperationResult<UceCanTxResponse> result = await _logic
+                    .SendCanAsync(input.Extended, input.Id, input.Dlc, input.Data, input.PeriodMs)
+                    .ConfigureAwait(true);
+
+                if (!result.Success || result.Response == null)
+                {
+                    ShowOperationError(result.Message);
+                    return;
+                }
+
+                if (result.Response.TxStatus == SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanTxStatusAcceptedSent)
+                {
+                    lstMensagens.Items.Add("CAN_TX one-shot enviado.");
+                    return;
+                }
+
+                if (result.Response.TxStatus == SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanTxStatusPeriodicStarted)
+                {
+                    _canPeriodicTxActive = true;
+                    btnEnable.Text = "Parar";
+                    lstMensagens.Items.Add("CAN_TX periódico iniciado. Slot " + result.Response.SequenceOrSlot.ToString(CultureInfo.InvariantCulture) + ".");
+                    return;
+                }
+
+                ShowOperationError("UCE retornou CAN_TX: " + UceCanProtocol.ToDisplayTxStatus(result.Response.TxStatus) + ".");
+            }
+            finally
+            {
+                btnEnable.Enabled = true;
+            }
+        }
+
         private async Task ApplyLedStateAsync(bool desiredState)
         {
             UceCommandResult result = await _logic
@@ -118,6 +230,57 @@ namespace SimulDIESEL.UI
 
             _acceptedLedState = result.AcceptedState.Value;
             SetLedCheckboxState(_acceptedLedState);
+        }
+
+        private void Logic_LedEventReceived(UceLedEvent ledEvent)
+        {
+            if (ledEvent == null)
+                return;
+
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(() => Logic_LedEventReceived(ledEvent)));
+                return;
+            }
+
+            _acceptedLedState = ledEvent.LedState;
+            SetLedCheckboxState(ledEvent.LedState);
+            lstMensagens.Items.Add(
+                "UCE LED EVENT state=" +
+                (ledEvent.LedState ? "ON" : "OFF") +
+                " code=0x" +
+                ledEvent.EventCode.ToString("X2", CultureInfo.InvariantCulture) +
+                " counter=" +
+                ledEvent.Counter.ToString(CultureInfo.InvariantCulture));
+
+            while (lstMensagens.Items.Count > 200)
+                lstMensagens.Items.RemoveAt(0);
+
+            if (lstMensagens.Items.Count > 0)
+                lstMensagens.TopIndex = lstMensagens.Items.Count - 1;
+        }
+
+        private void Logic_CanRxEventReceived(UceCanRxEvent canRxEvent)
+        {
+            if (canRxEvent == null)
+                return;
+
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(() => Logic_CanRxEventReceived(canRxEvent)));
+                return;
+            }
+
+            foreach (UceCanFrame frame in canRxEvent.Frames)
+            {
+                lstRX.Items.Add(FormatCanFrame(canRxEvent.Controller, frame));
+            }
+
+            while (lstRX.Items.Count > 500)
+                lstRX.Items.RemoveAt(0);
+
+            if (lstRX.Items.Count > 0)
+                lstRX.TopIndex = lstRX.Items.Count - 1;
         }
 
         private void SetLedCheckboxState(bool value)
@@ -195,6 +358,48 @@ namespace SimulDIESEL.UI
             ApplyCanStatus(result.Response);
         }
 
+        private async Task PollCanRxAsync()
+        {
+            UceOperationResult<UceCanRxPollResponse> result = await _logic
+                .PollCanRxAsync()
+                .ConfigureAwait(true);
+
+            if (!result.Success || result.Response == null)
+                return;
+
+            foreach (UceCanFrame frame in result.Response.Frames)
+            {
+                lstRX.Items.Add(FormatCanFrame(result.Response.Controller, frame));
+            }
+
+            while (lstRX.Items.Count > 500)
+                lstRX.Items.RemoveAt(0);
+
+            if (lstRX.Items.Count > 0)
+                lstRX.TopIndex = lstRX.Items.Count - 1;
+        }
+
+        private async Task PollCanDriverLogAsync()
+        {
+            UceOperationResult<UceCanDriverLogPollResponse> result = await _logic
+                .PollCanDriverLogAsync()
+                .ConfigureAwait(true);
+
+            if (!result.Success || result.Response == null)
+                return;
+
+            foreach (UceCanDriverLogEntry entry in result.Response.Entries)
+            {
+                lstMensagens.Items.Add(FormatDriverLogEntry(result.Response.Controller, entry));
+            }
+
+            while (lstMensagens.Items.Count > 200)
+                lstMensagens.Items.RemoveAt(0);
+
+            if (lstMensagens.Items.Count > 0)
+                lstMensagens.TopIndex = lstMensagens.Items.Count - 1;
+        }
+
         private void ApplyCanStatus(UceCanStatusResponse status)
         {
             _suppressCanEvents = true;
@@ -222,17 +427,32 @@ namespace SimulDIESEL.UI
         {
             switch (bitrateKbps)
             {
-                case 125:
+                case 5:
                     cmbCanSpeed.SelectedIndex = 0;
                     break;
-                case 250:
+                case 10:
                     cmbCanSpeed.SelectedIndex = 1;
                     break;
-                case 500:
+                case 25:
                     cmbCanSpeed.SelectedIndex = 2;
                     break;
-                case 1000:
+                case 50:
                     cmbCanSpeed.SelectedIndex = 3;
+                    break;
+                case 125:
+                    cmbCanSpeed.SelectedIndex = 4;
+                    break;
+                case 250:
+                    cmbCanSpeed.SelectedIndex = 5;
+                    break;
+                case 500:
+                    cmbCanSpeed.SelectedIndex = 6;
+                    break;
+                case 800:
+                    cmbCanSpeed.SelectedIndex = 7;
+                    break;
+                case 1000:
+                    cmbCanSpeed.SelectedIndex = 8;
                     break;
             }
         }
@@ -250,15 +470,30 @@ namespace SimulDIESEL.UI
             switch (cmbCanSpeed.SelectedIndex)
             {
                 case 0:
-                    bitrateKbps = 125;
+                    bitrateKbps = 5;
                     break;
                 case 1:
-                    bitrateKbps = 250;
+                    bitrateKbps = 10;
                     break;
                 case 2:
-                    bitrateKbps = 500;
+                    bitrateKbps = 25;
                     break;
                 case 3:
+                    bitrateKbps = 50;
+                    break;
+                case 4:
+                    bitrateKbps = 125;
+                    break;
+                case 5:
+                    bitrateKbps = 250;
+                    break;
+                case 6:
+                    bitrateKbps = 500;
+                    break;
+                case 7:
+                    bitrateKbps = 800;
+                    break;
+                case 8:
                     bitrateKbps = 1000;
                     break;
                 default:
@@ -275,6 +510,287 @@ namespace SimulDIESEL.UI
                     return true;
                 default:
                     return false;
+            }
+        }
+
+        private async Task StopCanTxAsync()
+        {
+            UceOperationResult<UceCanTxStopResponse> result = await _logic
+                .StopCanTxAsync()
+                .ConfigureAwait(true);
+
+            if (!result.Success || result.Response == null)
+            {
+                ShowOperationError(result.Message);
+                return;
+            }
+
+            if (result.Response.TxStatus != SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanTxStatusPeriodicStopped)
+            {
+                ShowOperationError("UCE retornou CAN_TX_STOP: " + UceCanProtocol.ToDisplayTxStatus(result.Response.TxStatus) + ".");
+                return;
+            }
+
+            _canPeriodicTxActive = false;
+            btnEnable.Text = "Iniciar";
+            lstMensagens.Items.Add("CAN_TX periódico parado.");
+        }
+
+        private struct CanTxInput
+        {
+            public bool Extended;
+            public uint Id;
+            public byte Dlc;
+            public byte[] Data;
+            public ushort PeriodMs;
+        }
+
+        private bool TryReadCanTxInput(out CanTxInput input, out string error)
+        {
+            input = new CanTxInput { Data = new byte[8] };
+            error = null;
+
+            bool extended;
+            if (!TryGetCanTxIdKind(out extended))
+            {
+                error = "Selecione o tipo de mensagem CAN: 1.0/STD ou 2.0/EXT.";
+                return false;
+            }
+
+            uint id;
+            if (!TryParseUInt32Flexible(txtID.Text, out id))
+            {
+                error = "Informe um ID CAN válido.";
+                return false;
+            }
+
+            if (!extended && id > 0x7FFU)
+            {
+                error = "ID inválido para CAN 1.0 / STD. Valor máximo: 0x7FF.";
+                return false;
+            }
+
+            if (extended && id > 0x1FFFFFFFU)
+            {
+                error = "ID inválido para CAN 2.0 / EXT. Valor máximo: 0x1FFFFFFF.";
+                return false;
+            }
+
+            int len;
+            if (!int.TryParse(txtLEN.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out len) ||
+                len < 0 ||
+                len > 8)
+            {
+                error = "LEN deve estar entre 0 e 8.";
+                return false;
+            }
+
+            TextBox[] dataFields = { txtD0, txtD1, txtD2, txtD3, txtD4, txtD5, txtD6, txtD7 };
+            for (int i = 0; i < len; ++i)
+            {
+                byte dataByte;
+                if (!TryParseByteFlexible(dataFields[i].Text, out dataByte))
+                {
+                    error = "D" + i.ToString(CultureInfo.InvariantCulture) + " deve ser hexadecimal entre 00 e FF.";
+                    return false;
+                }
+
+                input.Data[i] = dataByte;
+            }
+
+            int repeatMs;
+            if (!int.TryParse(txtTime.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out repeatMs) ||
+                repeatMs < 0)
+            {
+                error = "Tempo de repetição deve ser maior ou igual a 0 ms.";
+                return false;
+            }
+
+            if (repeatMs > ushort.MaxValue)
+            {
+                error = "Tempo de repetição deve estar entre 0 e 65535 ms.";
+                return false;
+            }
+
+            input.Extended = extended;
+            input.Id = id;
+            input.Dlc = (byte)len;
+            input.PeriodMs = (ushort)repeatMs;
+            return true;
+        }
+
+        private bool TryGetCanTxIdKind(out bool extended)
+        {
+            extended = true;
+            string value = cboCANTYPE.Text != null ? cboCANTYPE.Text.Trim() : string.Empty;
+            if (string.Equals(value, "1.0", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(value, "STD", StringComparison.OrdinalIgnoreCase) ||
+                value.IndexOf("STD", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                extended = false;
+                return true;
+            }
+
+            if (string.Equals(value, "2.0", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(value, "EXT", StringComparison.OrdinalIgnoreCase) ||
+                value.IndexOf("EXT", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                extended = true;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TryParseUInt32Flexible(string text, out uint value)
+        {
+            value = 0;
+            if (string.IsNullOrWhiteSpace(text))
+                return false;
+
+            string trimmed = text.Trim();
+            if (trimmed.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                return uint.TryParse(
+                    trimmed.Substring(2),
+                    NumberStyles.HexNumber,
+                    CultureInfo.InvariantCulture,
+                    out value);
+            }
+
+            return uint.TryParse(trimmed, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out value);
+        }
+
+        private static bool TryParseByteFlexible(string text, out byte value)
+        {
+            value = 0;
+            uint parsed;
+            if (!TryParseUInt32Flexible(text, out parsed) || parsed > byte.MaxValue)
+                return false;
+
+            value = (byte)parsed;
+            return true;
+        }
+
+        private static string FormatCanFrame(UceCanController controller, UceCanFrame frame)
+        {
+            var builder = new StringBuilder();
+            builder.Append(controller == UceCanController.Can1 ? "CAN1 " : "CAN0 ");
+            builder.Append(frame.Extended ? "EXT " : "STD ");
+            builder.Append("ID=0x");
+            builder.Append(frame.Id.ToString(frame.Extended ? "X8" : "X3", CultureInfo.InvariantCulture));
+            builder.Append(" LEN=");
+            builder.Append(frame.Dlc.ToString(CultureInfo.InvariantCulture));
+
+            if (frame.RemoteRequest)
+                builder.Append(" RTR");
+
+            for (int i = 0; i < 8; ++i)
+            {
+                builder.Append(" D");
+                builder.Append(i.ToString(CultureInfo.InvariantCulture));
+                builder.Append("=");
+                builder.Append(frame.Data[i].ToString("X2", CultureInfo.InvariantCulture));
+            }
+
+            return builder.ToString();
+        }
+
+        private static string FormatDriverLogEntry(UceCanController controller, UceCanDriverLogEntry entry)
+        {
+            var builder = new StringBuilder();
+            builder.Append("[");
+            builder.Append(controller == UceCanController.Can1 ? "CAN1" : "CAN0");
+            builder.Append("] ");
+            builder.Append(DescribeDriverEvent(entry.EventCode));
+            builder.Append(" - ");
+            builder.Append(entry.BitrateKbps.ToString(CultureInfo.InvariantCulture));
+            builder.Append(" kbps - ");
+            builder.Append(UceCanProtocol.ToDisplayMode(entry.Mode));
+            builder.Append(" - state=");
+            builder.Append(UceCanProtocol.ToDisplayState(entry.InterfaceState));
+
+            string detail = FormatDriverEventDetail(entry);
+            if (!string.IsNullOrEmpty(detail))
+            {
+                builder.Append(" - ");
+                builder.Append(detail);
+            }
+
+            return builder.ToString();
+        }
+
+        private static string DescribeDriverEvent(byte eventCode)
+        {
+            switch (eventCode)
+            {
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventBegin:
+                    return "DRIVER BEGIN";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventConfigRequested:
+                    return "CONFIG REQUESTED";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventConfigOk:
+                    return "CONFIG OK";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventConfigFault:
+                    return "CONFIG FAULT";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventOpenRequested:
+                    return "OPEN REQUESTED";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventOpenOk:
+                    return "OPEN OK";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventOpenFault:
+                    return "OPEN FAULT";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventCloseRequested:
+                    return "CLOSE REQUESTED";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventCloseOk:
+                    return "CLOSE OK";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventResetRequested:
+                    return "RESET REQUESTED";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventResetOk:
+                    return "RESET OK";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventStatusSnapshot:
+                    return "STATUS SNAPSHOT";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventRxPoll:
+                    return "RX POLL";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventRxFrameRead:
+                    return "RX FRAME READ";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventUnsupportedController:
+                    return "UNSUPPORTED CONTROLLER";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventInvalidBitrate:
+                    return "INVALID BITRATE";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventInvalidMode:
+                    return "INVALID MODE";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventCanPhysicalError:
+                    return "CAN PHYSICAL ERROR";
+                default:
+                    return "EVENT 0x" + eventCode.ToString("X2", CultureInfo.InvariantCulture);
+            }
+        }
+
+        private static string FormatDriverEventDetail(UceCanDriverLogEntry entry)
+        {
+            switch (entry.EventCode)
+            {
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventConfigRequested:
+                    return "bitrateCode=0x" + entry.Detail0.ToString("X2", CultureInfo.InvariantCulture) +
+                           ", modeCode=0x" + entry.Detail1.ToString("X2", CultureInfo.InvariantCulture);
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventConfigOk:
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventOpenOk:
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventStatusSnapshot:
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventCanPhysicalError:
+                    return "status=0x" + entry.Detail0.ToString("X2", CultureInfo.InvariantCulture) +
+                           ", txErr=" + entry.Detail1.ToString(CultureInfo.InvariantCulture) +
+                           ", rxErr=" + entry.Detail2.ToString(CultureInfo.InvariantCulture);
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventRxPoll:
+                    return "maxFrames=" + entry.Detail0.ToString(CultureInfo.InvariantCulture);
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventRxFrameRead:
+                    return "ext=" + entry.Detail0.ToString(CultureInfo.InvariantCulture) +
+                           ", rtr=" + entry.Detail1.ToString(CultureInfo.InvariantCulture) +
+                           ", dlc=" + entry.Detail2.ToString(CultureInfo.InvariantCulture);
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventInvalidBitrate:
+                    return "bitrateCode=0x" + entry.Detail0.ToString("X2", CultureInfo.InvariantCulture);
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventInvalidMode:
+                    return "modeCode=0x" + entry.Detail0.ToString("X2", CultureInfo.InvariantCulture);
+                default:
+                    return string.Empty;
             }
         }
 

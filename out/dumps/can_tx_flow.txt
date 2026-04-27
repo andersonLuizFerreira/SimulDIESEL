@@ -1,0 +1,44 @@
+CAN TX atual - API -> UCE -> CAN fisico
+
+1. UI:
+   frmUCE_UI.BtnEnable_Click
+   frmUCE_UI.TryReadCanTxInput
+
+2. Logica/API:
+   FrmUceLogic.SendCanAsync
+   UceDispatcher.SendCanAsync
+   UceClient.SendCanAsync
+   UceClient.CreateCanTxCommand
+
+3. SDH/SDGW:
+   SdhToSdgwMapper.MapUce
+   TLV 0x26, payload L=17
+   SdhClient.SendAsync
+   SdgwSession.SendAsync
+   SdGwTxScheduler.EnqueueAsync
+   SdGwLinkEngine.SendWithSeq
+   Serial/Bluetooth transport
+
+4. BPM:
+   SdgwLink.poll
+   GatewayApp.onCommand
+   GwRouter.route
+   GwSpiBus.transact
+
+5. UCE:
+   SpiLink.onSpiInterrupt -> _rxReady
+   UceTransport.poll
+   UceServiceDispatcher.dispatch
+   CanService.handleTx
+   CanDriver.send
+   CAN0 mailbox TX 2
+
+6. Retorno:
+   CanService response L=3
+   UceTransport.buildPacket
+   SpiLink.write -> pulseAttention
+   GwSpiBus read response
+   GatewayApp.sendResponse
+   SdgwSession.FrameReceived
+   BoardTlvDispatcher.TransactAsync completes
+

@@ -10,6 +10,7 @@ void UceTransport::begin() {
 
 void UceTransport::poll() {
   if (!_link.available()) {
+    drainPendingEvent();
     return;
   }
 
@@ -27,6 +28,7 @@ void UceTransport::poll() {
     }
   }
   if (emptyFrame) {
+    drainPendingEvent();
     return;
   }
 
@@ -46,10 +48,13 @@ void UceTransport::poll() {
 
   uint8_t responseValue[SpiLink::BufferSize - 3] = {0};
   uint8_t responseValueLen = 0;
+  uint8_t eventValue[SpiLink::BufferSize - 3] = {0};
+  uint8_t eventValueLen = 0;
+  uint8_t eventType = 0;
   uint8_t responseType = type;
   uint8_t errorCode = 0;
 
-  if (_dispatcher.dispatch(type, value, valueLen, responseType, responseValue, responseValueLen, errorCode)) {
+  if (_dispatcher.dispatch(type, value, valueLen, responseType, responseValue, responseValueLen, errorCode, eventType, eventValue, eventValueLen)) {
     txLen = buildPacket(responseType, responseValue, responseValueLen, tx, sizeof(tx));
   } else {
     txLen = buildFunctionalError(type, errorCode ? errorCode : UCE_ERROR_COMMAND_NOT_SUPPORTED, tx, sizeof(tx));
@@ -58,6 +63,21 @@ void UceTransport::poll() {
   if (txLen > 0) {
     _link.write(tx, txLen);
   }
+
+  if (eventType != 0 && eventValueLen > 0) {
+    queueEvent(eventType, eventValue, eventValueLen);
+  }
+
+  drainPendingEvent();
+}
+
+bool UceTransport::publishEvent(uint8_t type, const uint8_t* value, uint8_t valueLen) {
+  if (!queueEvent(type, value, valueLen)) {
+    return false;
+  }
+
+  drainPendingEvent();
+  return true;
 }
 
 uint8_t UceTransport::crc8(const uint8_t* data, size_t len) {
@@ -134,6 +154,44 @@ size_t UceTransport::buildPacket(uint8_t type, const uint8_t* value, uint8_t val
 size_t UceTransport::buildFunctionalError(uint8_t requestType, uint8_t errorCode, uint8_t* out, size_t outMax) {
   uint8_t payload[3] = {requestType, 0x00, errorCode};
   return buildPacket(CMD_FUNCTIONAL_ERROR, payload, sizeof(payload), out, outMax);
+}
+
+bool UceTransport::queueEvent(uint8_t type, const uint8_t* value, uint8_t valueLen) {
+  if (type == 0 || valueLen > sizeof(_pendingEventValue) || (valueLen > 0 && !value)) {
+    return false;
+  }
+
+  if (_pendingEvent) {
+    return false;
+  }
+
+  _pendingEventType = type;
+  _pendingEventValueLen = valueLen;
+  if (valueLen > 0) {
+    memcpy(_pendingEventValue, value, valueLen);
+  }
+  _pendingEvent = true;
+  return true;
+}
+
+bool UceTransport::drainPendingEvent() {
+  if (!_pendingEvent || _link.txPending()) {
+    return false;
+  }
+
+  uint8_t tx[SpiLink::BufferSize] = {0};
+  const size_t txLen = buildPacket(_pendingEventType, _pendingEventValue, _pendingEventValueLen, tx, sizeof(tx));
+  if (txLen == 0) {
+    _pendingEvent = false;
+    return false;
+  }
+
+  if (!_link.write(tx, txLen)) {
+    return false;
+  }
+
+  _pendingEvent = false;
+  return true;
 }
 
 bool UceTransport::findCobsFrame(const uint8_t* frame, size_t frameLen, size_t& cobsLen) {

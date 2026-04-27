@@ -21,6 +21,7 @@ public:
                 uint16_t timeoutMs);
 
     bool pollGsaEvent(uint8_t* respBuf, size_t respMax, size_t& respLen);
+    bool pollUceEvent(uint8_t* respBuf, size_t respMax, size_t& respLen);
     bool buildGatewayErrorPayload(uint8_t cmd, GwErr err, uint8_t* out, size_t outMax, size_t& outLen) const;
 
 private:

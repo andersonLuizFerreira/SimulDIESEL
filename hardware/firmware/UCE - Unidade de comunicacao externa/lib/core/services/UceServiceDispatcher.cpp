@@ -7,26 +7,40 @@ void UceServiceDispatcher::begin() {
   _can.begin();
 }
 
+void UceServiceDispatcher::loop() {
+  _can.loop();
+}
+
 bool UceServiceDispatcher::dispatch(uint8_t type,
                                     const uint8_t* value,
                                     uint8_t valueLen,
                                     uint8_t& responseType,
                                     uint8_t* responseValue,
                                     uint8_t& responseValueLen,
-                                    uint8_t& errorCode) {
+                                    uint8_t& errorCode,
+                                    uint8_t& eventType,
+                                    uint8_t* eventValue,
+                                    uint8_t& eventValueLen) {
   responseType = type;
   responseValueLen = 0;
   errorCode = 0;
+  eventType = 0;
+  eventValueLen = 0;
 
   switch (type) {
     case CMD_LED_BUILTIN:
       responseType = CMD_LED_BUILTIN;
-      return _led.handleTlv(type, value, valueLen, responseValue, responseValueLen, errorCode);
+      eventType = CMD_LED_EVENT;
+      return _led.handleTlv(type, value, valueLen, responseValue, responseValueLen, errorCode, eventValue, eventValueLen);
 
     case CMD_CAN_CONFIG:
     case CMD_CAN_ENABLE:
     case CMD_CAN_STATUS:
     case CMD_CAN_RESET:
+    case CMD_CAN_RX_POLL:
+    case CMD_CAN_DRIVER_LOG_POLL:
+    case CMD_CAN_TX:
+    case CMD_CAN_TX_STOP:
       responseType = type;
       return _can.handleTlv(type, value, valueLen, responseValue, responseValueLen, errorCode);
 
