@@ -11,16 +11,11 @@ LedService g_ledService;
 CanService g_canService;
 UceServiceDispatcher g_dispatcher(g_ledService, g_canService);
 UceTransport g_transport(g_spiLink, g_dispatcher);
-
-bool publishUceEvent(void* context, uint8_t type, const uint8_t* value, uint8_t valueLen) {
-  return static_cast<UceTransport*>(context)->publishEvent(type, value, valueLen);
-}
 }
 
 void setup() {
   g_spiLink.begin();
   g_transport.begin();
-  g_canService.setEventPublisher(publishUceEvent, &g_transport);
 }
 
 void loop() {

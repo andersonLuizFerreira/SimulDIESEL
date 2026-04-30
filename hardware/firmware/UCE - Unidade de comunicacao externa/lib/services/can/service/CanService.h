@@ -2,7 +2,9 @@
 
 #include <stdint.h>
 
-#include "services/can/driver/CanDriver.h"
+#include "services/can/driver/CanDriverSelector.h"
+#include "services/can/protocol/CanCrudProtocol.h"
+#include "services/can/table/CanRxTableManager.h"
 
 class CanService {
 public:
@@ -28,18 +30,33 @@ private:
 
   static const uint8_t ControllerCount = 2;
   static const uint8_t RxQueueCapacity = 8;
+  static const uint8_t CrudEventQueueCapacity = 48;
 
-  CanDriver _driver;
+  CanDriverSelected _driver;
+  CanRxTableManager _rxTable;
+  CanCrudProtocol _crudProtocol;
   PortState _ports[ControllerCount];
   struct QueuedRxFrame {
     uint8_t controller;
-    CanDriver::Frame frame;
+    CanDriverSelected::Frame frame;
   };
 
   QueuedRxFrame _rxQueue[RxQueueCapacity];
   uint8_t _rxHead = 0;
   uint8_t _rxCount = 0;
   uint16_t _rxDropped = 0;
+
+  struct PendingCrudEvent {
+    uint8_t type;
+    uint8_t payload[CanCrudProtocol::EditPayloadMaxLen];
+    uint8_t payloadLen;
+  };
+
+  PendingCrudEvent _crudEventQueue[CrudEventQueueCapacity];
+  uint8_t _crudEventHead = 0;
+  uint8_t _crudEventCount = 0;
+  uint16_t _crudEventDropped = 0;
+  bool _readAllSnapshotActive = false;
   EventPublisher _eventPublisher = nullptr;
   void* _eventPublisherContext = nullptr;
 
@@ -48,7 +65,7 @@ private:
     uint8_t controller;
     uint32_t lastSentMs;
     uint16_t periodMs;
-    CanDriver::Frame frame;
+    CanDriverSelected::Frame frame;
   };
 
   PeriodicTxSlot _periodicTx;
@@ -89,6 +106,11 @@ private:
                            uint8_t* responseValue,
                            uint8_t& responseValueLen,
                            uint8_t& errorCode);
+  bool handleReadAll(const uint8_t* value,
+                     uint8_t valueLen,
+                     uint8_t* responseValue,
+                     uint8_t& responseValueLen,
+                     uint8_t& errorCode);
   bool handleTx(const uint8_t* value,
                 uint8_t valueLen,
                 uint8_t* responseValue,
@@ -100,11 +122,15 @@ private:
                     uint8_t& responseValueLen,
                     uint8_t& errorCode);
   void collectRxFrames();
-  bool enqueueRxFrame(uint8_t controller, const CanDriver::Frame& frame);
+  bool enqueueRxFrame(uint8_t controller, const CanDriverSelected::Frame& frame);
   bool dequeueRxFrame(QueuedRxFrame& queuedFrame);
   bool peekRxFrame(QueuedRxFrame& queuedFrame) const;
+  bool enqueueCrudEvent(uint8_t type, const uint8_t* payload, uint8_t payloadLen);
+  bool dequeueCrudEvent(PendingCrudEvent& event);
+  bool peekCrudEvent(PendingCrudEvent& event) const;
+  bool publishNextCrudEvent();
   bool publishNextRxEvent();
-  uint8_t copyQueuedRxFrames(uint8_t controller, CanDriver::Frame* frames, uint8_t maxFrames);
-  void encodeRxFrameLittleEndian(uint8_t* out, const CanDriver::Frame& frame) const;
-  void encodeRxFrameBigEndian(uint8_t* out, const CanDriver::Frame& frame) const;
+  uint8_t copyQueuedRxFrames(uint8_t controller, CanDriverSelected::Frame* frames, uint8_t maxFrames);
+  void encodeRxFrameLittleEndian(uint8_t* out, const CanDriverSelected::Frame& frame) const;
+  void encodeRxFrameBigEndian(uint8_t* out, const CanDriverSelected::Frame& frame) const;
 };

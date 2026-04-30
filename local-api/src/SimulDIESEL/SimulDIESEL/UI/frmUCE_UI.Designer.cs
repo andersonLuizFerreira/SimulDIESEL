@@ -67,7 +67,7 @@ namespace SimulDIESEL.UI
             this.label1 = new System.Windows.Forms.Label();
             this.txtID = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.lstRX = new System.Windows.Forms.ListBox();
+            this.dgCanRx = new System.Windows.Forms.DataGridView();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.lstMensagens = new System.Windows.Forms.ListBox();
             this.grpLed.SuspendLayout();
@@ -77,11 +77,13 @@ namespace SimulDIESEL.UI
             this.tabDados.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgCanRx)).BeginInit();
             this.groupBox3.SuspendLayout();
             this.SuspendLayout();
             //
             // grpLed
             //
+            this.grpLed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
             this.grpLed.Controls.Add(this.chkLed);
             this.grpLed.Location = new System.Drawing.Point(13, 31);
             this.grpLed.Name = "grpLed";
@@ -102,6 +104,8 @@ namespace SimulDIESEL.UI
             //
             // grpCan
             //
+            this.grpCan.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.grpCan.Controls.Add(this.lblCanStatus);
             this.grpCan.Controls.Add(this.cmbCanMode);
             this.grpCan.Controls.Add(this.lblCanMode);
@@ -186,6 +190,9 @@ namespace SimulDIESEL.UI
             //
             // tabUCE
             //
+            this.tabUCE.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tabUCE.Controls.Add(this.tabConfig);
             this.tabUCE.Controls.Add(this.tabDados);
             this.tabUCE.Location = new System.Drawing.Point(12, 12);
@@ -196,6 +203,7 @@ namespace SimulDIESEL.UI
             //
             // tabConfig
             //
+            this.tabConfig.AutoScroll = true;
             this.tabConfig.Controls.Add(this.groupBox3);
             this.tabConfig.Controls.Add(this.grpLed);
             this.tabConfig.Controls.Add(this.grpCan);
@@ -209,6 +217,7 @@ namespace SimulDIESEL.UI
             //
             // tabDados
             //
+            this.tabDados.AutoScroll = true;
             this.tabDados.Controls.Add(this.groupBox1);
             this.tabDados.Controls.Add(this.groupBox2);
             this.tabDados.Location = new System.Drawing.Point(4, 25);
@@ -221,6 +230,8 @@ namespace SimulDIESEL.UI
             //
             // groupBox2
             //
+            this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox2.Controls.Add(this.btnEnable);
             this.groupBox2.Controls.Add(this.txtD7);
             this.groupBox2.Controls.Add(this.txtD6);
@@ -463,7 +474,10 @@ namespace SimulDIESEL.UI
             //
             // groupBox1
             //
-            this.groupBox1.Controls.Add(this.lstRX);
+            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.dgCanRx);
             this.groupBox1.Location = new System.Drawing.Point(6, 148);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(818, 387);
@@ -471,17 +485,25 @@ namespace SimulDIESEL.UI
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Recepção";
             //
-            // lstRX
+            // dgCanRx
             //
-            this.lstRX.FormattingEnabled = true;
-            this.lstRX.ItemHeight = 16;
-            this.lstRX.Location = new System.Drawing.Point(13, 27);
-            this.lstRX.Name = "lstRX";
-            this.lstRX.Size = new System.Drawing.Size(799, 340);
-            this.lstRX.TabIndex = 0;
+            this.dgCanRx.AllowUserToAddRows = false;
+            this.dgCanRx.AllowUserToDeleteRows = false;
+            this.dgCanRx.AllowUserToResizeRows = false;
+            this.dgCanRx.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgCanRx.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dgCanRx.MultiSelect = false;
+            this.dgCanRx.Name = "dgCanRx";
+            this.dgCanRx.ReadOnly = true;
+            this.dgCanRx.RowHeadersVisible = false;
+            this.dgCanRx.RowTemplate.Height = 24;
+            this.dgCanRx.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dgCanRx.TabIndex = 0;
             //
             // groupBox3
             //
+            this.groupBox3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox3.Controls.Add(this.lstMensagens);
             this.groupBox3.Location = new System.Drawing.Point(15, 224);
             this.groupBox3.Name = "groupBox3";
@@ -492,6 +514,9 @@ namespace SimulDIESEL.UI
             //
             // lstMensagens
             //
+            this.lstMensagens.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.lstMensagens.FormattingEnabled = true;
             this.lstMensagens.ItemHeight = 16;
             this.lstMensagens.Location = new System.Drawing.Point(9, 23);
@@ -519,6 +544,7 @@ namespace SimulDIESEL.UI
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.groupBox1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dgCanRx)).EndInit();
             this.groupBox3.ResumeLayout(false);
             this.ResumeLayout(false);
 
@@ -539,7 +565,7 @@ namespace SimulDIESEL.UI
         private System.Windows.Forms.TabPage tabConfig;
         private System.Windows.Forms.TabPage tabDados;
         private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.ListBox lstRX;
+        private System.Windows.Forms.DataGridView dgCanRx;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Button btnEnable;
         private System.Windows.Forms.TextBox txtD7;

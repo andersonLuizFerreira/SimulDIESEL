@@ -161,9 +161,20 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
             }
             else if (string.Equals(command.Target, "UCE.can.rx", StringComparison.OrdinalIgnoreCase))
             {
-                payload = BuildTlvPayload(
-                    GwProtocol.UceCanRxPollType,
-                    ParseUceController(command));
+                if (string.Equals(command.Op, "poll", StringComparison.OrdinalIgnoreCase))
+                {
+                    payload = BuildTlvPayload(
+                        GwProtocol.UceCanRxPollType,
+                        ParseUceController(command));
+                }
+                else if (string.Equals(command.Op, "readAll", StringComparison.OrdinalIgnoreCase))
+                {
+                    payload = BuildTlvPayload(GwProtocol.UceCanReadAllType);
+                }
+                else
+                {
+                    throw new NotSupportedException("Mapeamento SDH->SDGW ainda não suporta op: " + command.Op + ".");
+                }
             }
             else if (string.Equals(command.Target, "UCE.can.driverLog", StringComparison.OrdinalIgnoreCase))
             {

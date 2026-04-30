@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using System.Windows.Forms;
 using SimulDIESEL.BLL.Boards.UCE;
 using SimulDIESEL.BLL.FormsLogic.UCE;
 using SimulDIESEL.DTL.Boards.UCE;
+using SimulDIESEL.DTL.Boards.UCE.Can;
 
 namespace SimulDIESEL.UI
 {
@@ -22,6 +24,10 @@ namespace SimulDIESEL.UI
         private bool _canRxPolling;
         private bool _canDriverLogPolling;
         private bool _canPeriodicTxActive;
+        private bool _canReadAllInFlight;
+        private bool _initialCanSnapshotLoaded;
+        private bool _initialCanSnapshotRequested;
+        private UceCanStatusResponse _lastCanStatus;
 
         public frmUCE_UI()
         {
@@ -30,6 +36,7 @@ namespace SimulDIESEL.UI
             _logic = FrmUceLogic.CreateDefault();
             _logic.LedEventReceived += Logic_LedEventReceived;
             _logic.CanRxEventReceived += Logic_CanRxEventReceived;
+            _logic.CanRxTableChanged += Logic_CanRxTableChanged;
 
             chkLed.CheckedChanged += ChkLed_CheckedChanged;
             chkCanEnabled.CheckedChanged += CanControl_Changed;
@@ -37,6 +44,9 @@ namespace SimulDIESEL.UI
             cmbCanMode.SelectedIndexChanged += CanControl_Changed;
             btnEnable.Click += BtnEnable_Click;
             Load += FrmUCE_UI_Load;
+            Shown += FrmUCE_UI_Shown;
+            Activated += FrmUCE_UI_Activated;
+            tabUCE.SelectedIndexChanged += TabUCE_SelectedIndexChanged;
 
             _canRxTimer = new Timer();
             _canRxTimer.Interval = 500;
@@ -47,6 +57,8 @@ namespace SimulDIESEL.UI
             _canDriverLogTimer.Tick += CanDriverLogTimer_Tick;
 
             ApplyInitialCanUiState();
+            ConfigureCanRxGrid();
+            RefreshCanRxGrid();
         }
 
         public static frmUCE_UI Instance
@@ -65,17 +77,22 @@ namespace SimulDIESEL.UI
             chkLed.CheckedChanged -= ChkLed_CheckedChanged;
             _logic.LedEventReceived -= Logic_LedEventReceived;
             _logic.CanRxEventReceived -= Logic_CanRxEventReceived;
+            _logic.CanRxTableChanged -= Logic_CanRxTableChanged;
             chkCanEnabled.CheckedChanged -= CanControl_Changed;
             cmbCanSpeed.SelectedIndexChanged -= CanControl_Changed;
             cmbCanMode.SelectedIndexChanged -= CanControl_Changed;
             btnEnable.Click -= BtnEnable_Click;
             Load -= FrmUCE_UI_Load;
+            Shown -= FrmUCE_UI_Shown;
+            Activated -= FrmUCE_UI_Activated;
+            tabUCE.SelectedIndexChanged -= TabUCE_SelectedIndexChanged;
             _canRxTimer.Stop();
             _canRxTimer.Tick -= CanRxTimer_Tick;
             _canRxTimer.Dispose();
             _canDriverLogTimer.Stop();
             _canDriverLogTimer.Tick -= CanDriverLogTimer_Tick;
             _canDriverLogTimer.Dispose();
+            _logic.Dispose();
 
             base.OnFormClosed(e);
         }
@@ -108,6 +125,23 @@ namespace SimulDIESEL.UI
             await RefreshCanStatusAsync(false).ConfigureAwait(true);
             // CAN_RX_EVENT assíncrono é o caminho primário; o poll fica preservado como fallback/diagnóstico.
             _canDriverLogTimer.Start();
+            RefreshCanRxGrid();
+        }
+
+        private async void FrmUCE_UI_Shown(object sender, EventArgs e)
+        {
+            await RequestCanReadAllIfConnectedAsync("Shown").ConfigureAwait(true);
+        }
+
+        private async void FrmUCE_UI_Activated(object sender, EventArgs e)
+        {
+            await RequestCanReadAllIfConnectedAsync("Activated").ConfigureAwait(true);
+        }
+
+        private async void TabUCE_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (ReferenceEquals(tabUCE.SelectedTab, tabDados))
+                await RequestCanReadAllIfConnectedAsync("TabSelected").ConfigureAwait(true);
         }
 
         private async void ChkLed_CheckedChanged(object sender, EventArgs e)
@@ -271,16 +305,52 @@ namespace SimulDIESEL.UI
                 return;
             }
 
-            foreach (UceCanFrame frame in canRxEvent.Frames)
+        }
+
+        private void Logic_CanRxTableChanged(object sender, EventArgs e)
+        {
+            if (InvokeRequired)
             {
-                lstRX.Items.Add(FormatCanFrame(canRxEvent.Controller, frame));
+                BeginInvoke(new Action(() => Logic_CanRxTableChanged(sender, e)));
+                return;
             }
 
-            while (lstRX.Items.Count > 500)
-                lstRX.Items.RemoveAt(0);
+            _initialCanSnapshotLoaded = true;
+            RefreshCanRxGrid();
+        }
 
-            if (lstRX.Items.Count > 0)
-                lstRX.TopIndex = lstRX.Items.Count - 1;
+        private async Task RequestCanReadAllIfConnectedAsync(string origin)
+        {
+            if (_initialCanSnapshotLoaded || _initialCanSnapshotRequested || _canReadAllInFlight || !_logic.IsLinked)
+                return;
+
+            if (_lastCanStatus == null)
+                await RefreshCanStatusAsync(false).ConfigureAwait(true);
+
+            if (_lastCanStatus == null || !UceCanProtocol.IsEnabled(_lastCanStatus.State))
+                return;
+
+            _canReadAllInFlight = true;
+            try
+            {
+                _initialCanSnapshotRequested = true;
+                UceOperationResult<UceCanReadAllResponse> result = await _logic
+                    .RequestCanReadAllAsync()
+                    .ConfigureAwait(true);
+
+                if (!result.Success)
+                {
+                    _initialCanSnapshotRequested = false;
+                    lstMensagens.Items.Add("CAN_READ_ALL falhou: " + result.Message);
+                    return;
+                }
+
+                lstMensagens.Items.Add("CAN_READ_ALL solicitado em " + origin + ".");
+            }
+            finally
+            {
+                _canReadAllInFlight = false;
+            }
         }
 
         private void SetLedCheckboxState(bool value)
@@ -349,12 +419,14 @@ namespace SimulDIESEL.UI
 
             if (!result.Success || result.Response == null)
             {
+                _lastCanStatus = null;
                 SetCanStatusError(result.Message);
                 if (showErrorDialog)
                     ShowOperationError(result.Message);
                 return;
             }
 
+            _lastCanStatus = result.Response;
             ApplyCanStatus(result.Response);
         }
 
@@ -366,17 +438,73 @@ namespace SimulDIESEL.UI
 
             if (!result.Success || result.Response == null)
                 return;
+        }
 
-            foreach (UceCanFrame frame in result.Response.Frames)
+        private void ConfigureCanRxGrid()
+        {
+            if (dgCanRx.Columns.Count > 0)
+                return;
+
+            dgCanRx.AutoGenerateColumns = false;
+            dgCanRx.Columns.Add("INDEX", "INDEX");
+            dgCanRx.Columns.Add("VALID", "VALID");
+            dgCanRx.Columns.Add("TIPO", "TIPO");
+            dgCanRx.Columns.Add("RTR", "RTR");
+            dgCanRx.Columns.Add("CAN_ID", "CAN_ID");
+            dgCanRx.Columns.Add("DLC", "DLC");
+            dgCanRx.Columns.Add("D0", "D0");
+            dgCanRx.Columns.Add("D1", "D1");
+            dgCanRx.Columns.Add("D2", "D2");
+            dgCanRx.Columns.Add("D3", "D3");
+            dgCanRx.Columns.Add("D4", "D4");
+            dgCanRx.Columns.Add("D5", "D5");
+            dgCanRx.Columns.Add("D6", "D6");
+            dgCanRx.Columns.Add("D7", "D7");
+            dgCanRx.Columns.Add("CYCLE_TIME_MS", "CYCLE_TIME_MS");
+            dgCanRx.Columns.Add("MESSAGE_ORDER", "MESSAGE_ORDER");
+
+            dgCanRx.Rows.Clear();
+            for (int index = 0; index < 20; ++index)
+                dgCanRx.Rows.Add();
+        }
+
+        private void RefreshCanRxGrid()
+        {
+            IReadOnlyList<CanRowDto> rows = _logic.GetCanRxMirrorRows();
+            if (rows == null)
+                return;
+
+            while (dgCanRx.Rows.Count < 20)
+                dgCanRx.Rows.Add();
+
+            for (int index = 0; index < 20; ++index)
             {
-                lstRX.Items.Add(FormatCanFrame(result.Response.Controller, frame));
+                CanRowDto row = index < rows.Count ? rows[index] : null;
+                PopulateCanRxGridRow(dgCanRx.Rows[index], index, row);
+            }
+        }
+
+        private static void PopulateCanRxGridRow(DataGridViewRow gridRow, int index, CanRowDto row)
+        {
+            bool valid = row != null && row.Valid;
+            gridRow.Cells[0].Value = index.ToString(CultureInfo.InvariantCulture);
+            gridRow.Cells[1].Value = valid ? "True" : "False";
+            gridRow.Cells[2].Value = valid ? (row.IsExtended ? "EXT" : "STD") : string.Empty;
+            gridRow.Cells[3].Value = valid ? (row.IsRemoteRequest ? "True" : "False") : string.Empty;
+            gridRow.Cells[4].Value = valid ? "0x" + row.CanId.ToString(row.IsExtended ? "X8" : "X3", CultureInfo.InvariantCulture) : string.Empty;
+            gridRow.Cells[5].Value = valid ? row.Dlc.ToString(CultureInfo.InvariantCulture) : string.Empty;
+
+            for (int dataIndex = 0; dataIndex < 8; ++dataIndex)
+            {
+                string cellValue = string.Empty;
+                if (valid && row.Data != null && dataIndex < row.Data.Length)
+                    cellValue = row.Data[dataIndex].ToString("X2", CultureInfo.InvariantCulture);
+
+                gridRow.Cells[6 + dataIndex].Value = cellValue;
             }
 
-            while (lstRX.Items.Count > 500)
-                lstRX.Items.RemoveAt(0);
-
-            if (lstRX.Items.Count > 0)
-                lstRX.TopIndex = lstRX.Items.Count - 1;
+            gridRow.Cells[14].Value = valid ? row.CycleTime.ToString(CultureInfo.InvariantCulture) : string.Empty;
+            gridRow.Cells[15].Value = valid ? row.MessageOrder.ToString(CultureInfo.InvariantCulture) : string.Empty;
         }
 
         private async Task PollCanDriverLogAsync()

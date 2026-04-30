@@ -4,6 +4,7 @@ namespace SimulDIESEL.DTL.Boards.UCE.Can
     {
         public uint CanId { get; set; }
         public bool IsExtended { get; set; }
+        public bool IsRemoteRequest { get; set; }
         public byte Dlc { get; set; }
         public byte[] Data { get; set; } = new byte[8];
     }

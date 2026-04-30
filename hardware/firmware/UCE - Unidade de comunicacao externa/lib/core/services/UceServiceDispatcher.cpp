@@ -1,14 +1,33 @@
 #include "core/services/UceServiceDispatcher.h"
 
+#include <string.h>
+
 #include "defs.h"
 
 void UceServiceDispatcher::begin() {
   _led.begin();
+  _can.setEventPublisher(publishAsyncEvent, this);
   _can.begin();
 }
 
 void UceServiceDispatcher::loop() {
   _can.loop();
+}
+
+bool UceServiceDispatcher::takePendingEvent(uint8_t& eventType, uint8_t* eventValue, uint8_t& eventValueLen) {
+  eventType = 0;
+  eventValueLen = 0;
+  if (!_pendingEvent || (_pendingEventValueLen > 0 && !eventValue)) {
+    return false;
+  }
+
+  eventType = _pendingEventType;
+  eventValueLen = _pendingEventValueLen;
+  if (_pendingEventValueLen > 0) {
+    memcpy(eventValue, _pendingEventValue, _pendingEventValueLen);
+  }
+  _pendingEvent = false;
+  return true;
 }
 
 bool UceServiceDispatcher::dispatch(uint8_t type,
@@ -48,4 +67,23 @@ bool UceServiceDispatcher::dispatch(uint8_t type,
       errorCode = UCE_ERROR_COMMAND_NOT_SUPPORTED;
       return false;
   }
+}
+
+bool UceServiceDispatcher::publishAsyncEvent(void* context, uint8_t type, const uint8_t* value, uint8_t valueLen) {
+  if (!context || type == 0 || valueLen > TLV_MAX_LEN || (valueLen > 0 && !value)) {
+    return false;
+  }
+
+  UceServiceDispatcher* dispatcher = static_cast<UceServiceDispatcher*>(context);
+  if (dispatcher->_pendingEvent) {
+    return false;
+  }
+
+  dispatcher->_pendingEventType = type;
+  dispatcher->_pendingEventValueLen = valueLen;
+  if (valueLen > 0) {
+    memcpy(dispatcher->_pendingEventValue, value, valueLen);
+  }
+  dispatcher->_pendingEvent = true;
+  return true;
 }

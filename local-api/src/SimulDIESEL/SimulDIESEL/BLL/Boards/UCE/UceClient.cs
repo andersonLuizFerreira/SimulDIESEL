@@ -30,6 +30,7 @@ namespace SimulDIESEL.BLL.Boards.UCE
 
         public event Action<UceLedEvent> LedEventReceived;
         public event Action<UceCanRxEvent> CanRxEventReceived;
+        public event Action<byte, byte[]> CanCrudEventReceived;
 
         public async Task<UceCommandResult> SetBuiltinLedAsync(bool on)
         {
@@ -97,6 +98,16 @@ namespace SimulDIESEL.BLL.Boards.UCE
                 IsExpectedCanRxPollResponse,
                 "poll CAN_RX da UCE",
                 UceParsers.TryReadCanRxPollResponse);
+        }
+
+        public Task<UceOperationResult<UceCanReadAllResponse>> RequestCanReadAllAsync(string controller)
+        {
+            return ExecuteOperationAsync<UceCanReadAllResponse>(
+                CreateCanReadAllCommand(controller),
+                GwProtocol.UceCanReadAllType,
+                GwProtocol.UceCanReadAllPayloadLength,
+                "snapshot CAN_READ_ALL da UCE",
+                UceParsers.TryReadCanReadAllResponse);
         }
 
         public Task<UceOperationResult<UceCanDriverLogPollResponse>> PollCanDriverLogAsync(string controller)
@@ -239,7 +250,16 @@ namespace SimulDIESEL.BLL.Boards.UCE
             UceCanRxEvent canRxEvent;
             string canRxError;
             if (UceParsers.TryReadCanRxEvent(frame, out canRxEvent, out canRxError))
+            {
                 CanRxEventReceived?.Invoke(canRxEvent);
+                return;
+            }
+
+            byte eventType;
+            byte[] payload;
+            string canCrudError;
+            if (UceParsers.TryReadCanCrudEvent(frame, out eventType, out payload, out canCrudError))
+                CanCrudEventReceived?.Invoke(eventType, payload);
         }
 
         private static bool IsExpectedCanRxPollResponse(SdgwFrame frame)
@@ -381,6 +401,18 @@ namespace SimulDIESEL.BLL.Boards.UCE
             {
                 Target = "UCE.can.rx",
                 Op = "poll"
+            };
+
+            command.Args["controller"] = controller;
+            return command;
+        }
+
+        private static SdhCommand CreateCanReadAllCommand(string controller)
+        {
+            var command = new SdhCommand
+            {
+                Target = "UCE.can.rx",
+                Op = "readAll"
             };
 
             command.Args["controller"] = controller;

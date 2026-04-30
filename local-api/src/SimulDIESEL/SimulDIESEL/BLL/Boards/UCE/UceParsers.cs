@@ -431,6 +431,29 @@ namespace SimulDIESEL.BLL.Boards.UCE
             return true;
         }
 
+        public static bool TryReadCanCrudEvent(SdgwFrame frame, out byte eventType, out byte[] payload, out string error)
+        {
+            eventType = 0;
+            payload = null;
+            error = null;
+
+            if (frame?.Payload == null || frame.Payload.Length < 2)
+                return false;
+
+            switch (frame.Payload[0])
+            {
+                case GwProtocol.UceCanCreateType:
+                case GwProtocol.UceCanEditType:
+                case GwProtocol.UceCanDeleteType:
+                case GwProtocol.UceCanRowType:
+                case GwProtocol.UceCanReadAllDoneType:
+                    eventType = frame.Payload[0];
+                    return TryReadVariableTlv(frame, eventType, "evento CAN CRUD da UCE", out payload, out error);
+                default:
+                    return false;
+            }
+        }
+
         public static bool TryReadCanDriverLogPollResponse(SdgwFrame frame, out UceCanDriverLogPollResponse response, out string error)
         {
             response = null;
@@ -564,6 +587,22 @@ namespace SimulDIESEL.BLL.Boards.UCE
             return true;
         }
 
+        public static bool TryReadCanReadAllResponse(SdgwFrame frame, out UceCanReadAllResponse response, out string error)
+        {
+            response = null;
+
+            byte[] data;
+            if (!TryReadTlv(frame, GwProtocol.UceCanReadAllType, GwProtocol.UceCanReadAllPayloadLength, "solicitação CAN_READ_ALL da UCE", out data, out error))
+                return false;
+
+            response = new UceCanReadAllResponse
+            {
+                Accepted = true
+            };
+
+            return true;
+        }
+
         private static bool TryReadTlv(SdgwFrame frame, byte expectedType, byte expectedLen, string operationName, out byte[] data, out string error)
         {
             data = null;
@@ -678,6 +717,8 @@ namespace SimulDIESEL.BLL.Boards.UCE
                     return "o envio CAN_TX da UCE";
                 case GwProtocol.UceCanTxStopType:
                     return "a parada CAN_TX periódico da UCE";
+                case GwProtocol.UceCanReadAllType:
+                    return "a leitura completa da tabela RX da UCE";
                 default:
                     return "a operação solicitada para a UCE";
             }

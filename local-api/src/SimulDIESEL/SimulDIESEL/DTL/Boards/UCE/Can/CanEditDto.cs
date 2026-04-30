@@ -3,9 +3,12 @@ namespace SimulDIESEL.DTL.Boards.UCE.Can
     public sealed class CanEditDto
     {
         public int Index { get; set; }
-        public uint Mask { get; set; }
-        public byte[] UpdatedBytes { get; set; } = new byte[0];
-        public int CycleTime { get; set; }
-        public int MessageOrder { get; set; }
+        public byte Mask { get; set; }
+        public uint MessageOrder { get; set; }
+        public byte Flags { get; set; }
+        public uint CanId { get; set; }
+        public byte Dlc { get; set; }
+        public byte[] Data { get; set; } = new byte[8];
+        public ushort CycleTime { get; set; }
     }
 }

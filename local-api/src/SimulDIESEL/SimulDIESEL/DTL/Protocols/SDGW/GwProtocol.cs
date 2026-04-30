@@ -43,6 +43,12 @@ namespace SimulDIESEL.DTL.Protocols.SDGW
         public const byte UceCanTxType = 0x26;
         public const byte UceCanTxStopType = 0x27;
         public const byte UceCanRxEventType = 0x28;
+        public const byte UceCanCreateType = 0x40;
+        public const byte UceCanEditType = 0x41;
+        public const byte UceCanDeleteType = 0x42;
+        public const byte UceCanReadAllType = 0x43;
+        public const byte UceCanRowType = 0x44;
+        public const byte UceCanReadAllDoneType = 0x45;
         public const byte UceErrorType = 0x7F;
         public const byte GatewayErrorType = 0xFE;
 
@@ -61,6 +67,13 @@ namespace SimulDIESEL.DTL.Protocols.SDGW
         public const byte UceCanRxMaxFramesPerResponse = 0x03;
         public const byte UceCanRxEventHeaderLength = 0x02;
         public const byte UceCanRxEventMaxFrames = 0x01;
+        public const byte UceCanCreatePayloadLength = 0x15;
+        public const byte UceCanEditPayloadMinLength = 0x06;
+        public const byte UceCanEditPayloadMaxLength = 0x15;
+        public const byte UceCanReadAllPayloadLength = 0x00;
+        public const byte UceCanRowPayloadLength = 0x15;
+        public const byte UceCanReadAllDonePayloadLength = 0x05;
+        public const byte UceCanRxMirrorCapacity = 0x14;
         public const byte UceCanDriverLogPollRequestPayloadLength = 0x01;
         public const byte UceCanDriverLogEntryLength = 0x08;
         public const byte UceCanDriverLogMaxEntriesPerResponse = 0x06;
@@ -116,6 +129,11 @@ namespace SimulDIESEL.DTL.Protocols.SDGW
         public const byte UceCanTxStatusPeriodicStarted = 0x04;
         public const byte UceCanTxStatusPeriodicStopped = 0x05;
         public const byte UceCanTxStatusNoFreePeriodicSlot = 0x06;
+        public const byte UceCanCrudEditMaskFlags = 0x01;
+        public const byte UceCanCrudEditMaskCanId = 0x02;
+        public const byte UceCanCrudEditMaskDlc = 0x04;
+        public const byte UceCanCrudEditMaskData = 0x08;
+        public const byte UceCanCrudEditMaskCycleTime = 0x10;
 
         public const byte GsaOffsetKindVout = 0x01;
         public const byte GsaOffsetKindVread = 0x02;

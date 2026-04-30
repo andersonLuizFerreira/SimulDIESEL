@@ -2,27 +2,34 @@ using System;
 using System.Threading.Tasks;
 using SimulDIESEL.BLL.Boards.BPM.Comm.Serial;
 using SimulDIESEL.BLL.Boards.UCE;
+using SimulDIESEL.BLL.Services.CAN;
 using SimulDIESEL.DTL.Boards.UCE;
+using SimulDIESEL.DTL.Boards.UCE.Can;
 
 namespace SimulDIESEL.BLL.FormsLogic.UCE
 {
-    public sealed class FrmUceLogic
+    public sealed class FrmUceLogic : IDisposable
     {
         private const string DefaultCanController = "can0";
 
         private readonly IUceDispatcher _uceDispatcher;
         private readonly Func<bool> _isLinked;
+        private readonly ApiCanService _apiCanService;
+        private bool _disposed;
 
         public FrmUceLogic(IUceDispatcher uceDispatcher, Func<bool> isLinked)
         {
             _uceDispatcher = uceDispatcher ?? throw new ArgumentNullException(nameof(uceDispatcher));
             _isLinked = isLinked ?? throw new ArgumentNullException(nameof(isLinked));
+            _apiCanService = new ApiCanService(_uceDispatcher);
             _uceDispatcher.LedEventReceived += OnLedEventReceived;
             _uceDispatcher.CanRxEventReceived += OnCanRxEventReceived;
+            _apiCanService.CanRxTableChanged += OnCanRxTableChanged;
         }
 
         public event Action<UceLedEvent> LedEventReceived;
         public event Action<UceCanRxEvent> CanRxEventReceived;
+        public event EventHandler CanRxTableChanged;
 
         public bool IsLinked
         {
@@ -83,6 +90,14 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             return _uceDispatcher.PollCanRxAsync(DefaultCanController);
         }
 
+        public Task<UceOperationResult<UceCanReadAllResponse>> RequestCanReadAllAsync()
+        {
+            if (!_isLinked())
+                return FailWhenNotLinked<UceCanReadAllResponse>();
+
+            return _apiCanService.RequestReadAllAsync(DefaultCanController);
+        }
+
         public Task<UceOperationResult<UceCanDriverLogPollResponse>> PollCanDriverLogAsync()
         {
             if (!_isLinked())
@@ -107,6 +122,11 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             return _uceDispatcher.StopCanTxAsync(DefaultCanController);
         }
 
+        public System.Collections.Generic.IReadOnlyList<CanRowDto> GetCanRxMirrorRows()
+        {
+            return _apiCanService.GetAll();
+        }
+
         private static Task<UceOperationResult<T>> FailWhenNotLinked<T>()
             where T : class
         {
@@ -121,6 +141,23 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
         private void OnCanRxEventReceived(UceCanRxEvent canRxEvent)
         {
             CanRxEventReceived?.Invoke(canRxEvent);
+        }
+
+        private void OnCanRxTableChanged(object sender, EventArgs e)
+        {
+            CanRxTableChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            _uceDispatcher.LedEventReceived -= OnLedEventReceived;
+            _uceDispatcher.CanRxEventReceived -= OnCanRxEventReceived;
+            _apiCanService.CanRxTableChanged -= OnCanRxTableChanged;
+            _apiCanService.Dispose();
+            _disposed = true;
         }
     }
 }

@@ -39,6 +39,11 @@
 #define CMD_CAN_TX                0x26
 #define CMD_CAN_TX_STOP           0x27
 #define CMD_CAN_RX_EVENT          0x28
+#define CMD_CAN_READ_ALL          0x43
+#define CMD_CAN_ROW               0x44
+#define CMD_CAN_READ_ALL_DONE     0x45
+#define CMD_CAN_CREATE            0x40
+#define CMD_CAN_EDIT              0x41
 #define CMD_TRANSPORT_DIAG        0x7E
 #define CMD_FUNCTIONAL_ERROR      0x7F
 
