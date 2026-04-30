@@ -2,7 +2,7 @@
 #include "core/link/SpiLink.h"
 #include "core/services/UceServiceDispatcher.h"
 #include "core/transport/UceTransport.h"
-#include "services/can/CanService.h"
+#include "services/can/service/CanService.h"
 #include "services/led/LedService.h"
 
 namespace {

@@ -69,6 +69,10 @@
     <Compile Include="BLL\Boards\UCE\UceGatewayDiagnosticLog.cs" />
     <Compile Include="BLL\Boards\UCE\UceOperationResult.cs" />
     <Compile Include="BLL\Boards\UCE\UceParsers.cs" />
+    <Compile Include="BLL\Services\CAN\ApiCanService.cs" />
+    <Compile Include="BLL\Services\CAN\CanEventProcessor.cs" />
+    <Compile Include="BLL\Services\CAN\CanRxMirrorManager.cs" />
+    <Compile Include="BLL\Services\CAN\CanTxManager.cs" />
     <Compile Include="BLL\FormsLogic\BPM\FrmBpmLogic.cs" />
     <Compile Include="BLL\FormsLogic\GSA\FrmGsaLogic.cs" />
     <Compile Include="BLL\FormsLogic\UCE\FrmUceLogic.cs" />
@@ -100,6 +104,12 @@
     <Compile Include="DTL\Boards\GSA\GsaCommon.cs" />
     <Compile Include="DTL\Boards\GSA\GsaRequests.cs" />
     <Compile Include="DTL\Boards\GSA\GsaResponses.cs" />
+    <Compile Include="DTL\Boards\UCE\Can\CanCreateDto.cs" />
+    <Compile Include="DTL\Boards\UCE\Can\CanDeleteDto.cs" />
+    <Compile Include="DTL\Boards\UCE\Can\CanEditDto.cs" />
+    <Compile Include="DTL\Boards\UCE\Can\CanFrameDto.cs" />
+    <Compile Include="DTL\Boards\UCE\Can\CanReadAllResponseDto.cs" />
+    <Compile Include="DTL\Boards\UCE\Can\CanRowDto.cs" />
     <Compile Include="DTL\Boards\UCE\UceCanProtocol.cs" />
     <Compile Include="DTL\Boards\UCE\UceCanResponses.cs" />
     <Compile Include="DTL\Boards\UCE\UceLedResponse.cs" />

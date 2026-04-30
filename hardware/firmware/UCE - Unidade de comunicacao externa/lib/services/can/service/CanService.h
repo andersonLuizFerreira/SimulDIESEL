@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-#include "services/can/CanDriver.h"
+#include "services/can/driver/CanDriver.h"
 
 class CanService {
 public:

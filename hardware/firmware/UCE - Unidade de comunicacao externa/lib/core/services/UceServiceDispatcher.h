@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-#include "services/can/CanService.h"
+#include "services/can/service/CanService.h"
 #include "services/led/LedService.h"
 
 class UceServiceDispatcher {
