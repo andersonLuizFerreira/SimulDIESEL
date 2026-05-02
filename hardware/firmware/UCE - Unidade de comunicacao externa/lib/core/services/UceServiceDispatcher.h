@@ -6,6 +6,9 @@
 #include "services/can/service/CanService.h"
 #include "services/led/LedService.h"
 
+#define DISPATCHER_EVENT_QUEUE_SIZE 20
+#define MAX_DISPATCH_EVENT_SIZE 32
+
 class UceServiceDispatcher {
 public:
   UceServiceDispatcher(LedService& led, CanService& can)
@@ -27,12 +30,25 @@ public:
                 uint8_t& eventValueLen);
 
 private:
+  struct DispatcherEvent {
+    uint8_t data[MAX_DISPATCH_EVENT_SIZE];
+    uint8_t length;
+  };
+
   static bool publishAsyncEvent(void* context, uint8_t type, const uint8_t* value, uint8_t valueLen);
+
+  bool enqueueEvent(uint8_t type, const uint8_t* value, uint8_t valueLen);
+  bool dequeueEvent(uint8_t& eventType, uint8_t* eventValue, uint8_t& eventValueLen);
+  void markDispatcherOverflowDiagnosticPending();
+  void enqueuePendingDispatcherOverflowDiagnostic();
 
   LedService& _led;
   CanService& _can;
-  bool _pendingEvent = false;
-  uint8_t _pendingEventType = 0;
-  uint8_t _pendingEventValue[TLV_MAX_LEN] = {0};
-  uint8_t _pendingEventValueLen = 0;
+  DispatcherEvent _eventQueue[DISPATCHER_EVENT_QUEUE_SIZE];
+  uint8_t _eventQueueHead = 0;
+  uint8_t _eventQueueTail = 0;
+  uint8_t _eventQueueCount = 0;
+  uint32_t _dispatcherOverflowCount = 0;
+  uint32_t _pendingDispatcherOverflowReportCount = 0;
+  bool _dispatcherOverflowDiagnosticPending = false;
 };

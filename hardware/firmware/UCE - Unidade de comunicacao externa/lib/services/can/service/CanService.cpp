@@ -29,6 +29,7 @@ const uint8_t CAN_TX_STATUS_PERIODIC_STARTED = 0x04;
 const uint8_t CAN_TX_STATUS_PERIODIC_STOPPED = 0x05;
 const uint8_t CAN_TX_STOP_ALL = 0xFF;
 const uint8_t CAN_TX_SINGLE_SLOT = 0x00;
+const uint32_t CAN_RX_TABLE_FULL_LOG_INTERVAL_MS = 5000UL;
 
 #ifndef CAN_LEGACY_RX_EVENT_DIRECT
 #define CAN_LEGACY_RX_EVENT_DIRECT 0
@@ -49,6 +50,7 @@ void traceCanReadAllCount(const char* message, uint32_t value) {
 void CanService::begin() {
   _driver.begin();
   _rxTable.reset();
+  _rxHub.reset();
   for (uint8_t controller = 0; controller < ControllerCount; ++controller) {
     resetPort(controller);
   }
@@ -66,11 +68,9 @@ void CanService::begin() {
 
 void CanService::loop() {
   collectRxFrames();
+  checkRxTimeouts();
   publishNextCrudEvent();
-
-#if CAN_LEGACY_RX_EVENT_DIRECT
   publishNextRxEvent();
-#endif
 
   if (_periodicTx.active) {
     const uint32_t now = millis();
@@ -149,6 +149,10 @@ bool CanService::validateMode(uint8_t modeCode) const {
   return modeCode <= 0x01;
 }
 
+bool CanService::validateRxMode(uint8_t rxMode) const {
+  return rxMode <= CAN_RX_MODE_DIRECT_ONLY;
+}
+
 bool CanService::validateEnableState(uint8_t state) const {
   return state == CAN_STATE_OFF || state == CAN_STATE_ON;
 }
@@ -158,7 +162,7 @@ bool CanService::handleConfig(const uint8_t* value,
                               uint8_t* responseValue,
                               uint8_t& responseValueLen,
                               uint8_t& errorCode) {
-  if (!value || valueLen != 3) {
+  if (!value || (valueLen != 3 && valueLen != 4)) {
     errorCode = UCE_ERROR_INVALID_PAYLOAD;
     return false;
   }
@@ -166,7 +170,8 @@ bool CanService::handleConfig(const uint8_t* value,
   const uint8_t controller = value[0];
   const uint8_t bitrateCode = value[1];
   const uint8_t modeCode = value[2];
-  if (!validateController(controller) || !validateBitrate(bitrateCode) || !validateMode(modeCode)) {
+  const uint8_t rxMode = valueLen >= 4 ? value[3] : CAN_RX_MODE_AUTO;
+  if (!validateController(controller) || !validateBitrate(bitrateCode) || !validateMode(modeCode) || !validateRxMode(rxMode)) {
     errorCode = UCE_ERROR_INVALID_STATE;
     return false;
   }
@@ -179,6 +184,7 @@ bool CanService::handleConfig(const uint8_t* value,
   PortState& port = _ports[controller];
   port.bitrateCode = bitrateCode;
   port.modeCode = modeCode;
+  _rxHub.setMode((CanRxMode)rxMode);
   if (port.interfaceState != CAN_INTERFACE_OPEN) {
     port.interfaceState = CAN_INTERFACE_CONFIGURED;
   }
@@ -360,19 +366,16 @@ void CanService::collectRxFrames() {
     }
 
     for (uint8_t i = 0; i < frameCount; ++i) {
-      enqueueRxFrame(controller, frames[i]);
-
-      CanRxTableManager::ObservedFrame observedFrame;
-      observedFrame.extended = frames[i].extended;
-      observedFrame.rtr = frames[i].rtr;
-      observedFrame.canId = frames[i].id;
-      observedFrame.dlc = frames[i].dlc;
-      for (uint8_t dataIndex = 0; dataIndex < 8; ++dataIndex) {
-        observedFrame.data[dataIndex] = frames[i].data[dataIndex];
+      const CanRxHub::ProcessResult hubResult = _rxHub.process(frames[i], _rxTable, millis());
+      if (hubResult.direct) {
+        enqueueRxFrame(controller, frames[i]);
       }
 
-      CanRxTableManager::CrudEvent crudEvent;
-      const CanRxTableManager::ProcessResult result = _rxTable.processFrame(observedFrame, millis(), crudEvent);
+      if (hubResult.tableFullFallback) {
+        publishTableFullFallbackLog(frames[i]);
+      }
+
+      const CanRxTableManager::CrudEvent& crudEvent = hubResult.crudEvent;
       if (!crudEvent.valid) {
         continue;
       }
@@ -390,7 +393,7 @@ void CanService::collectRxFrames() {
 
       uint8_t payload[CanCrudProtocol::EditPayloadMaxLen] = {0};
       uint8_t payloadLen = 0;
-      const bool encoded = (result == CanRxTableManager::ProcessCreate)
+      const bool encoded = (hubResult.tableResult == CanRxTableManager::ProcessCreate)
           ? _crudProtocol.encodeCreate(record, payload, payloadLen)
           : _crudProtocol.encodeEdit(record, crudEvent.mask, payload, payloadLen);
 
@@ -398,6 +401,29 @@ void CanService::collectRxFrames() {
         enqueueCrudEvent(crudEvent.type, payload, payloadLen);
       }
     }
+  }
+}
+
+void CanService::checkRxTimeouts() {
+  if (_rxHub.mode() == CAN_RX_MODE_DIRECT_ONLY || _readAllSnapshotActive || _crudEventCount >= CrudEventQueueCapacity) {
+    return;
+  }
+
+  CanRxTableManager::CrudEvent crudEvent;
+  const CanRxTableManager::ProcessResult result = _rxTable.checkTimeouts(millis(), crudEvent);
+  if (result != CanRxTableManager::ProcessDelete || !crudEvent.valid) {
+    return;
+  }
+
+  uint8_t payload[CanCrudProtocol::DeletePayloadLen] = {0};
+  uint8_t payloadLen = 0;
+  if (_crudProtocol.encodeDelete(
+          crudEvent.entry.index,
+          crudEvent.mask,
+          crudEvent.entry.messageOrder,
+          payload,
+          payloadLen)) {
+    enqueueCrudEvent(crudEvent.type, payload, payloadLen);
   }
 }
 
@@ -520,6 +546,18 @@ bool CanService::publishNextRxEvent() {
 
   dequeueRxFrame(queuedFrame);
   return true;
+}
+
+void CanService::publishTableFullFallbackLog(const CanDriverSelected::Frame& frame) {
+  static uint32_t lastLogMs = 0;
+  const uint32_t nowMs = millis();
+  if ((uint32_t)(nowMs - lastLogMs) < CAN_RX_TABLE_FULL_LOG_INTERVAL_MS) {
+    return;
+  }
+
+  lastLogMs = nowMs;
+  Serial.print("CAN RX TABLE FULL - DIRECT FALLBACK id=0x");
+  Serial.println(frame.id, HEX);
 }
 
 uint8_t CanService::copyQueuedRxFrames(uint8_t controller, CanDriverSelected::Frame* frames, uint8_t maxFrames) {

@@ -31,6 +31,7 @@ namespace SimulDIESEL.BLL.Boards.UCE
         public event Action<UceLedEvent> LedEventReceived;
         public event Action<UceCanRxEvent> CanRxEventReceived;
         public event Action<byte, byte[]> CanCrudEventReceived;
+        public event Action<UceDispatcherOverflowDiagnostic> DispatcherOverflowDiagnosticReceived;
 
         public async Task<UceCommandResult> SetBuiltinLedAsync(bool on)
         {
@@ -53,7 +54,17 @@ namespace SimulDIESEL.BLL.Boards.UCE
         public Task<UceOperationResult<UceCanConfigResponse>> SetCanConfigAsync(string controller, int bitrateKbps, string mode)
         {
             return ExecuteOperationAsync<UceCanConfigResponse>(
-                CreateCanConfigCommand(controller, bitrateKbps, mode),
+                CreateCanConfigCommand(controller, bitrateKbps, mode, null),
+                GwProtocol.UceCanConfigType,
+                GwProtocol.UceCanConfigPayloadLength,
+                "configuração CAN da UCE",
+                UceParsers.TryReadCanConfigResponse);
+        }
+
+        public Task<UceOperationResult<UceCanConfigResponse>> SetCanConfigAsync(string controller, int bitrateKbps, string mode, UceCanRxMode rxMode)
+        {
+            return ExecuteOperationAsync<UceCanConfigResponse>(
+                CreateCanConfigCommand(controller, bitrateKbps, mode, rxMode),
                 GwProtocol.UceCanConfigType,
                 GwProtocol.UceCanConfigPayloadLength,
                 "configuração CAN da UCE",
@@ -259,7 +270,18 @@ namespace SimulDIESEL.BLL.Boards.UCE
             byte[] payload;
             string canCrudError;
             if (UceParsers.TryReadCanCrudEvent(frame, out eventType, out payload, out canCrudError))
+            {
                 CanCrudEventReceived?.Invoke(eventType, payload);
+                return;
+            }
+
+            UceDispatcherOverflowDiagnostic dispatcherOverflowDiagnostic;
+            string transportDiagError;
+            if (UceParsers.TryReadTransportDiagnosticEvent(frame, out dispatcherOverflowDiagnostic, out transportDiagError))
+            {
+                UceGatewayDiagnosticLog.AppendDispatcherFifoOverflow(dispatcherOverflowDiagnostic);
+                DispatcherOverflowDiagnosticReceived?.Invoke(dispatcherOverflowDiagnostic);
+            }
         }
 
         private static bool IsExpectedCanRxPollResponse(SdgwFrame frame)
@@ -344,7 +366,7 @@ namespace SimulDIESEL.BLL.Boards.UCE
             return command;
         }
 
-        private static SdhCommand CreateCanConfigCommand(string controller, int bitrateKbps, string mode)
+        private static SdhCommand CreateCanConfigCommand(string controller, int bitrateKbps, string mode, UceCanRxMode? rxMode)
         {
             var command = new SdhCommand
             {
@@ -355,6 +377,8 @@ namespace SimulDIESEL.BLL.Boards.UCE
             command.Args["controller"] = controller;
             command.Args["bitrate"] = bitrateKbps.ToString(System.Globalization.CultureInfo.InvariantCulture);
             command.Args["mode"] = mode;
+            if (rxMode.HasValue)
+                command.Args["rxMode"] = rxMode.Value == UceCanRxMode.DirectOnly ? "directOnly" : "auto";
             return command;
         }
 

@@ -60,6 +60,19 @@ bool CanCrudProtocol::encodeEdit(const Record& record, uint8_t mask, uint8_t* ou
   return true;
 }
 
+bool CanCrudProtocol::encodeDelete(uint8_t index, uint8_t reason, uint32_t messageOrder, uint8_t* out, uint8_t& outLen) const {
+  outLen = 0;
+  if (!out) {
+    return false;
+  }
+
+  out[0] = index;
+  out[1] = reason;
+  writeUint32Le(messageOrder, &out[2]);
+  outLen = DeletePayloadLen;
+  return true;
+}
+
 bool CanCrudProtocol::encodeReadAllDone(uint8_t count, uint32_t messageOrder, uint8_t* out, uint8_t& outLen) const {
   outLen = 0;
   if (!out) {

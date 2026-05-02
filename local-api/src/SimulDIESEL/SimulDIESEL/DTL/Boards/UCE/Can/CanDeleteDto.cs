@@ -4,5 +4,6 @@ namespace SimulDIESEL.DTL.Boards.UCE.Can
     {
         public int Index { get; set; }
         public byte Reason { get; set; }
+        public uint MessageOrder { get; set; }
     }
 }

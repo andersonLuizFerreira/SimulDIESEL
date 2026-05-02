@@ -93,6 +93,13 @@ CanRxTableManager::ProcessResult CanRxTableManager::processFrame(const ObservedF
     mask |= 0x08;
   }
 
+  const uint32_t elapsedMs = nowMs - entry->previousSeenMs;
+  const uint16_t nextCycleTime = elapsedMs > 0xFFFFUL ? 0xFFFFU : (uint16_t)elapsedMs;
+  if (entry->cycleTime != nextCycleTime) {
+    entry->cycleTime = nextCycleTime;
+    mask |= 0x10;
+  }
+
   if (mask == 0) {
     return ProcessNoChange;
   }
@@ -103,6 +110,41 @@ CanRxTableManager::ProcessResult CanRxTableManager::processFrame(const ObservedF
   event.mask = mask;
   event.entry = *entry;
   return ProcessEdit;
+}
+
+CanRxTableManager::ProcessResult CanRxTableManager::checkTimeouts(uint32_t nowMs, CrudEvent& event) {
+  event.valid = false;
+  event.type = 0;
+  event.mask = 0;
+
+  for (uint8_t index = 0; index < Capacity; ++index) {
+    Entry& entry = _entries[index];
+    if (!entry.valid) {
+      continue;
+    }
+
+    const uint32_t timeoutMs = timeoutFor(entry);
+    if ((uint32_t)(nowMs - entry.lastSeenMs) < timeoutMs) {
+      continue;
+    }
+
+    entry.messageOrder = _nextMessageOrder++;
+    event.valid = true;
+    event.type = CMD_CAN_DELETE;
+    event.mask = DeleteReasonTimeout;
+    event.entry = entry;
+    entry.valid = false;
+    entry.flags = 0;
+    entry.canId = 0;
+    entry.dlc = 0;
+    memset(entry.data, 0, sizeof(entry.data));
+    entry.cycleTime = 0;
+    entry.lastSeenMs = 0;
+    entry.previousSeenMs = 0;
+    return ProcessDelete;
+  }
+
+  return ProcessNoChange;
 }
 
 uint8_t CanRxTableManager::buildFlags(const ObservedFrame& frame) {
@@ -139,4 +181,19 @@ void CanRxTableManager::fillEntry(Entry& entry, const ObservedFrame& frame, uint
   entry.cycleTime = 0;
   entry.previousSeenMs = entry.lastSeenMs;
   entry.lastSeenMs = nowMs;
+}
+
+uint32_t CanRxTableManager::timeoutFor(const Entry& entry) {
+  if (entry.cycleTime == 0) {
+    return 3000UL;
+  }
+
+  uint32_t timeoutMs = (uint32_t)entry.cycleTime * 5UL;
+  if (timeoutMs < 1000UL) {
+    timeoutMs = 1000UL;
+  }
+  if (timeoutMs > 30000UL) {
+    timeoutMs = 30000UL;
+  }
+  return timeoutMs;
 }

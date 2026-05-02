@@ -9,9 +9,11 @@ namespace SimulDIESEL.BLL.Boards.UCE
         event Action<UceLedEvent> LedEventReceived;
         event Action<UceCanRxEvent> CanRxEventReceived;
         event Action<byte, byte[]> CanCrudEventReceived;
+        event Action<UceDispatcherOverflowDiagnostic> DispatcherOverflowDiagnosticReceived;
 
         Task<UceCommandResult> SetBuiltinLedAsync(bool on);
         Task<UceOperationResult<UceCanConfigResponse>> SetCanConfigAsync(string controller, int bitrateKbps, string mode);
+        Task<UceOperationResult<UceCanConfigResponse>> SetCanConfigAsync(string controller, int bitrateKbps, string mode, UceCanRxMode rxMode);
         Task<UceOperationResult<UceCanEnableResponse>> SetCanEnabledAsync(string controller, bool enabled);
         Task<UceOperationResult<UceCanStatusResponse>> GetCanStatusAsync(string controller);
         Task<UceOperationResult<UceCanResetResponse>> ResetCanAsync(string controller);
@@ -32,11 +34,13 @@ namespace SimulDIESEL.BLL.Boards.UCE
             _client.LedEventReceived += OnLedEventReceived;
             _client.CanRxEventReceived += OnCanRxEventReceived;
             _client.CanCrudEventReceived += OnCanCrudEventReceived;
+            _client.DispatcherOverflowDiagnosticReceived += OnDispatcherOverflowDiagnosticReceived;
         }
 
         public event Action<UceLedEvent> LedEventReceived;
         public event Action<UceCanRxEvent> CanRxEventReceived;
         public event Action<byte, byte[]> CanCrudEventReceived;
+        public event Action<UceDispatcherOverflowDiagnostic> DispatcherOverflowDiagnosticReceived;
 
         public Task<UceCommandResult> SetBuiltinLedAsync(bool on)
         {
@@ -46,6 +50,11 @@ namespace SimulDIESEL.BLL.Boards.UCE
         public Task<UceOperationResult<UceCanConfigResponse>> SetCanConfigAsync(string controller, int bitrateKbps, string mode)
         {
             return _client.SetCanConfigAsync(controller, bitrateKbps, mode);
+        }
+
+        public Task<UceOperationResult<UceCanConfigResponse>> SetCanConfigAsync(string controller, int bitrateKbps, string mode, UceCanRxMode rxMode)
+        {
+            return _client.SetCanConfigAsync(controller, bitrateKbps, mode, rxMode);
         }
 
         public Task<UceOperationResult<UceCanEnableResponse>> SetCanEnabledAsync(string controller, bool enabled)
@@ -101,6 +110,11 @@ namespace SimulDIESEL.BLL.Boards.UCE
         private void OnCanCrudEventReceived(byte type, byte[] payload)
         {
             CanCrudEventReceived?.Invoke(type, payload);
+        }
+
+        private void OnDispatcherOverflowDiagnosticReceived(UceDispatcherOverflowDiagnostic diagnostic)
+        {
+            DispatcherOverflowDiagnosticReceived?.Invoke(diagnostic);
         }
     }
 }

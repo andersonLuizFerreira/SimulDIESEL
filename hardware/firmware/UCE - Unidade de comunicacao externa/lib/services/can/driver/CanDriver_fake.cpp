@@ -38,8 +38,11 @@ const uint8_t CAN_EVENT_FAKE_IDS_GENERATED = 0x16;
 const uint8_t CAN_EVENT_FAKE_BURST_GENERATED = 0x17;
 const uint8_t CAN_EVENT_FAKE_RX_OVERFLOW = 0x18;
 const uint8_t CAN_EVENT_FAKE_CREATED = 0x19;
+const uint8_t CAN_EVENT_FAKE_SINGLE_SHOT_SENT = 0x1A;
 const uint32_t CAN_FAKE_BURST_PERIOD_MS = 500UL;
 const uint32_t CAN_FAKE_DATA_STEP_MS = 3000UL;
+const uint32_t CAN_FAKE_SINGLE_SHOT_PERIOD_MS = 10000UL;
+const uint32_t CAN_FAKE_FAST_PERIOD_MS = 100UL;
 const uint8_t CAN_FAKE_BURST_SIZE = 3;
 const uint8_t CAN_FAKE_FRAME_DLC = 8;
 }
@@ -138,7 +141,11 @@ bool CanDriverFake::open(uint8_t controller) {
   port.lastBurstTimestampMs = port.openTimestampMs >= CAN_FAKE_BURST_PERIOD_MS
       ? port.openTimestampMs - CAN_FAKE_BURST_PERIOD_MS
       : 0;
+  port.lastSingleShotMs = port.openTimestampMs - CAN_FAKE_SINGLE_SHOT_PERIOD_MS;
+  port.lastFastFrameMs = port.openTimestampMs;
+  port.lastFastOverflowLogMs = 0;
   port.dataNibble = 0;
+  resetFastData(port);
   generateFakeIds(port);
   logEvent(controller, CAN_EVENT_FAKE_IDS_GENERATED,
            (uint8_t)(port.fakeIds[0] & 0xFFU),
@@ -312,10 +319,16 @@ void CanDriverFake::resetPort(uint8_t controller) {
   _ports[controller].lastError = 0;
   _ports[controller].openTimestampMs = 0;
   _ports[controller].lastBurstTimestampMs = 0;
+  _ports[controller].lastSingleShotMs = 0;
+  _ports[controller].lastFastFrameMs = 0;
+  _ports[controller].lastFastOverflowLogMs = 0;
   _ports[controller].dataNibble = 0;
   for (uint8_t i = 0; i < CAN_FAKE_BURST_SIZE; ++i) {
     _ports[controller].fakeIds[i] = 0;
   }
+  _ports[controller].fakeId4 = 0;
+  _ports[controller].fakeFastId = 0;
+  resetFastData(_ports[controller]);
 }
 
 void CanDriverFake::logEvent(uint8_t controller,
@@ -364,6 +377,30 @@ void CanDriverFake::generateFakeIds(PortState& port) {
 
     port.fakeIds[i] = candidate;
   }
+
+  bool duplicate = false;
+  do {
+    port.fakeId4 = (((uint32_t)random(0, 0x7FFF) << 14) ^ (uint32_t)random(0, 0x3FFF)) & 0x1FFFFFFFUL;
+    port.fakeId4 = (port.fakeId4 & 0x1FFFFFF0UL) | 0x03U;
+    duplicate = false;
+    for (uint8_t other = 0; other < CAN_FAKE_BURST_SIZE; ++other) {
+      if (port.fakeIds[other] == port.fakeId4) {
+        duplicate = true;
+        break;
+      }
+    }
+  } while (duplicate);
+
+  do {
+    port.fakeFastId = (((uint32_t)random(0, 0x7FFF) << 14) ^ (uint32_t)random(0, 0x3FFF)) & 0x1FFFFFFFUL;
+    port.fakeFastId = (port.fakeFastId & 0x1FFFFFF0UL) | 0x04U;
+    duplicate = port.fakeFastId == port.fakeId4;
+    for (uint8_t other = 0; other < CAN_FAKE_BURST_SIZE && !duplicate; ++other) {
+      if (port.fakeIds[other] == port.fakeFastId) {
+        duplicate = true;
+      }
+    }
+  } while (duplicate);
 }
 
 void CanDriverFake::seedEntropyOnce() {
@@ -395,6 +432,43 @@ void CanDriverFake::updatePortSimulation(uint8_t controller, PortState& port, ui
     port.lastBurstTimestampMs = burstTimestamp;
     logEvent(controller, CAN_EVENT_FAKE_BURST_GENERATED, port.dataNibble);
   }
+
+  if ((uint32_t)(now - port.lastSingleShotMs) >= CAN_FAKE_SINGLE_SHOT_PERIOD_MS) {
+    Frame frame;
+    buildSingleShotFrame(port.fakeId4, frame);
+    if (!enqueueRxFrame(controller, frame)) {
+      port.lastError = CAN_EVENT_FAKE_RX_OVERFLOW;
+      logEvent(controller, CAN_EVENT_FAKE_RX_OVERFLOW, 0x03, _rxCount, RxCapacity);
+      return;
+    }
+
+    port.lastSingleShotMs = now;
+    logEvent(controller, CAN_EVENT_FAKE_SINGLE_SHOT_SENT, (uint8_t)(port.fakeId4 & 0xFFU));
+  }
+
+  const bool shouldSendFastFrame = port.fakeFastFirstFramePending ||
+      (uint32_t)(now - port.lastFastFrameMs) >= CAN_FAKE_FAST_PERIOD_MS;
+  if (!shouldSendFastFrame) {
+    return;
+  }
+
+  if (!port.fakeFastFirstFramePending) {
+    updateFastData(port);
+  }
+
+  Frame fastFrame;
+  buildFastFrame(port, fastFrame);
+  if (!enqueueRxFrame(controller, fastFrame)) {
+    port.lastError = CAN_EVENT_FAKE_RX_OVERFLOW;
+    if ((uint32_t)(now - port.lastFastOverflowLogMs) >= 1000UL) {
+      logEvent(controller, CAN_EVENT_FAKE_RX_OVERFLOW, 0x04, _rxCount, RxCapacity);
+      port.lastFastOverflowLogMs = now;
+    }
+    return;
+  }
+
+  port.fakeFastFirstFramePending = false;
+  port.lastFastFrameMs = now;
 }
 
 bool CanDriverFake::enqueueRxFrame(uint8_t controller, const Frame& frame) {
@@ -473,6 +547,41 @@ void CanDriverFake::buildBurstFrame(uint32_t id, uint8_t dataNibble, Frame& fram
   for (uint8_t i = 0; i < CAN_FAKE_FRAME_DLC; ++i) {
     frame.data[i] = (uint8_t)((i << 4) | (dataNibble & 0x0F));
   }
+}
+
+void CanDriverFake::buildSingleShotFrame(uint32_t id, Frame& frame) const {
+  frame.id = id & 0x1FFFFFFFUL;
+  frame.extended = true;
+  frame.rtr = false;
+  frame.dlc = CAN_FAKE_FRAME_DLC;
+  for (uint8_t i = 0; i < CAN_FAKE_FRAME_DLC; ++i) {
+    frame.data[i] = (uint8_t)((i << 4) | 0x03U);
+  }
+}
+
+void CanDriverFake::buildFastFrame(const PortState& port, Frame& frame) const {
+  frame.id = port.fakeFastId & 0x1FFFFFFFUL;
+  frame.extended = true;
+  frame.rtr = false;
+  frame.dlc = CAN_FAKE_FRAME_DLC;
+  for (uint8_t i = 0; i < CAN_FAKE_FRAME_DLC; ++i) {
+    frame.data[i] = port.fakeFastData[i];
+  }
+}
+
+void CanDriverFake::resetFastData(PortState& port) const {
+  for (uint8_t i = 0; i < CAN_FAKE_FRAME_DLC; ++i) {
+    port.fakeFastData[i] = (uint8_t)(i << 4);
+  }
+  port.fakeFastByteIndex = 0;
+  port.fakeFastFirstFramePending = true;
+}
+
+void CanDriverFake::updateFastData(PortState& port) const {
+  const uint8_t index = port.fakeFastByteIndex;
+  const uint8_t lowNibble = (uint8_t)((port.fakeFastData[index] + 1U) & 0x0FU);
+  port.fakeFastData[index] = (uint8_t)((index << 4) | lowNibble);
+  port.fakeFastByteIndex = (uint8_t)((index + 1U) % CAN_FAKE_FRAME_DLC);
 }
 
 void CanDriverFake::rememberTxFrame(uint8_t controller, const Frame& frame) {

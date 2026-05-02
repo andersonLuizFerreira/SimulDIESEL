@@ -36,8 +36,13 @@ namespace SimulDIESEL.BLL.Services.CAN
                     }
                     return ProcessEdit(edit);
                 case GwProtocol.UceCanDeleteType:
-                    Debug.WriteLine("CanEventProcessor: CAN_DELETE não implementado nesta etapa.");
-                    return false;
+                    CanDeleteDto delete;
+                    if (!TryParseDelete(payload, out delete))
+                    {
+                        Debug.WriteLine("CanEventProcessor: payload CAN_DELETE inválido.");
+                        return false;
+                    }
+                    return ProcessDelete(delete);
                 case GwProtocol.UceCanRowType:
                     CanRowDto row;
                     if (!TryParseRow(payload, out row))
@@ -197,6 +202,21 @@ namespace SimulDIESEL.BLL.Services.CAN
                 Data = create.Data != null ? (byte[])create.Data.Clone() : new byte[8],
                 CycleTime = create.CycleTime,
                 MessageOrder = create.MessageOrder
+            };
+            return true;
+        }
+
+        private static bool TryParseDelete(byte[] payload, out CanDeleteDto delete)
+        {
+            delete = null;
+            if (payload == null || payload.Length != GwProtocol.UceCanDeletePayloadLength)
+                return false;
+
+            delete = new CanDeleteDto
+            {
+                Index = payload[0],
+                Reason = payload[1],
+                MessageOrder = ReadUInt32Le(payload, 2)
             };
             return true;
         }

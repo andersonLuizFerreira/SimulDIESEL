@@ -8,6 +8,7 @@ using SimulDIESEL.BLL.Boards.UCE;
 using SimulDIESEL.BLL.FormsLogic.UCE;
 using SimulDIESEL.DTL.Boards.UCE;
 using SimulDIESEL.DTL.Boards.UCE.Can;
+using SimulDIESEL.DTL.Protocols.SDGW;
 
 namespace SimulDIESEL.UI
 {
@@ -21,12 +22,12 @@ namespace SimulDIESEL.UI
         private bool _suppressCanEvents;
         private readonly Timer _canRxTimer;
         private readonly Timer _canDriverLogTimer;
+        private readonly Timer _canRxGridRefreshTimer;
+        private bool _canRxGridRefreshPending;
         private bool _canRxPolling;
         private bool _canDriverLogPolling;
         private bool _canPeriodicTxActive;
-        private bool _canReadAllInFlight;
-        private bool _initialCanSnapshotLoaded;
-        private bool _initialCanSnapshotRequested;
+        private bool _dispatcherOverflowDialogShown;
         private UceCanStatusResponse _lastCanStatus;
 
         public frmUCE_UI()
@@ -37,6 +38,8 @@ namespace SimulDIESEL.UI
             _logic.LedEventReceived += Logic_LedEventReceived;
             _logic.CanRxEventReceived += Logic_CanRxEventReceived;
             _logic.CanRxTableChanged += Logic_CanRxTableChanged;
+            _logic.DispatcherOverflowDiagnosticReceived += Logic_DispatcherOverflowDiagnosticReceived;
+            _logic.CanDiagnosticStateChanged += Logic_CanDiagnosticStateChanged;
 
             chkLed.CheckedChanged += ChkLed_CheckedChanged;
             chkCanEnabled.CheckedChanged += CanControl_Changed;
@@ -44,8 +47,6 @@ namespace SimulDIESEL.UI
             cmbCanMode.SelectedIndexChanged += CanControl_Changed;
             btnEnable.Click += BtnEnable_Click;
             Load += FrmUCE_UI_Load;
-            Shown += FrmUCE_UI_Shown;
-            Activated += FrmUCE_UI_Activated;
             tabUCE.SelectedIndexChanged += TabUCE_SelectedIndexChanged;
 
             _canRxTimer = new Timer();
@@ -56,9 +57,14 @@ namespace SimulDIESEL.UI
             _canDriverLogTimer.Interval = 500;
             _canDriverLogTimer.Tick += CanDriverLogTimer_Tick;
 
+            _canRxGridRefreshTimer = new Timer();
+            _canRxGridRefreshTimer.Interval = 500;
+            _canRxGridRefreshTimer.Tick += CanRxGridRefreshTimer_Tick;
+
             ApplyInitialCanUiState();
             ConfigureCanRxGrid();
             RefreshCanRxGrid();
+            UpdateCanDiagnosticIndicators();
         }
 
         public static frmUCE_UI Instance
@@ -78,13 +84,13 @@ namespace SimulDIESEL.UI
             _logic.LedEventReceived -= Logic_LedEventReceived;
             _logic.CanRxEventReceived -= Logic_CanRxEventReceived;
             _logic.CanRxTableChanged -= Logic_CanRxTableChanged;
+            _logic.DispatcherOverflowDiagnosticReceived -= Logic_DispatcherOverflowDiagnosticReceived;
+            _logic.CanDiagnosticStateChanged -= Logic_CanDiagnosticStateChanged;
             chkCanEnabled.CheckedChanged -= CanControl_Changed;
             cmbCanSpeed.SelectedIndexChanged -= CanControl_Changed;
             cmbCanMode.SelectedIndexChanged -= CanControl_Changed;
             btnEnable.Click -= BtnEnable_Click;
             Load -= FrmUCE_UI_Load;
-            Shown -= FrmUCE_UI_Shown;
-            Activated -= FrmUCE_UI_Activated;
             tabUCE.SelectedIndexChanged -= TabUCE_SelectedIndexChanged;
             _canRxTimer.Stop();
             _canRxTimer.Tick -= CanRxTimer_Tick;
@@ -92,6 +98,9 @@ namespace SimulDIESEL.UI
             _canDriverLogTimer.Stop();
             _canDriverLogTimer.Tick -= CanDriverLogTimer_Tick;
             _canDriverLogTimer.Dispose();
+            _canRxGridRefreshTimer.Stop();
+            _canRxGridRefreshTimer.Tick -= CanRxGridRefreshTimer_Tick;
+            _canRxGridRefreshTimer.Dispose();
             _logic.Dispose();
 
             base.OnFormClosed(e);
@@ -126,22 +135,17 @@ namespace SimulDIESEL.UI
             // CAN_RX_EVENT assíncrono é o caminho primário; o poll fica preservado como fallback/diagnóstico.
             _canDriverLogTimer.Start();
             RefreshCanRxGrid();
-        }
-
-        private async void FrmUCE_UI_Shown(object sender, EventArgs e)
-        {
-            await RequestCanReadAllIfConnectedAsync("Shown").ConfigureAwait(true);
-        }
-
-        private async void FrmUCE_UI_Activated(object sender, EventArgs e)
-        {
-            await RequestCanReadAllIfConnectedAsync("Activated").ConfigureAwait(true);
+            UpdateCanDiagnosticIndicators();
         }
 
         private async void TabUCE_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (ReferenceEquals(tabUCE.SelectedTab, tabDados))
-                await RequestCanReadAllIfConnectedAsync("TabSelected").ConfigureAwait(true);
+            {
+                await RefreshCanStatusAsync(false).ConfigureAwait(true);
+                RefreshCanRxGrid();
+                UpdateCanDiagnosticIndicators();
+            }
         }
 
         private async void ChkLed_CheckedChanged(object sender, EventArgs e)
@@ -180,6 +184,17 @@ namespace SimulDIESEL.UI
             {
                 _canRxPolling = false;
             }
+        }
+
+        private void CanRxGridRefreshTimer_Tick(object sender, EventArgs e)
+        {
+            _canRxGridRefreshTimer.Stop();
+
+            if (!_canRxGridRefreshPending || IsDisposed || Disposing)
+                return;
+
+            _canRxGridRefreshPending = false;
+            RefreshCanRxGrid();
         }
 
         private async void CanDriverLogTimer_Tick(object sender, EventArgs e)
@@ -309,48 +324,59 @@ namespace SimulDIESEL.UI
 
         private void Logic_CanRxTableChanged(object sender, EventArgs e)
         {
+            if (IsDisposed || Disposing)
+                return;
+
             if (InvokeRequired)
             {
-                BeginInvoke(new Action(() => Logic_CanRxTableChanged(sender, e)));
+                if (!IsDisposed && !Disposing)
+                    BeginInvoke(new Action(() => Logic_CanRxTableChanged(sender, e)));
                 return;
             }
 
-            _initialCanSnapshotLoaded = true;
-            RefreshCanRxGrid();
+            ScheduleCanRxGridRefresh();
         }
 
-        private async Task RequestCanReadAllIfConnectedAsync(string origin)
+        private void Logic_CanDiagnosticStateChanged(object sender, EventArgs e)
         {
-            if (_initialCanSnapshotLoaded || _initialCanSnapshotRequested || _canReadAllInFlight || !_logic.IsLinked)
+            UpdateCanDiagnosticIndicators();
+        }
+
+        private void Logic_DispatcherOverflowDiagnosticReceived(UceDispatcherOverflowDiagnostic diagnostic)
+        {
+            if (IsDisposed || Disposing)
                 return;
 
-            if (_lastCanStatus == null)
-                await RefreshCanStatusAsync(false).ConfigureAwait(true);
-
-            if (_lastCanStatus == null || !UceCanProtocol.IsEnabled(_lastCanStatus.State))
-                return;
-
-            _canReadAllInFlight = true;
-            try
+            if (InvokeRequired)
             {
-                _initialCanSnapshotRequested = true;
-                UceOperationResult<UceCanReadAllResponse> result = await _logic
-                    .RequestCanReadAllAsync()
-                    .ConfigureAwait(true);
-
-                if (!result.Success)
+                try
                 {
-                    _initialCanSnapshotRequested = false;
-                    lstMensagens.Items.Add("CAN_READ_ALL falhou: " + result.Message);
-                    return;
+                    BeginInvoke(new Action(() => Logic_DispatcherOverflowDiagnosticReceived(diagnostic)));
+                }
+                catch (InvalidOperationException)
+                {
                 }
 
-                lstMensagens.Items.Add("CAN_READ_ALL solicitado em " + origin + ".");
+                return;
             }
-            finally
-            {
-                _canReadAllInFlight = false;
-            }
+
+            UpdateCanDiagnosticIndicators();
+
+            if (_dispatcherOverflowDialogShown)
+                return;
+
+            _dispatcherOverflowDialogShown = true;
+            ShowOperationError(UceGatewayDiagnosticLog.BuildDispatcherFifoOverflowMessage(diagnostic));
+        }
+
+        private void ScheduleCanRxGridRefresh()
+        {
+            if (IsDisposed || Disposing)
+                return;
+
+            _canRxGridRefreshPending = true;
+            if (!_canRxGridRefreshTimer.Enabled)
+                _canRxGridRefreshTimer.Start();
         }
 
         private void SetLedCheckboxState(bool value)
@@ -421,6 +447,7 @@ namespace SimulDIESEL.UI
             {
                 _lastCanStatus = null;
                 SetCanStatusError(result.Message);
+                UpdateCanDiagnosticIndicators();
                 if (showErrorDialog)
                     ShowOperationError(result.Message);
                 return;
@@ -428,6 +455,7 @@ namespace SimulDIESEL.UI
 
             _lastCanStatus = result.Response;
             ApplyCanStatus(result.Response);
+            UpdateCanDiagnosticIndicators();
         }
 
         private async Task PollCanRxAsync()
@@ -464,7 +492,7 @@ namespace SimulDIESEL.UI
             dgCanRx.Columns.Add("MESSAGE_ORDER", "MESSAGE_ORDER");
 
             dgCanRx.Rows.Clear();
-            for (int index = 0; index < 20; ++index)
+            for (int index = 0; index < GwProtocol.UceCanRxMirrorCapacity; ++index)
                 dgCanRx.Rows.Add();
         }
 
@@ -474,10 +502,10 @@ namespace SimulDIESEL.UI
             if (rows == null)
                 return;
 
-            while (dgCanRx.Rows.Count < 20)
+            while (dgCanRx.Rows.Count < GwProtocol.UceCanRxMirrorCapacity)
                 dgCanRx.Rows.Add();
 
-            for (int index = 0; index < 20; ++index)
+            for (int index = 0; index < GwProtocol.UceCanRxMirrorCapacity; ++index)
             {
                 CanRowDto row = index < rows.Count ? rows[index] : null;
                 PopulateCanRxGridRow(dgCanRx.Rows[index], index, row);
@@ -549,6 +577,48 @@ namespace SimulDIESEL.UI
                 status.BitrateKbps +
                 " kbps, modo " +
                 UceCanProtocol.ToDisplayMode(status.Mode));
+            UpdateCanDiagnosticIndicators();
+        }
+
+        private void UpdateCanDiagnosticIndicators()
+        {
+            if (IsDisposed || Disposing)
+                return;
+
+            if (InvokeRequired)
+            {
+                try
+                {
+                    BeginInvoke(new Action(UpdateCanDiagnosticIndicators));
+                }
+                catch (InvalidOperationException)
+                {
+                }
+
+                return;
+            }
+
+            CanDiagnosticStatusDto status = _logic.GetCanDiagnosticStatus(_lastCanStatus);
+            lblCanDiagMirror.Text = "Mirror: " + status.MirrorStatusText;
+            lblCanDiagSync.Text = "Sync: " + status.SyncStatusText;
+            lblCanDiagDispatcher.Text = "Dispatcher FIFO: " + status.DispatcherStatusText;
+            lblCanDiagTable.Text = "Tabela: " + status.TableStatusText;
+            lblCanDiagCan.Text = "CAN: " + status.CanStatusText;
+            lblCanDiagLastError.Text = "Último erro: " + status.LastErrorText;
+
+            SetDiagnosticLabelColor(lblCanDiagMirror, status.MirrorStatusText == "OK");
+            SetDiagnosticLabelColor(lblCanDiagSync, status.SyncStatusText == "Estável");
+            SetDiagnosticLabelColor(lblCanDiagDispatcher, status.DispatcherStatusText == "OK");
+            SetDiagnosticLabelColor(lblCanDiagTable, true);
+            SetDiagnosticLabelColor(lblCanDiagCan, status.CanStatusText != "ERRO");
+            SetDiagnosticLabelColor(lblCanDiagLastError, status.LastErrorText == "-");
+        }
+
+        private static void SetDiagnosticLabelColor(Label label, bool normal)
+        {
+            label.ForeColor = normal
+                ? System.Drawing.SystemColors.ControlText
+                : System.Drawing.Color.DarkOrange;
         }
 
         private void SetCanBitrateSelection(int bitrateKbps)

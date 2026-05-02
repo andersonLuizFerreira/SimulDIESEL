@@ -26,6 +26,12 @@ namespace SimulDIESEL.DTL.Boards.UCE
         Extended
     }
 
+    public enum UceCanRxMode : byte
+    {
+        Auto = 0x00,
+        DirectOnly = 0x01
+    }
+
     public static class UceCanProtocol
     {
         public static bool TryParseController(string rawValue, out UceCanController controller)
@@ -60,6 +66,27 @@ namespace SimulDIESEL.DTL.Boards.UCE
             if (string.Equals(rawValue, "listen", System.StringComparison.OrdinalIgnoreCase))
             {
                 mode = UceCanMode.Listen;
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool TryParseRxMode(string rawValue, out UceCanRxMode rxMode)
+        {
+            rxMode = UceCanRxMode.Auto;
+
+            if (string.Equals(rawValue, "auto", System.StringComparison.OrdinalIgnoreCase))
+            {
+                rxMode = UceCanRxMode.Auto;
+                return true;
+            }
+
+            if (string.Equals(rawValue, "directOnly", System.StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(rawValue, "direct_only", System.StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(rawValue, "direct", System.StringComparison.OrdinalIgnoreCase))
+            {
+                rxMode = UceCanRxMode.DirectOnly;
                 return true;
             }
 
@@ -290,6 +317,22 @@ namespace SimulDIESEL.DTL.Boards.UCE
                     return "sem slot periódico livre";
                 default:
                     return "status TX desconhecido 0x" + status.ToString("X2", System.Globalization.CultureInfo.InvariantCulture);
+            }
+        }
+
+        public static bool TryEncodeRxMode(UceCanRxMode rxMode, out byte code)
+        {
+            switch (rxMode)
+            {
+                case UceCanRxMode.Auto:
+                    code = SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanRxModeAuto;
+                    return true;
+                case UceCanRxMode.DirectOnly:
+                    code = SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanRxModeDirectOnly;
+                    return true;
+                default:
+                    code = SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanRxModeAuto;
+                    return false;
             }
         }
     }

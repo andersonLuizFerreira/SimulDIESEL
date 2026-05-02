@@ -53,8 +53,16 @@ private:
     uint8_t lastError;
     uint32_t openTimestampMs;
     uint32_t lastBurstTimestampMs;
+    uint32_t lastSingleShotMs;
+    uint32_t lastFastFrameMs;
+    uint32_t lastFastOverflowLogMs;
     uint8_t dataNibble;
     uint32_t fakeIds[3];
+    uint32_t fakeId4;
+    uint32_t fakeFastId;
+    uint8_t fakeFastData[8];
+    uint8_t fakeFastByteIndex;
+    bool fakeFastFirstFramePending;
   };
 
   struct QueuedFrame {
@@ -98,5 +106,9 @@ private:
   bool dequeueRxFrame(uint8_t controller, Frame& frame);
   void purgeControllerFrames(uint8_t controller);
   void buildBurstFrame(uint32_t id, uint8_t dataNibble, Frame& frame) const;
+  void buildSingleShotFrame(uint32_t id, Frame& frame) const;
+  void buildFastFrame(const PortState& port, Frame& frame) const;
+  void resetFastData(PortState& port) const;
+  void updateFastData(PortState& port) const;
   void rememberTxFrame(uint8_t controller, const Frame& frame);
 };

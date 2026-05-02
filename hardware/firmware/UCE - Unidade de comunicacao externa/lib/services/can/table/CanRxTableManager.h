@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#include "defs.h"
+
 class CanRxTableManager {
 public:
   struct ObservedFrame {
@@ -37,17 +39,20 @@ public:
     ProcessNoChange = 1,
     ProcessCreate = 2,
     ProcessEdit = 3,
-    ProcessTableFull = 4
+    ProcessTableFull = 4,
+    ProcessDelete = 5
   };
 
   CanRxTableManager();
 
   void reset();
   ProcessResult processFrame(const ObservedFrame& frame, uint32_t nowMs, CrudEvent& event);
+  ProcessResult checkTimeouts(uint32_t nowMs, CrudEvent& event);
   uint8_t snapshotValidEntries(Entry* entries, uint8_t maxEntries) const;
   uint32_t currentMessageOrder() const;
 
-  static const uint8_t Capacity = 20;
+  static const uint8_t Capacity = MAX_CAN_RX_ROWS;
+  static const uint8_t DeleteReasonTimeout = 0x01;
 
 private:
   Entry _entries[Capacity];
@@ -57,4 +62,5 @@ private:
   Entry* findByIdentity(uint32_t canId, uint8_t flags);
   Entry* findFirstFree();
   void fillEntry(Entry& entry, const ObservedFrame& frame, uint32_t nowMs);
+  static uint32_t timeoutFor(const Entry& entry);
 };

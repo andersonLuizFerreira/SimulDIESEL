@@ -140,11 +140,23 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
             }
             else if (string.Equals(command.Target, "UCE.can.config", StringComparison.OrdinalIgnoreCase))
             {
-                payload = BuildTlvPayload(
-                    GwProtocol.UceCanConfigType,
-                    ParseUceController(command),
-                    ParseUceBitrateCode(command),
-                    ParseUceMode(command));
+                if (command.Args.ContainsKey("rxMode"))
+                {
+                    payload = BuildTlvPayload(
+                        GwProtocol.UceCanConfigType,
+                        ParseUceController(command),
+                        ParseUceBitrateCode(command),
+                        ParseUceMode(command),
+                        ParseUceRxMode(command));
+                }
+                else
+                {
+                    payload = BuildTlvPayload(
+                        GwProtocol.UceCanConfigType,
+                        ParseUceController(command),
+                        ParseUceBitrateCode(command),
+                        ParseUceMode(command));
+                }
             }
             else if (string.Equals(command.Target, "UCE.can.enable", StringComparison.OrdinalIgnoreCase))
             {
@@ -377,6 +389,18 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
                 !UceCanProtocol.TryEncodeMode(mode, out byte code))
             {
                 throw new InvalidOperationException("Mode inválido para mapeamento SDH->SDGW: " + command.Args["mode"] + ".");
+            }
+
+            return code;
+        }
+
+        private static byte ParseUceRxMode(SdhCommand command)
+        {
+            UceCanRxMode rxMode;
+            if (!UceCanProtocol.TryParseRxMode(command.Args["rxMode"], out rxMode) ||
+                !UceCanProtocol.TryEncodeRxMode(rxMode, out byte code))
+            {
+                throw new InvalidOperationException("RxMode inválido para mapeamento SDH->SDGW: " + command.Args["rxMode"] + ".");
             }
 
             return code;

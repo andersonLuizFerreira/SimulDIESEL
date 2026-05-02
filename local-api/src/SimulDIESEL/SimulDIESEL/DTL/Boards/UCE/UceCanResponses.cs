@@ -83,4 +83,11 @@ namespace SimulDIESEL.DTL.Boards.UCE
     {
         public bool Accepted { get; set; }
     }
+
+    public sealed class UceDispatcherOverflowDiagnostic
+    {
+        public uint OverflowCount { get; set; }
+        public byte QueueSize { get; set; }
+        public byte MaxEventSize { get; set; }
+    }
 }

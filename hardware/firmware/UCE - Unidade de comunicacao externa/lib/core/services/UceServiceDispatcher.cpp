@@ -1,5 +1,6 @@
 #include "core/services/UceServiceDispatcher.h"
 
+#include <Arduino.h>
 #include <string.h>
 
 #include "defs.h"
@@ -15,19 +16,7 @@ void UceServiceDispatcher::loop() {
 }
 
 bool UceServiceDispatcher::takePendingEvent(uint8_t& eventType, uint8_t* eventValue, uint8_t& eventValueLen) {
-  eventType = 0;
-  eventValueLen = 0;
-  if (!_pendingEvent || (_pendingEventValueLen > 0 && !eventValue)) {
-    return false;
-  }
-
-  eventType = _pendingEventType;
-  eventValueLen = _pendingEventValueLen;
-  if (_pendingEventValueLen > 0) {
-    memcpy(eventValue, _pendingEventValue, _pendingEventValueLen);
-  }
-  _pendingEvent = false;
-  return true;
+  return dequeueEvent(eventType, eventValue, eventValueLen);
 }
 
 bool UceServiceDispatcher::dispatch(uint8_t type,
@@ -58,6 +47,7 @@ bool UceServiceDispatcher::dispatch(uint8_t type,
     case CMD_CAN_RESET:
     case CMD_CAN_RX_POLL:
     case CMD_CAN_DRIVER_LOG_POLL:
+    case CMD_CAN_READ_ALL:
     case CMD_CAN_TX:
     case CMD_CAN_TX_STOP:
       responseType = type;
@@ -70,20 +60,99 @@ bool UceServiceDispatcher::dispatch(uint8_t type,
 }
 
 bool UceServiceDispatcher::publishAsyncEvent(void* context, uint8_t type, const uint8_t* value, uint8_t valueLen) {
-  if (!context || type == 0 || valueLen > TLV_MAX_LEN || (valueLen > 0 && !value)) {
+  if (!context) {
     return false;
   }
 
   UceServiceDispatcher* dispatcher = static_cast<UceServiceDispatcher*>(context);
-  if (dispatcher->_pendingEvent) {
+  return dispatcher->enqueueEvent(type, value, valueLen);
+}
+
+bool UceServiceDispatcher::enqueueEvent(uint8_t type, const uint8_t* value, uint8_t valueLen) {
+  if (type == 0 || valueLen > (MAX_DISPATCH_EVENT_SIZE - 2) || (valueLen > 0 && !value)) {
     return false;
   }
 
-  dispatcher->_pendingEventType = type;
-  dispatcher->_pendingEventValueLen = valueLen;
-  if (valueLen > 0) {
-    memcpy(dispatcher->_pendingEventValue, value, valueLen);
+  if (_eventQueueCount >= DISPATCHER_EVENT_QUEUE_SIZE) {
+    ++_dispatcherOverflowCount;
+    markDispatcherOverflowDiagnosticPending();
+    Serial.println("DISPATCHER FIFO OVERFLOW");
+    return false;
   }
-  dispatcher->_pendingEvent = true;
+
+  DispatcherEvent& event = _eventQueue[_eventQueueTail];
+  event.data[0] = type;
+  event.data[1] = valueLen;
+  if (valueLen > 0) {
+    memcpy(&event.data[2], value, valueLen);
+  }
+  event.length = (uint8_t)(valueLen + 2);
+
+  _eventQueueTail = (uint8_t)((_eventQueueTail + 1) % DISPATCHER_EVENT_QUEUE_SIZE);
+  ++_eventQueueCount;
   return true;
+}
+
+bool UceServiceDispatcher::dequeueEvent(uint8_t& eventType, uint8_t* eventValue, uint8_t& eventValueLen) {
+  eventType = 0;
+  eventValueLen = 0;
+
+  if (_eventQueueCount == 0) {
+    enqueuePendingDispatcherOverflowDiagnostic();
+    if (_eventQueueCount == 0) {
+      return false;
+    }
+  }
+
+  const DispatcherEvent& event = _eventQueue[_eventQueueHead];
+  if (event.length < 2) {
+    _eventQueueHead = (uint8_t)((_eventQueueHead + 1) % DISPATCHER_EVENT_QUEUE_SIZE);
+    --_eventQueueCount;
+    return false;
+  }
+
+  const uint8_t valueLen = event.data[1];
+  if ((uint8_t)(valueLen + 2) != event.length || (valueLen > 0 && !eventValue)) {
+    return false;
+  }
+
+  eventType = event.data[0];
+  eventValueLen = valueLen;
+  if (valueLen > 0) {
+    memcpy(eventValue, &event.data[2], valueLen);
+  }
+
+  _eventQueueHead = (uint8_t)((_eventQueueHead + 1) % DISPATCHER_EVENT_QUEUE_SIZE);
+  --_eventQueueCount;
+  enqueuePendingDispatcherOverflowDiagnostic();
+  return true;
+}
+
+void UceServiceDispatcher::markDispatcherOverflowDiagnosticPending() {
+  if (_dispatcherOverflowCount == 1 || (_dispatcherOverflowCount % 10) == 0) {
+    _pendingDispatcherOverflowReportCount = _dispatcherOverflowCount;
+    _dispatcherOverflowDiagnosticPending = true;
+  }
+}
+
+void UceServiceDispatcher::enqueuePendingDispatcherOverflowDiagnostic() {
+  if (!_dispatcherOverflowDiagnosticPending || _eventQueueCount >= DISPATCHER_EVENT_QUEUE_SIZE) {
+    return;
+  }
+
+  DispatcherEvent& event = _eventQueue[_eventQueueTail];
+  event.data[0] = CMD_TRANSPORT_DIAG;
+  event.data[1] = UCE_TRANSPORT_DIAG_DISPATCHER_FIFO_OVERFLOW_LEN;
+  event.data[2] = UCE_TRANSPORT_DIAG_DISPATCHER_FIFO_OVERFLOW;
+  event.data[3] = (uint8_t)(_pendingDispatcherOverflowReportCount & 0xFF);
+  event.data[4] = (uint8_t)((_pendingDispatcherOverflowReportCount >> 8) & 0xFF);
+  event.data[5] = (uint8_t)((_pendingDispatcherOverflowReportCount >> 16) & 0xFF);
+  event.data[6] = (uint8_t)((_pendingDispatcherOverflowReportCount >> 24) & 0xFF);
+  event.data[7] = DISPATCHER_EVENT_QUEUE_SIZE;
+  event.data[8] = MAX_DISPATCH_EVENT_SIZE;
+  event.length = (uint8_t)(UCE_TRANSPORT_DIAG_DISPATCHER_FIFO_OVERFLOW_LEN + 2);
+
+  _eventQueueTail = (uint8_t)((_eventQueueTail + 1) % DISPATCHER_EVENT_QUEUE_SIZE);
+  ++_eventQueueCount;
+  _dispatcherOverflowDiagnosticPending = false;
 }

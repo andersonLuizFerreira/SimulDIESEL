@@ -49,12 +49,14 @@ namespace SimulDIESEL.DTL.Protocols.SDGW
         public const byte UceCanReadAllType = 0x43;
         public const byte UceCanRowType = 0x44;
         public const byte UceCanReadAllDoneType = 0x45;
+        public const byte UceTransportDiagType = 0x7E;
         public const byte UceErrorType = 0x7F;
         public const byte GatewayErrorType = 0xFE;
 
         public const byte UceLedPayloadLength = 0x01;
         public const byte UceLedEventPayloadLength = 0x04;
         public const byte UceCanConfigPayloadLength = 0x03;
+        public const byte UceCanConfigWithRxModePayloadLength = 0x04;
         public const byte UceCanEnablePayloadLength = 0x02;
         public const byte UceCanStatusRequestPayloadLength = 0x01;
         public const byte UceCanStatusResponsePayloadLength = 0x04;
@@ -70,10 +72,12 @@ namespace SimulDIESEL.DTL.Protocols.SDGW
         public const byte UceCanCreatePayloadLength = 0x15;
         public const byte UceCanEditPayloadMinLength = 0x06;
         public const byte UceCanEditPayloadMaxLength = 0x15;
+        public const byte UceCanDeletePayloadLength = 0x06;
         public const byte UceCanReadAllPayloadLength = 0x00;
         public const byte UceCanRowPayloadLength = 0x15;
         public const byte UceCanReadAllDonePayloadLength = 0x05;
-        public const byte UceCanRxMirrorCapacity = 0x14;
+        public const byte UceCanRxMirrorCapacity = 0x64;
+        public const byte UceTransportDiagDispatcherFifoOverflowPayloadLength = 0x07;
         public const byte UceCanDriverLogPollRequestPayloadLength = 0x01;
         public const byte UceCanDriverLogEntryLength = 0x08;
         public const byte UceCanDriverLogMaxEntriesPerResponse = 0x06;
@@ -96,6 +100,8 @@ namespace SimulDIESEL.DTL.Protocols.SDGW
         public const byte UceCanBitrate1000Code = 0x08;
         public const byte UceCanModeNormal = 0x00;
         public const byte UceCanModeListen = 0x01;
+        public const byte UceCanRxModeAuto = 0x00;
+        public const byte UceCanRxModeDirectOnly = 0x01;
         public const byte UceCanStateOff = 0x00;
         public const byte UceCanStateOn = 0x01;
         public const byte UceCanInterfaceDisabled = 0x00;
@@ -134,6 +140,11 @@ namespace SimulDIESEL.DTL.Protocols.SDGW
         public const byte UceCanCrudEditMaskDlc = 0x04;
         public const byte UceCanCrudEditMaskData = 0x08;
         public const byte UceCanCrudEditMaskCycleTime = 0x10;
+        public const byte UceCanDeleteReasonTimeout = 0x01;
+        public const byte UceCanDeleteReasonReset = 0x02;
+        public const byte UceCanDeleteReasonTableClear = 0x03;
+        public const byte UceCanDeleteReasonManualDelete = 0x04;
+        public const byte UceTransportDiagDispatcherFifoOverflow = 0x01;
 
         public const byte GsaOffsetKindVout = 0x01;
         public const byte GsaOffsetKindVread = 0x02;

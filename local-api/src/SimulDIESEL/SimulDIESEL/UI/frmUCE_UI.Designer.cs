@@ -66,6 +66,13 @@ namespace SimulDIESEL.UI
             this.cboCANTYPE = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
             this.txtID = new System.Windows.Forms.TextBox();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.lblCanDiagLastError = new System.Windows.Forms.Label();
+            this.lblCanDiagCan = new System.Windows.Forms.Label();
+            this.lblCanDiagTable = new System.Windows.Forms.Label();
+            this.lblCanDiagDispatcher = new System.Windows.Forms.Label();
+            this.lblCanDiagSync = new System.Windows.Forms.Label();
+            this.lblCanDiagMirror = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.dgCanRx = new System.Windows.Forms.DataGridView();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
@@ -76,6 +83,7 @@ namespace SimulDIESEL.UI
             this.tabConfig.SuspendLayout();
             this.tabDados.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            this.groupBox4.SuspendLayout();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgCanRx)).BeginInit();
             this.groupBox3.SuspendLayout();
@@ -219,6 +227,7 @@ namespace SimulDIESEL.UI
             //
             this.tabDados.AutoScroll = true;
             this.tabDados.Controls.Add(this.groupBox1);
+            this.tabDados.Controls.Add(this.groupBox4);
             this.tabDados.Controls.Add(this.groupBox2);
             this.tabDados.Location = new System.Drawing.Point(4, 25);
             this.tabDados.Name = "tabDados";
@@ -472,15 +481,88 @@ namespace SimulDIESEL.UI
             this.txtID.Size = new System.Drawing.Size(96, 22);
             this.txtID.TabIndex = 5;
             //
+            // groupBox4
+            //
+            this.groupBox4.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox4.Controls.Add(this.lblCanDiagLastError);
+            this.groupBox4.Controls.Add(this.lblCanDiagCan);
+            this.groupBox4.Controls.Add(this.lblCanDiagTable);
+            this.groupBox4.Controls.Add(this.lblCanDiagDispatcher);
+            this.groupBox4.Controls.Add(this.lblCanDiagSync);
+            this.groupBox4.Controls.Add(this.lblCanDiagMirror);
+            this.groupBox4.Location = new System.Drawing.Point(6, 148);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Size = new System.Drawing.Size(818, 80);
+            this.groupBox4.TabIndex = 8;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "Diagnóstico CAN RX";
+            //
+            // lblCanDiagLastError
+            //
+            this.lblCanDiagLastError.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblCanDiagLastError.Location = new System.Drawing.Point(276, 51);
+            this.lblCanDiagLastError.Name = "lblCanDiagLastError";
+            this.lblCanDiagLastError.Size = new System.Drawing.Size(523, 19);
+            this.lblCanDiagLastError.TabIndex = 5;
+            this.lblCanDiagLastError.Text = "Último erro: -";
+            //
+            // lblCanDiagCan
+            //
+            this.lblCanDiagCan.AutoSize = true;
+            this.lblCanDiagCan.Location = new System.Drawing.Point(144, 51);
+            this.lblCanDiagCan.Name = "lblCanDiagCan";
+            this.lblCanDiagCan.Size = new System.Drawing.Size(92, 16);
+            this.lblCanDiagCan.TabIndex = 4;
+            this.lblCanDiagCan.Text = "CAN: fechada";
+            //
+            // lblCanDiagTable
+            //
+            this.lblCanDiagTable.AutoSize = true;
+            this.lblCanDiagTable.Location = new System.Drawing.Point(17, 51);
+            this.lblCanDiagTable.Name = "lblCanDiagTable";
+            this.lblCanDiagTable.Size = new System.Drawing.Size(99, 16);
+            this.lblCanDiagTable.TabIndex = 3;
+            this.lblCanDiagTable.Text = "Tabela: OK";
+            //
+            // lblCanDiagDispatcher
+            //
+            this.lblCanDiagDispatcher.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblCanDiagDispatcher.Location = new System.Drawing.Point(276, 24);
+            this.lblCanDiagDispatcher.Name = "lblCanDiagDispatcher";
+            this.lblCanDiagDispatcher.Size = new System.Drawing.Size(523, 19);
+            this.lblCanDiagDispatcher.TabIndex = 2;
+            this.lblCanDiagDispatcher.Text = "Dispatcher FIFO: OK";
+            //
+            // lblCanDiagSync
+            //
+            this.lblCanDiagSync.AutoSize = true;
+            this.lblCanDiagSync.Location = new System.Drawing.Point(144, 24);
+            this.lblCanDiagSync.Name = "lblCanDiagSync";
+            this.lblCanDiagSync.Size = new System.Drawing.Size(82, 16);
+            this.lblCanDiagSync.TabIndex = 1;
+            this.lblCanDiagSync.Text = "Sync: Estável";
+            //
+            // lblCanDiagMirror
+            //
+            this.lblCanDiagMirror.AutoSize = true;
+            this.lblCanDiagMirror.Location = new System.Drawing.Point(17, 24);
+            this.lblCanDiagMirror.Name = "lblCanDiagMirror";
+            this.lblCanDiagMirror.Size = new System.Drawing.Size(65, 16);
+            this.lblCanDiagMirror.TabIndex = 0;
+            this.lblCanDiagMirror.Text = "Mirror: OK";
+            //
             // groupBox1
             //
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox1.Controls.Add(this.dgCanRx);
-            this.groupBox1.Location = new System.Drawing.Point(6, 148);
+            this.groupBox1.Location = new System.Drawing.Point(6, 234);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(818, 387);
+            this.groupBox1.Size = new System.Drawing.Size(818, 301);
             this.groupBox1.TabIndex = 7;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Recepção";
@@ -543,6 +625,8 @@ namespace SimulDIESEL.UI
             this.tabDados.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
+            this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgCanRx)).EndInit();
             this.groupBox3.ResumeLayout(false);
@@ -592,6 +676,13 @@ namespace SimulDIESEL.UI
         private System.Windows.Forms.ComboBox cboCANTYPE;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox txtID;
+        private System.Windows.Forms.GroupBox groupBox4;
+        private System.Windows.Forms.Label lblCanDiagLastError;
+        private System.Windows.Forms.Label lblCanDiagCan;
+        private System.Windows.Forms.Label lblCanDiagTable;
+        private System.Windows.Forms.Label lblCanDiagDispatcher;
+        private System.Windows.Forms.Label lblCanDiagSync;
+        private System.Windows.Forms.Label lblCanDiagMirror;
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.ListBox lstMensagens;
     }

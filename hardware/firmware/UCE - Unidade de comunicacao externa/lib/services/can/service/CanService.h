@@ -4,6 +4,7 @@
 
 #include "services/can/driver/CanDriverSelector.h"
 #include "services/can/protocol/CanCrudProtocol.h"
+#include "services/can/rxhub/CanRxHub.h"
 #include "services/can/table/CanRxTableManager.h"
 
 class CanService {
@@ -34,6 +35,7 @@ private:
 
   CanDriverSelected _driver;
   CanRxTableManager _rxTable;
+  CanRxHub _rxHub;
   CanCrudProtocol _crudProtocol;
   PortState _ports[ControllerCount];
   struct QueuedRxFrame {
@@ -74,6 +76,7 @@ private:
   bool validateController(uint8_t controller) const;
   bool validateBitrate(uint8_t bitrateCode) const;
   bool validateMode(uint8_t modeCode) const;
+  bool validateRxMode(uint8_t rxMode) const;
   bool validateEnableState(uint8_t state) const;
 
   bool handleConfig(const uint8_t* value,
@@ -130,6 +133,8 @@ private:
   bool peekCrudEvent(PendingCrudEvent& event) const;
   bool publishNextCrudEvent();
   bool publishNextRxEvent();
+  void checkRxTimeouts();
+  void publishTableFullFallbackLog(const CanDriverSelected::Frame& frame);
   uint8_t copyQueuedRxFrames(uint8_t controller, CanDriverSelected::Frame* frames, uint8_t maxFrames);
   void encodeRxFrameLittleEndian(uint8_t* out, const CanDriverSelected::Frame& frame) const;
   void encodeRxFrameBigEndian(uint8_t* out, const CanDriverSelected::Frame& frame) const;

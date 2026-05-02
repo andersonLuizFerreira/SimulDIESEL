@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using SimulDIESEL.DTL.Boards.UCE;
 
 namespace SimulDIESEL.BLL.Boards.UCE
 {
@@ -160,6 +161,87 @@ namespace SimulDIESEL.BLL.Boards.UCE
             File.AppendAllText(UceGatewayDiagnostic.LogFilePath, builder.ToString(), Encoding.ASCII);
         }
 
+        public static void AppendDispatcherFifoOverflow(UceDispatcherOverflowDiagnostic diagnostic)
+        {
+            if (diagnostic == null)
+                return;
+
+            try
+            {
+                Directory.CreateDirectory(UceGatewayDiagnostic.LogDirectory);
+
+                var builder = new StringBuilder();
+                builder.AppendLine("============================================================");
+                builder.Append("TIMESTAMP = ");
+                builder.AppendLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture));
+                builder.AppendLine("LAYER = UCE / UceServiceDispatcher");
+                builder.AppendLine("STATUS = DISPATCHER_FIFO_OVERFLOW");
+                builder.AppendLine("WRITE PHASE:");
+                builder.AppendLine("TX: <NOT APPLICABLE>");
+                builder.AppendLine("READ HEADER PHASE:");
+                builder.AppendLine("TX: <NOT APPLICABLE>");
+                builder.AppendLine("RX: <NOT APPLICABLE>");
+                builder.AppendLine("READ PAYLOAD PHASE:");
+                builder.AppendLine("TX: <NOT APPLICABLE>");
+                builder.AppendLine("RX: <NOT APPLICABLE>");
+                builder.AppendLine("RX RAW: <NOT APPLICABLE>");
+                builder.AppendLine("FRAME INTERPRETATION = DISPATCHER FIFO OVERFLOW");
+                builder.AppendLine("CRC CALCULATED = NOT APPLICABLE");
+                builder.AppendLine("CRC RECEIVED   = NOT APPLICABLE");
+                builder.AppendLine("CRC MATCH      = NOT APPLICABLE");
+                builder.AppendLine("EXPECTED LENGTH = NOT APPLICABLE");
+                builder.AppendLine("RECEIVED LENGTH = NOT APPLICABLE");
+                builder.AppendLine("ERROR PHASE = ASYNC EVENT FIFO");
+                builder.AppendLine("POSSIBLE CAUSE = API/BPM/SPI slower than UCE event production");
+                builder.Append("DISPATCHER FIFO COUNT = ");
+                builder.AppendLine(diagnostic.OverflowCount.ToString(CultureInfo.InvariantCulture));
+                builder.Append("DISPATCHER FIFO CAPACITY = ");
+                builder.AppendLine(diagnostic.QueueSize.ToString(CultureInfo.InvariantCulture));
+                builder.Append("MAX DISPATCH EVENT SIZE = ");
+                builder.AppendLine(diagnostic.MaxEventSize.ToString(CultureInfo.InvariantCulture));
+                builder.Append("RAW GATEWAY VALUE = ");
+                builder.AppendLine(FormatBytes(BuildDispatcherFifoOverflowRawValue(diagnostic)));
+                builder.AppendLine();
+
+                File.AppendAllText(UceGatewayDiagnostic.LogFilePath, builder.ToString(), Encoding.ASCII);
+            }
+            catch (Exception)
+            {
+                // O diagnostico nao pode interromper o fluxo principal da aplicacao.
+            }
+        }
+
+        public static void AppendCanMirrorOutOfSync(string reason, int index)
+        {
+            try
+            {
+                Directory.CreateDirectory(UceGatewayDiagnostic.LogDirectory);
+
+                var builder = new StringBuilder();
+                builder.AppendLine("============================================================");
+                builder.Append("TIMESTAMP = ");
+                builder.AppendLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture));
+                builder.AppendLine("LAYER = API / CAN MIRROR");
+                builder.AppendLine("STATUS = MIRROR_OUT_OF_SYNC");
+                builder.AppendLine("ERROR PHASE = CAN RX MIRROR");
+                builder.AppendLine("POSSIBLE CAUSE = EDIT received without CREATE");
+                builder.Append("INDEX = ");
+                builder.AppendLine(index.ToString(CultureInfo.InvariantCulture));
+                if (!string.IsNullOrWhiteSpace(reason))
+                {
+                    builder.Append("REASON = ");
+                    builder.AppendLine(reason);
+                }
+                builder.AppendLine();
+
+                File.AppendAllText(UceGatewayDiagnostic.LogFilePath, builder.ToString(), Encoding.ASCII);
+            }
+            catch (Exception)
+            {
+                // O diagnostico nao pode interromper a recuperacao automatica do espelho.
+            }
+        }
+
         public static string BuildCrcMessage(UceGatewayDiagnostic diagnostic)
         {
             if (diagnostic == null)
@@ -194,6 +276,17 @@ namespace SimulDIESEL.BLL.Boards.UCE
         public static string BuildTimeoutMessage(UceGatewayDiagnostic diagnostic)
         {
             return "A BPM informou timeout ao falar com a UCE via SPI." +
+                Environment.NewLine +
+                "Consulte:" +
+                Environment.NewLine +
+                UceGatewayDiagnostic.LogFilePath;
+        }
+
+        public static string BuildDispatcherFifoOverflowMessage(UceDispatcherOverflowDiagnostic diagnostic)
+        {
+            return "UCE detectou overflow na fila FIFO do Dispatcher. Eventos assincronos podem ter sido perdidos." +
+                Environment.NewLine +
+                "Contador: " + (diagnostic == null ? "desconhecido" : diagnostic.OverflowCount.ToString(CultureInfo.InvariantCulture)) +
                 Environment.NewLine +
                 "Consulte:" +
                 Environment.NewLine +
@@ -370,6 +463,19 @@ namespace SimulDIESEL.BLL.Boards.UCE
         private static byte[] Copy(byte[] source)
         {
             return Slice(source, 0, source.Length);
+        }
+
+        private static byte[] BuildDispatcherFifoOverflowRawValue(UceDispatcherOverflowDiagnostic diagnostic)
+        {
+            var raw = new byte[7];
+            raw[0] = 0x01;
+            raw[1] = (byte)(diagnostic.OverflowCount & 0xFF);
+            raw[2] = (byte)((diagnostic.OverflowCount >> 8) & 0xFF);
+            raw[3] = (byte)((diagnostic.OverflowCount >> 16) & 0xFF);
+            raw[4] = (byte)((diagnostic.OverflowCount >> 24) & 0xFF);
+            raw[5] = diagnostic.QueueSize;
+            raw[6] = diagnostic.MaxEventSize;
+            return raw;
         }
     }
 }

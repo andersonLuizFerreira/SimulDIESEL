@@ -454,6 +454,35 @@ namespace SimulDIESEL.BLL.Boards.UCE
             }
         }
 
+        public static bool TryReadTransportDiagnosticEvent(SdgwFrame frame, out UceDispatcherOverflowDiagnostic diagnostic, out string error)
+        {
+            diagnostic = null;
+
+            byte[] data;
+            if (!TryReadTlv(frame, GwProtocol.UceTransportDiagType, GwProtocol.UceTransportDiagDispatcherFifoOverflowPayloadLength, "diagnostico de transporte da UCE", out data, out error))
+                return false;
+
+            if (data[0] != GwProtocol.UceTransportDiagDispatcherFifoOverflow)
+            {
+                error = "Diagnostico de transporte da UCE com tipo desconhecido.";
+                return false;
+            }
+
+            uint overflowCount = (uint)data[1] |
+                ((uint)data[2] << 8) |
+                ((uint)data[3] << 16) |
+                ((uint)data[4] << 24);
+
+            diagnostic = new UceDispatcherOverflowDiagnostic
+            {
+                OverflowCount = overflowCount,
+                QueueSize = data[5],
+                MaxEventSize = data[6]
+            };
+
+            return true;
+        }
+
         public static bool TryReadCanDriverLogPollResponse(SdgwFrame frame, out UceCanDriverLogPollResponse response, out string error)
         {
             response = null;

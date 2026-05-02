@@ -5,6 +5,7 @@ using SimulDIESEL.BLL.Boards.BPM.Backplane;
 using SimulDIESEL.BLL.Boards.BPM.XConn;
 using SimulDIESEL.BLL.Boards.GSA;
 using SimulDIESEL.BLL.Boards.UCE;
+using SimulDIESEL.BLL.Services.CAN;
 using SimulDIESEL.DAL.Protocols.SDGW;
 using SimulDIESEL.DAL.Transport;
 using SimulDIESEL.DAL.Transport.Bluetooth;
@@ -67,6 +68,7 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
         public IGsaDispatcher GsaDispatcher { get; private set; }
         public UceClient Uce { get; private set; }
         public IUceDispatcher UceDispatcher { get; private set; }
+        public ApiCanService ApiCan { get; private set; }
         public IBoardDispatcher BoardDispatcher { get; private set; }
         public BpmClient Bpm { get; private set; }
         public BackplaneService Backplane { get; private set; }
@@ -102,6 +104,7 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
             Uce = new UceClient(Sdh, Sdgw);
             GsaDispatcher = new GsaDispatcher(Gsa);
             UceDispatcher = new UceDispatcher(Uce);
+            ApiCan = new ApiCanService(UceDispatcher);
             BoardDispatcher = new BoardDispatcher(UceDispatcher, GsaDispatcher);
             Bpm = new BpmClient(Sdh, this, Backplane, XConn);
         }
@@ -183,6 +186,8 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
             IDisposable disposableGsaDispatcher = GsaDispatcher as IDisposable;
             if (disposableGsaDispatcher != null)
                 disposableGsaDispatcher.Dispose();
+            if (ApiCan != null)
+                ApiCan.Dispose();
             if (Gsa != null)
                 Gsa.Dispose();
             if (Uce != null)
@@ -192,6 +197,7 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
             GsaDispatcher = null;
             Uce = null;
             UceDispatcher = null;
+            ApiCan = null;
             BoardDispatcher = null;
             Bpm = null;
             _session.Dispose();
