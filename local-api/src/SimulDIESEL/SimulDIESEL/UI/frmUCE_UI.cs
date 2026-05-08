@@ -20,11 +20,9 @@ namespace SimulDIESEL.UI
         private bool _acceptedLedState;
         private bool _suppressLedEvent;
         private bool _suppressCanEvents;
-        private readonly Timer _canRxTimer;
         private readonly Timer _canDriverLogTimer;
         private readonly Timer _canRxGridRefreshTimer;
         private bool _canRxGridRefreshPending;
-        private bool _canRxPolling;
         private bool _canDriverLogPolling;
         private bool _canPeriodicTxActive;
         private bool _dispatcherOverflowDialogShown;
@@ -48,10 +46,6 @@ namespace SimulDIESEL.UI
             btnEnable.Click += BtnEnable_Click;
             Load += FrmUCE_UI_Load;
             tabUCE.SelectedIndexChanged += TabUCE_SelectedIndexChanged;
-
-            _canRxTimer = new Timer();
-            _canRxTimer.Interval = 500;
-            _canRxTimer.Tick += CanRxTimer_Tick;
 
             _canDriverLogTimer = new Timer();
             _canDriverLogTimer.Interval = 500;
@@ -92,9 +86,6 @@ namespace SimulDIESEL.UI
             btnEnable.Click -= BtnEnable_Click;
             Load -= FrmUCE_UI_Load;
             tabUCE.SelectedIndexChanged -= TabUCE_SelectedIndexChanged;
-            _canRxTimer.Stop();
-            _canRxTimer.Tick -= CanRxTimer_Tick;
-            _canRxTimer.Dispose();
             _canDriverLogTimer.Stop();
             _canDriverLogTimer.Tick -= CanDriverLogTimer_Tick;
             _canDriverLogTimer.Dispose();
@@ -168,22 +159,6 @@ namespace SimulDIESEL.UI
             }
 
             await ApplyCanConfigAsync().ConfigureAwait(true);
-        }
-
-        private async void CanRxTimer_Tick(object sender, EventArgs e)
-        {
-            if (_canRxPolling || !ReferenceEquals(tabUCE.SelectedTab, tabDados))
-                return;
-
-            _canRxPolling = true;
-            try
-            {
-                await PollCanRxAsync().ConfigureAwait(true);
-            }
-            finally
-            {
-                _canRxPolling = false;
-            }
         }
 
         private void CanRxGridRefreshTimer_Tick(object sender, EventArgs e)
@@ -456,16 +431,6 @@ namespace SimulDIESEL.UI
             _lastCanStatus = result.Response;
             ApplyCanStatus(result.Response);
             UpdateCanDiagnosticIndicators();
-        }
-
-        private async Task PollCanRxAsync()
-        {
-            UceOperationResult<UceCanRxPollResponse> result = await _logic
-                .PollCanRxAsync()
-                .ConfigureAwait(true);
-
-            if (!result.Success || result.Response == null)
-                return;
         }
 
         private void ConfigureCanRxGrid()

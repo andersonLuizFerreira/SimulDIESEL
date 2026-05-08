@@ -1,33 +1,30 @@
 namespace SimulDIESEL.DTL.Boards.UCE.Can
 {
-    public enum CanFrameSource
+    public sealed class CanTxRowDto
     {
-        Unknown = 0,
-        Direct = 1,
-        Reconstructed = 2
-    }
-
-    public sealed class CanFrameDto
-    {
+        public int Index { get; set; }
+        public bool Valid { get; set; }
+        public bool Enabled { get; set; }
         public uint CanId { get; set; }
         public bool IsExtended { get; set; }
         public bool IsRemoteRequest { get; set; }
         public byte Dlc { get; set; }
         public byte[] Data { get; set; } = new byte[8];
-        public System.DateTime Timestamp { get; set; }
-        public CanFrameSource Source { get; set; }
+        public ushort PeriodMs { get; set; }
 
-        public CanFrameDto Clone()
+        public CanTxRowDto Clone()
         {
-            return new CanFrameDto
+            return new CanTxRowDto
             {
+                Index = Index,
+                Valid = Valid,
+                Enabled = Enabled,
                 CanId = CanId,
                 IsExtended = IsExtended,
                 IsRemoteRequest = IsRemoteRequest,
                 Dlc = Dlc,
                 Data = Data != null ? (byte[])Data.Clone() : new byte[8],
-                Timestamp = Timestamp,
-                Source = Source
+                PeriodMs = PeriodMs
             };
         }
     }

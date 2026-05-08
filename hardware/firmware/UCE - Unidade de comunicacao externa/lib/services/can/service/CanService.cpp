@@ -21,12 +21,17 @@ const uint8_t CAN_RX_EVENT_MAX_FRAMES = 1;
 const uint8_t CAN_DRIVER_LOG_MAX_ENTRIES_PER_RESPONSE = 6;
 const uint8_t CAN_DRIVER_LOG_ENTRY_WIRE_LEN = 8;
 const uint8_t CAN_TX_REQUEST_WIRE_LEN = 17;
+const uint8_t CAN_TX_DIRECT_WIRE_LEN = 14;
+const uint8_t CAN_TX_CREATE_WIRE_LEN = 18;
+const uint8_t CAN_TX_DELETE_WIRE_LEN = 2;
+const uint8_t CAN_TX_RESPONSE_WIRE_LEN = 3;
 const uint8_t CAN_TX_STATUS_ACCEPTED_SENT = 0x00;
 const uint8_t CAN_TX_STATUS_INVALID_PAYLOAD = 0x01;
 const uint8_t CAN_TX_STATUS_CONTROLLER_DISABLED = 0x02;
 const uint8_t CAN_TX_STATUS_FAILED = 0x03;
 const uint8_t CAN_TX_STATUS_PERIODIC_STARTED = 0x04;
 const uint8_t CAN_TX_STATUS_PERIODIC_STOPPED = 0x05;
+const uint8_t CAN_TX_STATUS_LINE_MISSING = 0x07;
 const uint8_t CAN_TX_STOP_ALL = 0xFF;
 const uint8_t CAN_TX_SINGLE_SLOT = 0x00;
 const uint32_t CAN_RX_TABLE_FULL_LOG_INTERVAL_MS = 5000UL;
@@ -46,6 +51,7 @@ void traceCanReadAllCount(const char* message, uint32_t value) {
 void CanService::begin() {
   _driver.begin();
   _rxTable.reset();
+  _txTable.reset();
   _rxHub.reset();
   for (uint8_t controller = 0; controller < ControllerCount; ++controller) {
     resetPort(controller);
@@ -67,6 +73,7 @@ void CanService::loop() {
   checkRxTimeouts();
   publishNextCrudEvent();
   publishNextRxEvent();
+  processTxTable();
 
   if (_periodicTx.active) {
     const uint32_t now = millis();
@@ -117,6 +124,14 @@ bool CanService::handleTlv(uint8_t type,
       return handleTx(value, valueLen, responseValue, responseValueLen, errorCode);
     case CMD_CAN_TX_STOP:
       return handleTxStop(value, valueLen, responseValue, responseValueLen, errorCode);
+    case CMD_CAN_TX_DIRECT:
+      return handleTxDirect(value, valueLen, responseValue, responseValueLen, errorCode);
+    case CMD_CAN_TX_CREATE:
+      return handleTxCreate(value, valueLen, responseValue, responseValueLen, errorCode);
+    case CMD_CAN_TX_EDIT:
+      return handleTxEdit(value, valueLen, responseValue, responseValueLen, errorCode);
+    case CMD_CAN_TX_DELETE:
+      return handleTxDelete(value, valueLen, responseValue, responseValueLen, errorCode);
     default:
       errorCode = UCE_ERROR_COMMAND_NOT_SUPPORTED;
       return false;
@@ -220,6 +235,9 @@ bool CanService::handleEnable(const uint8_t* value,
   PortState& port = _ports[controller];
   port.interfaceState = (requestedState == CAN_STATE_ON) ? CAN_INTERFACE_OPEN : CAN_INTERFACE_DISABLED;
   _rxTable.reset();
+  if (requestedState == CAN_STATE_OFF) {
+    _txTable.reset();
+  }
   _rxHead = 0;
   _rxCount = 0;
   _crudEventHead = 0;
@@ -289,6 +307,7 @@ bool CanService::handleReset(const uint8_t* value,
 
   resetPort(controller);
   _rxTable.reset();
+  _txTable.reset();
   _rxHead = 0;
   _rxCount = 0;
   _crudEventHead = 0;
@@ -426,6 +445,27 @@ void CanService::checkRxTimeouts() {
           payloadLen)) {
     enqueueCrudEvent(crudEvent.type, payload, payloadLen);
   }
+}
+
+void CanService::processTxTable() {
+  _txTable.tick(
+      millis(),
+      _driver,
+      CAN_CONTROLLER_CAN0,
+      _ports[CAN_CONTROLLER_CAN0].interfaceState == CAN_INTERFACE_OPEN);
+}
+
+void CanService::writeTxResponse(uint8_t* responseValue,
+                                 uint8_t& responseValueLen,
+                                 uint8_t controller,
+                                 uint8_t status,
+                                 uint8_t detail) const {
+  if (responseValue) {
+    responseValue[0] = controller;
+    responseValue[1] = status;
+    responseValue[2] = detail;
+  }
+  responseValueLen = CAN_TX_RESPONSE_WIRE_LEN;
 }
 
 bool CanService::enqueueRxFrame(uint8_t controller, const CanDriverSelected::Frame& frame) {
@@ -816,5 +856,197 @@ bool CanService::handleTxStop(const uint8_t* value,
     responseValue[1] = CAN_TX_STATUS_PERIODIC_STOPPED;
   }
   responseValueLen = 2;
+  return true;
+}
+
+bool CanService::handleTxDirect(const uint8_t* value,
+                                uint8_t valueLen,
+                                uint8_t* responseValue,
+                                uint8_t& responseValueLen,
+                                uint8_t& errorCode) {
+  writeTxResponse(responseValue, responseValueLen, CAN_CONTROLLER_CAN0, CAN_TX_STATUS_INVALID_PAYLOAD, CAN_TX_SINGLE_SLOT);
+
+  if (!value || valueLen != CAN_TX_DIRECT_WIRE_LEN) {
+    return true;
+  }
+
+  const uint8_t flags = value[0];
+  const uint32_t id = ((uint32_t)value[1]) |
+                      ((uint32_t)value[2] << 8) |
+                      ((uint32_t)value[3] << 16) |
+                      ((uint32_t)value[4] << 24);
+  const uint8_t dlc = value[5];
+  if ((flags & 0xFC) != 0 || dlc > 8) {
+    return true;
+  }
+
+  if (_ports[CAN_CONTROLLER_CAN0].interfaceState != CAN_INTERFACE_OPEN) {
+    writeTxResponse(responseValue, responseValueLen, CAN_CONTROLLER_CAN0, CAN_TX_STATUS_CONTROLLER_DISABLED, CAN_TX_SINGLE_SLOT);
+    return true;
+  }
+
+  const bool extended = (flags & 0x01) != 0;
+  CanDriverSelected::Frame frame;
+  frame.extended = extended;
+  frame.rtr = (flags & 0x02) != 0;
+  frame.id = id & (extended ? 0x1FFFFFFFUL : 0x7FFUL);
+  frame.dlc = dlc;
+  for (uint8_t dataIndex = 0; dataIndex < 8; ++dataIndex) {
+    frame.data[dataIndex] = value[6 + dataIndex];
+  }
+
+  const bool sent = _driver.send(CAN_CONTROLLER_CAN0, frame);
+  writeTxResponse(
+      responseValue,
+      responseValueLen,
+      CAN_CONTROLLER_CAN0,
+      sent ? CAN_TX_STATUS_ACCEPTED_SENT : CAN_TX_STATUS_FAILED,
+      CAN_TX_SINGLE_SLOT);
+  return true;
+}
+
+bool CanService::handleTxCreate(const uint8_t* value,
+                                uint8_t valueLen,
+                                uint8_t* responseValue,
+                                uint8_t& responseValueLen,
+                                uint8_t& errorCode) {
+  const uint8_t index = value && valueLen > 0 ? value[0] : 0xFF;
+  writeTxResponse(responseValue, responseValueLen, CAN_CONTROLLER_CAN0, CAN_TX_STATUS_INVALID_PAYLOAD, index);
+
+  if (!value || valueLen != CAN_TX_CREATE_WIRE_LEN) {
+    return true;
+  }
+
+  CanTxTableManager::Row row;
+  memset(&row, 0, sizeof(row));
+  row.index = value[0];
+  row.flags = value[1];
+  row.canId = ((uint32_t)value[2]) |
+              ((uint32_t)value[3] << 8) |
+              ((uint32_t)value[4] << 16) |
+              ((uint32_t)value[5] << 24);
+  row.dlc = value[6];
+  for (uint8_t dataIndex = 0; dataIndex < 8; ++dataIndex) {
+    row.data[dataIndex] = value[7 + dataIndex];
+  }
+  row.periodMs = (uint16_t)value[15] | ((uint16_t)value[16] << 8);
+  row.enabled = value[17] != 0;
+
+  const CanTxTableManager::Status status = _txTable.create(row, millis());
+  uint8_t responseStatus = CAN_TX_STATUS_ACCEPTED_SENT;
+  if (status == CanTxTableManager::StatusInvalidPayload) {
+    responseStatus = CAN_TX_STATUS_INVALID_PAYLOAD;
+  }
+
+  writeTxResponse(responseValue, responseValueLen, CAN_CONTROLLER_CAN0, responseStatus, row.index);
+  return true;
+}
+
+bool CanService::handleTxEdit(const uint8_t* value,
+                              uint8_t valueLen,
+                              uint8_t* responseValue,
+                              uint8_t& responseValueLen,
+                              uint8_t& errorCode) {
+  const uint8_t index = value && valueLen > 0 ? value[0] : 0xFF;
+  writeTxResponse(responseValue, responseValueLen, CAN_CONTROLLER_CAN0, CAN_TX_STATUS_INVALID_PAYLOAD, index);
+
+  if (!value || valueLen < 2) {
+    return true;
+  }
+
+  const uint8_t mask = value[1];
+  uint8_t offset = 2;
+  CanTxTableManager::EditFields fields;
+  memset(&fields, 0, sizeof(fields));
+
+  if ((mask & CanTxTableManager::MaskFlags) != 0) {
+    if (offset >= valueLen) {
+      return true;
+    }
+    fields.flags = value[offset++];
+  }
+  if ((mask & CanTxTableManager::MaskCanId) != 0) {
+    if ((uint8_t)(offset + 4) > valueLen) {
+      return true;
+    }
+    fields.canId = ((uint32_t)value[offset]) |
+                   ((uint32_t)value[offset + 1] << 8) |
+                   ((uint32_t)value[offset + 2] << 16) |
+                   ((uint32_t)value[offset + 3] << 24);
+    offset += 4;
+  }
+  if ((mask & CanTxTableManager::MaskDlc) != 0) {
+    if (offset >= valueLen) {
+      return true;
+    }
+    fields.dlc = value[offset++];
+  }
+  if ((mask & CanTxTableManager::MaskData) != 0) {
+    if (offset >= valueLen) {
+      return true;
+    }
+    fields.dataMask = value[offset++];
+    if (fields.dataMask == 0) {
+      return true;
+    }
+    for (uint8_t dataIndex = 0; dataIndex < 8; ++dataIndex) {
+      if ((fields.dataMask & (uint8_t)(1U << dataIndex)) == 0) {
+        continue;
+      }
+      if (offset >= valueLen) {
+        return true;
+      }
+      fields.data[dataIndex] = value[offset++];
+    }
+  }
+  if ((mask & CanTxTableManager::MaskPeriodMs) != 0) {
+    if ((uint8_t)(offset + 2) > valueLen) {
+      return true;
+    }
+    fields.periodMs = (uint16_t)value[offset] | ((uint16_t)value[offset + 1] << 8);
+    offset += 2;
+  }
+  if ((mask & CanTxTableManager::MaskEnabled) != 0) {
+    if (offset >= valueLen) {
+      return true;
+    }
+    fields.enabled = value[offset++];
+  }
+
+  if (offset != valueLen) {
+    return true;
+  }
+
+  const CanTxTableManager::Status status = _txTable.edit(index, mask, fields, millis());
+  uint8_t responseStatus = CAN_TX_STATUS_ACCEPTED_SENT;
+  if (status == CanTxTableManager::StatusLineMissing) {
+    responseStatus = CAN_TX_STATUS_LINE_MISSING;
+  } else if (status != CanTxTableManager::StatusOk) {
+    responseStatus = CAN_TX_STATUS_INVALID_PAYLOAD;
+  }
+
+  writeTxResponse(responseValue, responseValueLen, CAN_CONTROLLER_CAN0, responseStatus, index);
+  return true;
+}
+
+bool CanService::handleTxDelete(const uint8_t* value,
+                                uint8_t valueLen,
+                                uint8_t* responseValue,
+                                uint8_t& responseValueLen,
+                                uint8_t& errorCode) {
+  const uint8_t index = value && valueLen > 0 ? value[0] : 0xFF;
+  writeTxResponse(responseValue, responseValueLen, CAN_CONTROLLER_CAN0, CAN_TX_STATUS_INVALID_PAYLOAD, index);
+
+  if (!value || valueLen != CAN_TX_DELETE_WIRE_LEN) {
+    return true;
+  }
+
+  const CanTxTableManager::Status status = _txTable.remove(value[0]);
+  writeTxResponse(
+      responseValue,
+      responseValueLen,
+      CAN_CONTROLLER_CAN0,
+      status == CanTxTableManager::StatusOk ? CAN_TX_STATUS_PERIODIC_STOPPED : CAN_TX_STATUS_INVALID_PAYLOAD,
+      value[0]);
   return true;
 }

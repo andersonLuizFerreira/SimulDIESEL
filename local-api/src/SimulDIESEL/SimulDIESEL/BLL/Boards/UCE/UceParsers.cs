@@ -570,27 +570,27 @@ namespace SimulDIESEL.BLL.Boards.UCE
 
         public static bool TryReadCanTxResponse(SdgwFrame frame, out UceCanTxResponse response, out string error)
         {
-            response = null;
+            return TryReadCanTxResponseForType(frame, GwProtocol.UceCanTxType, "envio CAN_TX legado da UCE", out response, out error);
+        }
 
-            byte[] data;
-            if (!TryReadTlv(frame, GwProtocol.UceCanTxType, GwProtocol.UceCanTxResponsePayloadLength, "envio CAN_TX da UCE", out data, out error))
-                return false;
+        public static bool TryReadCanTxDirectResponse(SdgwFrame frame, out UceCanTxResponse response, out string error)
+        {
+            return TryReadCanTxResponseForType(frame, GwProtocol.UceCanTxDirectType, "CAN_TX_DIRECT da UCE", out response, out error);
+        }
 
-            UceCanController controller;
-            if (!UceCanProtocol.TryDecodeController(data[0], out controller))
-            {
-                error = "Resposta CAN_TX da UCE com controller inválido.";
-                return false;
-            }
+        public static bool TryReadCanTxCreateResponse(SdgwFrame frame, out UceCanTxResponse response, out string error)
+        {
+            return TryReadCanTxResponseForType(frame, GwProtocol.UceCanTxCreateType, "CAN_TX_CREATE da UCE", out response, out error);
+        }
 
-            response = new UceCanTxResponse
-            {
-                Controller = controller,
-                TxStatus = data[1],
-                SequenceOrSlot = data[2]
-            };
+        public static bool TryReadCanTxEditResponse(SdgwFrame frame, out UceCanTxResponse response, out string error)
+        {
+            return TryReadCanTxResponseForType(frame, GwProtocol.UceCanTxEditType, "CAN_TX_EDIT da UCE", out response, out error);
+        }
 
-            return true;
+        public static bool TryReadCanTxDeleteResponse(SdgwFrame frame, out UceCanTxResponse response, out string error)
+        {
+            return TryReadCanTxResponseForType(frame, GwProtocol.UceCanTxDeleteType, "CAN_TX_DELETE da UCE", out response, out error);
         }
 
         public static bool TryReadCanTxStopResponse(SdgwFrame frame, out UceCanTxStopResponse response, out string error)
@@ -628,6 +628,31 @@ namespace SimulDIESEL.BLL.Boards.UCE
             response = new UceCanReadAllResponse
             {
                 Accepted = true
+            };
+
+            return true;
+        }
+
+        private static bool TryReadCanTxResponseForType(SdgwFrame frame, byte expectedType, string operationName, out UceCanTxResponse response, out string error)
+        {
+            response = null;
+
+            byte[] data;
+            if (!TryReadTlv(frame, expectedType, GwProtocol.UceCanTxResponsePayloadLength, operationName, out data, out error))
+                return false;
+
+            UceCanController controller;
+            if (!UceCanProtocol.TryDecodeController(data[0], out controller))
+            {
+                error = "Resposta " + operationName + " com controller inválido.";
+                return false;
+            }
+
+            response = new UceCanTxResponse
+            {
+                Controller = controller,
+                TxStatus = data[1],
+                SequenceOrSlot = data[2]
             };
 
             return true;
@@ -747,6 +772,14 @@ namespace SimulDIESEL.BLL.Boards.UCE
                     return "o envio CAN_TX da UCE";
                 case GwProtocol.UceCanTxStopType:
                     return "a parada CAN_TX periódico da UCE";
+                case GwProtocol.UceCanTxDirectType:
+                    return "o CAN_TX_DIRECT da UCE";
+                case GwProtocol.UceCanTxCreateType:
+                    return "o CAN_TX_CREATE da UCE";
+                case GwProtocol.UceCanTxEditType:
+                    return "o CAN_TX_EDIT da UCE";
+                case GwProtocol.UceCanTxDeleteType:
+                    return "o CAN_TX_DELETE da UCE";
                 case GwProtocol.UceCanReadAllType:
                     return "a leitura completa da tabela RX da UCE";
                 default:

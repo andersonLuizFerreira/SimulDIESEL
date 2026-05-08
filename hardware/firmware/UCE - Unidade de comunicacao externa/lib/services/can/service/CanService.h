@@ -6,6 +6,7 @@
 #include "services/can/protocol/CanCrudProtocol.h"
 #include "services/can/rxhub/CanRxHub.h"
 #include "services/can/table/CanRxTableManager.h"
+#include "services/can/table/CanTxTableManager.h"
 
 class CanService {
 public:
@@ -35,6 +36,7 @@ private:
 
   CanDriverSelected _driver;
   CanRxTableManager _rxTable;
+  CanTxTableManager _txTable;
   CanRxHub _rxHub;
   CanCrudProtocol _crudProtocol;
   PortState _ports[ControllerCount];
@@ -124,6 +126,26 @@ private:
                     uint8_t* responseValue,
                     uint8_t& responseValueLen,
                     uint8_t& errorCode);
+  bool handleTxDirect(const uint8_t* value,
+                      uint8_t valueLen,
+                      uint8_t* responseValue,
+                      uint8_t& responseValueLen,
+                      uint8_t& errorCode);
+  bool handleTxCreate(const uint8_t* value,
+                      uint8_t valueLen,
+                      uint8_t* responseValue,
+                      uint8_t& responseValueLen,
+                      uint8_t& errorCode);
+  bool handleTxEdit(const uint8_t* value,
+                    uint8_t valueLen,
+                    uint8_t* responseValue,
+                    uint8_t& responseValueLen,
+                    uint8_t& errorCode);
+  bool handleTxDelete(const uint8_t* value,
+                      uint8_t valueLen,
+                      uint8_t* responseValue,
+                      uint8_t& responseValueLen,
+                      uint8_t& errorCode);
   void collectRxFrames();
   bool enqueueRxFrame(uint8_t controller, const CanDriverSelected::Frame& frame);
   bool dequeueRxFrame(QueuedRxFrame& queuedFrame);
@@ -134,6 +156,12 @@ private:
   bool publishNextCrudEvent();
   bool publishNextRxEvent();
   void checkRxTimeouts();
+  void processTxTable();
+  void writeTxResponse(uint8_t* responseValue,
+                       uint8_t& responseValueLen,
+                       uint8_t controller,
+                       uint8_t status,
+                       uint8_t detail) const;
   void publishTableFullFallbackLog(const CanDriverSelected::Frame& frame);
   uint8_t copyQueuedRxFrames(uint8_t controller, CanDriverSelected::Frame* frames, uint8_t maxFrames);
   void encodeRxFrameLittleEndian(uint8_t* out, const CanDriverSelected::Frame& frame) const;

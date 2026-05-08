@@ -21,6 +21,10 @@ namespace SimulDIESEL.BLL.Boards.UCE
         Task<UceOperationResult<UceCanReadAllResponse>> RequestCanReadAllAsync(string controller);
         Task<UceOperationResult<UceCanDriverLogPollResponse>> PollCanDriverLogAsync(string controller);
         Task<UceOperationResult<UceCanTxResponse>> SendCanAsync(string controller, bool extended, uint id, byte dlc, byte[] data, ushort periodMs);
+        Task<UceOperationResult<UceCanTxResponse>> SendCanDirectAsync(string controller, bool extended, bool rtr, uint id, byte dlc, byte[] data);
+        Task<UceOperationResult<UceCanTxResponse>> CreateCanTxRowAsync(string controller, byte index, bool extended, bool rtr, uint id, byte dlc, byte[] data, ushort periodMs, bool enabled);
+        Task<UceOperationResult<UceCanTxResponse>> EditCanTxRowAsync(string controller, byte index, byte mask, byte flags, uint id, byte dlc, byte dataMask, byte[] data, ushort periodMs, bool enabled);
+        Task<UceOperationResult<UceCanTxResponse>> DeleteCanTxRowAsync(string controller, byte index, byte reason);
         Task<UceOperationResult<UceCanTxStopResponse>> StopCanTxAsync(string controller);
     }
 
@@ -90,6 +94,26 @@ namespace SimulDIESEL.BLL.Boards.UCE
         public Task<UceOperationResult<UceCanTxResponse>> SendCanAsync(string controller, bool extended, uint id, byte dlc, byte[] data, ushort periodMs)
         {
             return _client.SendCanAsync(controller, extended, id, dlc, data, periodMs);
+        }
+
+        public Task<UceOperationResult<UceCanTxResponse>> SendCanDirectAsync(string controller, bool extended, bool rtr, uint id, byte dlc, byte[] data)
+        {
+            return _client.SendCanDirectAsync(controller, extended, rtr, id, dlc, data);
+        }
+
+        public Task<UceOperationResult<UceCanTxResponse>> CreateCanTxRowAsync(string controller, byte index, bool extended, bool rtr, uint id, byte dlc, byte[] data, ushort periodMs, bool enabled)
+        {
+            return _client.CreateCanTxRowAsync(controller, index, extended, rtr, id, dlc, data, periodMs, enabled);
+        }
+
+        public Task<UceOperationResult<UceCanTxResponse>> EditCanTxRowAsync(string controller, byte index, byte mask, byte flags, uint id, byte dlc, byte dataMask, byte[] data, ushort periodMs, bool enabled)
+        {
+            return _client.EditCanTxRowAsync(controller, index, mask, flags, id, dlc, dataMask, data, periodMs, enabled);
+        }
+
+        public Task<UceOperationResult<UceCanTxResponse>> DeleteCanTxRowAsync(string controller, byte index, byte reason)
+        {
+            return _client.DeleteCanTxRowAsync(controller, index, reason);
         }
 
         public Task<UceOperationResult<UceCanTxStopResponse>> StopCanTxAsync(string controller)

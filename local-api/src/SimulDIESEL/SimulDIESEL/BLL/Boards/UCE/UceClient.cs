@@ -141,6 +141,46 @@ namespace SimulDIESEL.BLL.Boards.UCE
                 UceParsers.TryReadCanTxResponse);
         }
 
+        public Task<UceOperationResult<UceCanTxResponse>> SendCanDirectAsync(string controller, bool extended, bool rtr, uint id, byte dlc, byte[] data)
+        {
+            return ExecuteOperationAsync<UceCanTxResponse>(
+                CreateCanTxDirectCommand(controller, extended, rtr, id, dlc, data),
+                GwProtocol.UceCanTxDirectType,
+                GwProtocol.UceCanTxResponsePayloadLength,
+                "CAN_TX_DIRECT da UCE",
+                UceParsers.TryReadCanTxDirectResponse);
+        }
+
+        public Task<UceOperationResult<UceCanTxResponse>> CreateCanTxRowAsync(string controller, byte index, bool extended, bool rtr, uint id, byte dlc, byte[] data, ushort periodMs, bool enabled)
+        {
+            return ExecuteOperationAsync<UceCanTxResponse>(
+                CreateCanTxRowCommand(controller, index, extended, rtr, id, dlc, data, periodMs, enabled),
+                GwProtocol.UceCanTxCreateType,
+                GwProtocol.UceCanTxResponsePayloadLength,
+                "CAN_TX_CREATE da UCE",
+                UceParsers.TryReadCanTxCreateResponse);
+        }
+
+        public Task<UceOperationResult<UceCanTxResponse>> EditCanTxRowAsync(string controller, byte index, byte mask, byte flags, uint id, byte dlc, byte dataMask, byte[] data, ushort periodMs, bool enabled)
+        {
+            return ExecuteOperationAsync<UceCanTxResponse>(
+                CreateCanTxEditCommand(controller, index, mask, flags, id, dlc, dataMask, data, periodMs, enabled),
+                GwProtocol.UceCanTxEditType,
+                GwProtocol.UceCanTxResponsePayloadLength,
+                "CAN_TX_EDIT da UCE",
+                UceParsers.TryReadCanTxEditResponse);
+        }
+
+        public Task<UceOperationResult<UceCanTxResponse>> DeleteCanTxRowAsync(string controller, byte index, byte reason)
+        {
+            return ExecuteOperationAsync<UceCanTxResponse>(
+                CreateCanTxDeleteCommand(controller, index, reason),
+                GwProtocol.UceCanTxDeleteType,
+                GwProtocol.UceCanTxResponsePayloadLength,
+                "CAN_TX_DELETE da UCE",
+                UceParsers.TryReadCanTxDeleteResponse);
+        }
+
         public Task<UceOperationResult<UceCanTxStopResponse>> StopCanTxAsync(string controller)
         {
             return ExecuteOperationAsync<UceCanTxStopResponse>(
@@ -471,6 +511,94 @@ namespace SimulDIESEL.BLL.Boards.UCE
             command.Args["id"] = id.ToString(System.Globalization.CultureInfo.InvariantCulture);
             command.Args["dlc"] = dlc.ToString(System.Globalization.CultureInfo.InvariantCulture);
             command.Args["period"] = periodMs.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            for (int i = 0; i < 8; ++i)
+                command.Args["d" + i.ToString(System.Globalization.CultureInfo.InvariantCulture)] = data[i].ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+            return command;
+        }
+
+        private static SdhCommand CreateCanTxDirectCommand(string controller, bool extended, bool rtr, uint id, byte dlc, byte[] data)
+        {
+            var command = CreateCanTxFrameCommand(controller, "direct", extended, rtr, id, dlc, data);
+            return command;
+        }
+
+        private static SdhCommand CreateCanTxRowCommand(string controller, byte index, bool extended, bool rtr, uint id, byte dlc, byte[] data, ushort periodMs, bool enabled)
+        {
+            var command = CreateCanTxFrameCommand(controller, "create", extended, rtr, id, dlc, data);
+            command.Args["index"] = index.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            command.Args["period"] = periodMs.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            command.Args["enabled"] = enabled ? "1" : "0";
+            return command;
+        }
+
+        private static SdhCommand CreateCanTxEditCommand(string controller, byte index, byte mask, byte flags, uint id, byte dlc, byte dataMask, byte[] data, ushort periodMs, bool enabled)
+        {
+            if (data == null || data.Length < 8)
+                throw new ArgumentException("Payload CAN_TX_EDIT deve conter 8 bytes.", nameof(data));
+
+            var command = new SdhCommand
+            {
+                Target = "UCE.can.tx",
+                Op = "edit"
+            };
+
+            command.Args["controller"] = controller;
+            command.Args["index"] = index.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            command.Args["mask"] = mask.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if ((mask & GwProtocol.UceCanTxEditMaskFlags) != 0)
+                command.Args["flags"] = flags.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if ((mask & GwProtocol.UceCanTxEditMaskCanId) != 0)
+                command.Args["id"] = id.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if ((mask & GwProtocol.UceCanTxEditMaskDlc) != 0)
+                command.Args["dlc"] = dlc.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if ((mask & GwProtocol.UceCanTxEditMaskData) != 0)
+            {
+                command.Args["dataMask"] = dataMask.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                for (int i = 0; i < 8; ++i)
+                {
+                    if ((dataMask & (1 << i)) != 0)
+                        command.Args["d" + i.ToString(System.Globalization.CultureInfo.InvariantCulture)] = data[i].ToString(System.Globalization.CultureInfo.InvariantCulture);
+                }
+            }
+            if ((mask & GwProtocol.UceCanTxEditMaskPeriodMs) != 0)
+                command.Args["period"] = periodMs.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if ((mask & GwProtocol.UceCanTxEditMaskEnabled) != 0)
+                command.Args["enabled"] = enabled ? "1" : "0";
+
+            return command;
+        }
+
+        private static SdhCommand CreateCanTxDeleteCommand(string controller, byte index, byte reason)
+        {
+            var command = new SdhCommand
+            {
+                Target = "UCE.can.tx",
+                Op = "delete"
+            };
+
+            command.Args["controller"] = controller;
+            command.Args["index"] = index.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            command.Args["reason"] = reason.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            return command;
+        }
+
+        private static SdhCommand CreateCanTxFrameCommand(string controller, string op, bool extended, bool rtr, uint id, byte dlc, byte[] data)
+        {
+            if (data == null || data.Length < 8)
+                throw new ArgumentException("Payload CAN_TX deve conter 8 bytes.", nameof(data));
+
+            var command = new SdhCommand
+            {
+                Target = "UCE.can.tx",
+                Op = op
+            };
+
+            command.Args["controller"] = controller;
+            command.Args["extended"] = extended ? "1" : "0";
+            command.Args["rtr"] = rtr ? "1" : "0";
+            command.Args["id"] = id.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            command.Args["dlc"] = dlc.ToString(System.Globalization.CultureInfo.InvariantCulture);
             for (int i = 0; i < 8; ++i)
                 command.Args["d" + i.ToString(System.Globalization.CultureInfo.InvariantCulture)] = data[i].ToString(System.Globalization.CultureInfo.InvariantCulture);
 

@@ -43,6 +43,10 @@ namespace SimulDIESEL.DTL.Protocols.SDGW
         public const byte UceCanTxType = 0x26;
         public const byte UceCanTxStopType = 0x27;
         public const byte UceCanRxEventType = 0x28;
+        public const byte UceCanTxDirectType = 0x50;
+        public const byte UceCanTxCreateType = 0x51;
+        public const byte UceCanTxEditType = 0x52;
+        public const byte UceCanTxDeleteType = 0x53;
         public const byte UceCanCreateType = 0x40;
         public const byte UceCanEditType = 0x41;
         public const byte UceCanDeleteType = 0x42;
@@ -87,6 +91,11 @@ namespace SimulDIESEL.DTL.Protocols.SDGW
         public const byte UceCanTxResponsePayloadLength = 0x03;
         public const byte UceCanTxStopRequestPayloadLength = 0x02;
         public const byte UceCanTxStopResponsePayloadLength = 0x02;
+        public const byte UceCanTxDirectPayloadLength = 0x0E;
+        public const byte UceCanTxCreatePayloadLength = 0x12;
+        public const byte UceCanTxEditPayloadMinLength = 0x02;
+        public const byte UceCanTxEditPayloadMaxLength = 0x15;
+        public const byte UceCanTxDeletePayloadLength = 0x02;
         public const byte UceCanTxStopAllSlots = 0xFF;
 
         public const byte UceCanControllerCan0 = 0x00;
@@ -137,6 +146,17 @@ namespace SimulDIESEL.DTL.Protocols.SDGW
         public const byte UceCanTxStatusPeriodicStarted = 0x04;
         public const byte UceCanTxStatusPeriodicStopped = 0x05;
         public const byte UceCanTxStatusNoFreePeriodicSlot = 0x06;
+        public const byte UceCanTxStatusLineMissing = 0x07;
+        public const byte UceCanTxEditMaskFlags = 0x01;
+        public const byte UceCanTxEditMaskCanId = 0x02;
+        public const byte UceCanTxEditMaskDlc = 0x04;
+        public const byte UceCanTxEditMaskData = 0x08;
+        public const byte UceCanTxEditMaskPeriodMs = 0x10;
+        public const byte UceCanTxEditMaskEnabled = 0x20;
+        public const byte UceCanTxDeleteReasonUserDelete = 0x01;
+        public const byte UceCanTxDeleteReasonTableClear = 0x02;
+        public const byte UceCanTxDeleteReasonReset = 0x03;
+        public const byte UceCanTxDeleteReasonDisable = 0x04;
         public const byte UceCanCrudEditMaskFlags = 0x01;
         public const byte UceCanCrudEditMaskCanId = 0x02;
         public const byte UceCanCrudEditMaskDlc = 0x04;

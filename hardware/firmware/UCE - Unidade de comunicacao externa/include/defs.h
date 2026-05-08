@@ -8,6 +8,7 @@
 #define UCE_CAN_MAX_MAILBOXES     8
 #define UCE_CAN_MAX_FILTERS       8
 #define MAX_CAN_RX_ROWS           100
+#define MAX_CAN_TX_ROWS           100
 
 #define CAN_BITRATE_5_KBPS        0x00
 #define CAN_BITRATE_10_KBPS       0x01
@@ -40,6 +41,10 @@
 #define CMD_CAN_TX                0x26
 #define CMD_CAN_TX_STOP           0x27
 #define CMD_CAN_RX_EVENT          0x28
+#define CMD_CAN_TX_DIRECT         0x50
+#define CMD_CAN_TX_CREATE         0x51
+#define CMD_CAN_TX_EDIT           0x52
+#define CMD_CAN_TX_DELETE         0x53
 #define CMD_CAN_READ_ALL          0x43
 #define CMD_CAN_ROW               0x44
 #define CMD_CAN_READ_ALL_DONE     0x45

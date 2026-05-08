@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using SimulDIESEL.DTL.Boards.GSA;
 using SimulDIESEL.DTL.Boards.UCE;
@@ -200,6 +201,29 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
                 payload = BuildTlvPayload(GwProtocol.UceCanTxType, BuildUceCanTxPayload(command));
             }
             else if (string.Equals(command.Target, "UCE.can.tx", StringComparison.OrdinalIgnoreCase) &&
+                     string.Equals(command.Op, "direct", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = BuildTlvPayload(GwProtocol.UceCanTxDirectType, BuildUceCanTxDirectPayload(command));
+            }
+            else if (string.Equals(command.Target, "UCE.can.tx", StringComparison.OrdinalIgnoreCase) &&
+                     string.Equals(command.Op, "create", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = BuildTlvPayload(GwProtocol.UceCanTxCreateType, BuildUceCanTxCreatePayload(command));
+            }
+            else if (string.Equals(command.Target, "UCE.can.tx", StringComparison.OrdinalIgnoreCase) &&
+                     string.Equals(command.Op, "edit", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = BuildTlvPayload(GwProtocol.UceCanTxEditType, BuildUceCanTxEditPayload(command));
+            }
+            else if (string.Equals(command.Target, "UCE.can.tx", StringComparison.OrdinalIgnoreCase) &&
+                     string.Equals(command.Op, "delete", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = BuildTlvPayload(
+                    GwProtocol.UceCanTxDeleteType,
+                    ParseByte(command, "index"),
+                    ParseByte(command, "reason"));
+            }
+            else if (string.Equals(command.Target, "UCE.can.tx", StringComparison.OrdinalIgnoreCase) &&
                      string.Equals(command.Op, "stop", StringComparison.OrdinalIgnoreCase))
             {
                 payload = BuildTlvPayload(
@@ -296,6 +320,95 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
                 payload[9 + i] = ParseByte(command, "d" + i.ToString(CultureInfo.InvariantCulture));
 
             return payload;
+        }
+
+        private static byte[] BuildUceCanTxDirectPayload(SdhCommand command)
+        {
+            byte[] payload = new byte[GwProtocol.UceCanTxDirectPayloadLength];
+            bool extended = ParseBool01(command, "extended");
+            bool rtr = ParseBool01(command, "rtr");
+            uint id = ParseUInt32(command, "id") & (extended ? 0x1FFFFFFFU : 0x7FFU);
+
+            payload[0] = (byte)((extended ? 0x01 : 0x00) | (rtr ? 0x02 : 0x00));
+            WriteUInt32Le(payload, 1, id);
+            payload[5] = ParseByte(command, "dlc");
+            for (int i = 0; i < 8; ++i)
+                payload[6 + i] = ParseByte(command, "d" + i.ToString(CultureInfo.InvariantCulture));
+
+            return payload;
+        }
+
+        private static byte[] BuildUceCanTxCreatePayload(SdhCommand command)
+        {
+            byte[] payload = new byte[GwProtocol.UceCanTxCreatePayloadLength];
+            bool extended = ParseBool01(command, "extended");
+            bool rtr = ParseBool01(command, "rtr");
+            uint id = ParseUInt32(command, "id") & (extended ? 0x1FFFFFFFU : 0x7FFU);
+            ushort period = checked((ushort)ParseInt(command, "period"));
+
+            payload[0] = ParseByte(command, "index");
+            payload[1] = (byte)((extended ? 0x01 : 0x00) | (rtr ? 0x02 : 0x00));
+            WriteUInt32Le(payload, 2, id);
+            payload[6] = ParseByte(command, "dlc");
+            for (int i = 0; i < 8; ++i)
+                payload[7 + i] = ParseByte(command, "d" + i.ToString(CultureInfo.InvariantCulture));
+            payload[15] = (byte)(period & 0xFF);
+            payload[16] = (byte)((period >> 8) & 0xFF);
+            payload[17] = ParseByte(command, "enabled");
+
+            return payload;
+        }
+
+        private static byte[] BuildUceCanTxEditPayload(SdhCommand command)
+        {
+            var payload = new List<byte>();
+            byte mask = ParseByte(command, "mask");
+            payload.Add(ParseByte(command, "index"));
+            payload.Add(mask);
+
+            if ((mask & GwProtocol.UceCanTxEditMaskFlags) != 0)
+                payload.Add(ParseByte(command, "flags"));
+
+            if ((mask & GwProtocol.UceCanTxEditMaskCanId) != 0)
+            {
+                byte[] idBytes = new byte[4];
+                WriteUInt32Le(idBytes, 0, ParseUInt32(command, "id"));
+                payload.AddRange(idBytes);
+            }
+
+            if ((mask & GwProtocol.UceCanTxEditMaskDlc) != 0)
+                payload.Add(ParseByte(command, "dlc"));
+
+            if ((mask & GwProtocol.UceCanTxEditMaskData) != 0)
+            {
+                byte dataMask = ParseByte(command, "dataMask");
+                payload.Add(dataMask);
+                for (int i = 0; i < 8; ++i)
+                {
+                    if ((dataMask & (1 << i)) != 0)
+                        payload.Add(ParseByte(command, "d" + i.ToString(CultureInfo.InvariantCulture)));
+                }
+            }
+
+            if ((mask & GwProtocol.UceCanTxEditMaskPeriodMs) != 0)
+            {
+                ushort period = checked((ushort)ParseInt(command, "period"));
+                payload.Add((byte)(period & 0xFF));
+                payload.Add((byte)((period >> 8) & 0xFF));
+            }
+
+            if ((mask & GwProtocol.UceCanTxEditMaskEnabled) != 0)
+                payload.Add(ParseByte(command, "enabled"));
+
+            return payload.ToArray();
+        }
+
+        private static void WriteUInt32Le(byte[] payload, int offset, uint value)
+        {
+            payload[offset] = (byte)(value & 0xFF);
+            payload[offset + 1] = (byte)((value >> 8) & 0xFF);
+            payload[offset + 2] = (byte)((value >> 16) & 0xFF);
+            payload[offset + 3] = (byte)((value >> 24) & 0xFF);
         }
 
         private static byte ParseChannel(SdhCommand command)

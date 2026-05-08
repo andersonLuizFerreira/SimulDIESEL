@@ -73,7 +73,6 @@
     <Compile Include="BLL\Services\CAN\CanEventProcessor.cs" />
     <Compile Include="BLL\Services\CAN\CanRxOutputBuffer.cs" />
     <Compile Include="BLL\Services\CAN\CanRxMirrorManager.cs" />
-    <Compile Include="BLL\Services\CAN\CanRxReplayScheduler.cs" />
     <Compile Include="BLL\Services\CAN\CanTxManager.cs" />
     <Compile Include="BLL\FormsLogic\BPM\FrmBpmLogic.cs" />
     <Compile Include="BLL\FormsLogic\GSA\FrmGsaLogic.cs" />
@@ -113,6 +112,7 @@
     <Compile Include="DTL\Boards\UCE\Can\CanReadAllResponseDto.cs" />
     <Compile Include="DTL\Boards\UCE\Can\CanRowDto.cs" />
     <Compile Include="DTL\Boards\UCE\Can\CanTicDto.cs" />
+    <Compile Include="DTL\Boards\UCE\Can\CanTxRowDto.cs" />
     <Compile Include="DTL\Boards\UCE\UceCanProtocol.cs" />
     <Compile Include="DTL\Boards\UCE\UceCanResponses.cs" />
     <Compile Include="DTL\Boards\UCE\UceLedResponse.cs" />

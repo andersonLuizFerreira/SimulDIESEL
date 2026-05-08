@@ -303,6 +303,13 @@ bool CanDriverFake::send(uint8_t controller, const Frame& frame) {
   }
 
   rememberTxFrame(controller, frame);
+#ifdef CAN_FAKE_TX_LOOPBACK
+  if (!enqueueRxFrame(controller, frame)) {
+    _ports[controller].lastError = CAN_EVENT_FAKE_RX_OVERFLOW;
+    logEvent(controller, CAN_EVENT_FAKE_RX_OVERFLOW, 0x08, _rxCount, RxCapacity);
+    return false;
+  }
+#endif
   _ports[controller].lastError = 0;
   logEvent(controller, CAN_EVENT_TX_OK);
   return true;

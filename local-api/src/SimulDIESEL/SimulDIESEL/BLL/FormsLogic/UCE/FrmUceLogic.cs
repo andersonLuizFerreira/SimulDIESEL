@@ -112,14 +112,6 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             return _uceDispatcher.ResetCanAsync(DefaultCanController);
         }
 
-        public Task<UceOperationResult<UceCanRxPollResponse>> PollCanRxAsync()
-        {
-            if (!_isLinked())
-                return FailWhenNotLinked<UceCanRxPollResponse>();
-
-            return _uceDispatcher.PollCanRxAsync(DefaultCanController);
-        }
-
         public Task<UceOperationResult<UceCanReadAllResponse>> RequestCanReadAllAsync()
         {
             if (!_isLinked())

@@ -192,9 +192,24 @@ namespace SimulDIESEL.BLL.Services.CAN
             return _txManager.StopTxAsync(controller);
         }
 
-        public Task<UceOperationResult<UceCanRxPollResponse>> RequestFullSyncAsync(string controller)
+        public Task<UceOperationResult<UceCanTxResponse>> CreateTxRowAsync(string controller, int index, CanFrameDto frame, ushort periodMs, bool enabled)
         {
-            return _uceDispatcher.PollCanRxAsync(controller);
+            return _txManager.CreateTxRowAsync(controller, index, frame, periodMs, enabled);
+        }
+
+        public Task<UceOperationResult<UceCanTxResponse>> EditTxRowAsync(string controller, int index, CanFrameDto frame, ushort? periodMs, bool? enabled)
+        {
+            return _txManager.EditTxRowAsync(controller, index, frame, periodMs, enabled);
+        }
+
+        public Task<UceOperationResult<UceCanTxResponse>> DeleteTxRowAsync(string controller, int index, byte reason)
+        {
+            return _txManager.DeleteTxRowAsync(controller, index, reason);
+        }
+
+        public IReadOnlyList<CanTxRowDto> GetTxSnapshot()
+        {
+            return _txManager.GetTxSnapshot();
         }
 
         public async Task<UceOperationResult<UceCanReadAllResponse>> RequestReadAllAsync(string controller)
@@ -219,32 +234,6 @@ namespace SimulDIESEL.BLL.Services.CAN
             }
 
             return result;
-        }
-
-        public void ReceiveCreate(CanCreateDto create)
-        {
-            if (_eventProcessor.ProcessCreate(create))
-            {
-                EnqueueReconstructedFrame(create != null ? create.Index : -1);
-                CanRxTableChanged?.Invoke(this, EventArgs.Empty);
-            }
-        }
-
-        public void ReceiveEdit(CanEditDto edit)
-        {
-            if (_eventProcessor.ProcessEdit(edit))
-            {
-                EnqueueReconstructedFrame(edit != null ? edit.Index : -1);
-                CanRxTableChanged?.Invoke(this, EventArgs.Empty);
-            }
-        }
-
-        public void ReceiveDelete(CanDeleteDto delete)
-        {
-            if (_eventProcessor.ProcessDelete(delete))
-            {
-                CanRxTableChanged?.Invoke(this, EventArgs.Empty);
-            }
         }
 
         private void OnCanRxEventReceived(UceCanRxEvent canRxEvent)
