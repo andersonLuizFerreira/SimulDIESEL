@@ -112,6 +112,7 @@
     <Compile Include="DTL\Boards\UCE\Can\CanFrameDto.cs" />
     <Compile Include="DTL\Boards\UCE\Can\CanReadAllResponseDto.cs" />
     <Compile Include="DTL\Boards\UCE\Can\CanRowDto.cs" />
+    <Compile Include="DTL\Boards\UCE\Can\CanTicDto.cs" />
     <Compile Include="DTL\Boards\UCE\UceCanProtocol.cs" />
     <Compile Include="DTL\Boards\UCE\UceCanResponses.cs" />
     <Compile Include="DTL\Boards\UCE\UceLedResponse.cs" />

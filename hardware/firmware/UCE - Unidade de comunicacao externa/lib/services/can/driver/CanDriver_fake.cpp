@@ -43,6 +43,13 @@ const uint32_t CAN_FAKE_BURST_PERIOD_MS = 500UL;
 const uint32_t CAN_FAKE_DATA_STEP_MS = 3000UL;
 const uint32_t CAN_FAKE_SINGLE_SHOT_PERIOD_MS = 10000UL;
 const uint32_t CAN_FAKE_FAST_PERIOD_MS = 100UL;
+const uint32_t CAN_FAKE_TEST_TIC_PERIOD_MS = 500UL;
+const uint32_t CAN_FAKE_TEST_EDIT_PERIOD_MS = 500UL;
+const uint32_t CAN_FAKE_TEST_EDIT_DATA_STEP_MS = 1000UL;
+const uint32_t CAN_FAKE_TEST_TIMEOUT_PERIOD_MS = 5000UL;
+const uint32_t CAN_FAKE_TEST_TIC_ID = 0x18FF1005UL;
+const uint32_t CAN_FAKE_TEST_EDIT_ID = 0x18FF1006UL;
+const uint32_t CAN_FAKE_TEST_TIMEOUT_ID = 0x18FF1007UL;
 const uint8_t CAN_FAKE_BURST_SIZE = 3;
 const uint8_t CAN_FAKE_FRAME_DLC = 8;
 }
@@ -144,9 +151,20 @@ bool CanDriverFake::open(uint8_t controller) {
   port.lastSingleShotMs = port.openTimestampMs - CAN_FAKE_SINGLE_SHOT_PERIOD_MS;
   port.lastFastFrameMs = port.openTimestampMs;
   port.lastFastOverflowLogMs = 0;
+  port.lastTestTicFrameMs = port.openTimestampMs - CAN_FAKE_TEST_TIC_PERIOD_MS;
+  port.lastTestEditFrameMs = port.openTimestampMs - CAN_FAKE_TEST_EDIT_PERIOD_MS;
+  port.lastTestEditDataChangeMs = port.openTimestampMs;
+  port.lastTestTimeoutFrameMs = port.openTimestampMs - CAN_FAKE_TEST_TIMEOUT_PERIOD_MS;
   port.dataNibble = 0;
   resetFastData(port);
+  resetTestEditData(port);
   generateFakeIds(port);
+  Serial.print("CAN_FAKE TEST IDS: TIC=0x");
+  Serial.print(CAN_FAKE_TEST_TIC_ID, HEX);
+  Serial.print(" EDIT_MASK=0x");
+  Serial.print(CAN_FAKE_TEST_EDIT_ID, HEX);
+  Serial.print(" TIMEOUT=0x");
+  Serial.println(CAN_FAKE_TEST_TIMEOUT_ID, HEX);
   logEvent(controller, CAN_EVENT_FAKE_IDS_GENERATED,
            (uint8_t)(port.fakeIds[0] & 0xFFU),
            (uint8_t)(port.fakeIds[1] & 0xFFU),
@@ -322,13 +340,19 @@ void CanDriverFake::resetPort(uint8_t controller) {
   _ports[controller].lastSingleShotMs = 0;
   _ports[controller].lastFastFrameMs = 0;
   _ports[controller].lastFastOverflowLogMs = 0;
+  _ports[controller].lastTestTicFrameMs = 0;
+  _ports[controller].lastTestEditFrameMs = 0;
+  _ports[controller].lastTestEditDataChangeMs = 0;
+  _ports[controller].lastTestTimeoutFrameMs = 0;
   _ports[controller].dataNibble = 0;
+  _ports[controller].testEditByteIndex = 0;
   for (uint8_t i = 0; i < CAN_FAKE_BURST_SIZE; ++i) {
     _ports[controller].fakeIds[i] = 0;
   }
   _ports[controller].fakeId4 = 0;
   _ports[controller].fakeFastId = 0;
   resetFastData(_ports[controller]);
+  resetTestEditData(_ports[controller]);
 }
 
 void CanDriverFake::logEvent(uint8_t controller,
@@ -414,6 +438,48 @@ void CanDriverFake::seedEntropyOnce() {
 }
 
 void CanDriverFake::updatePortSimulation(uint8_t controller, PortState& port, uint32_t now) {
+  while ((uint32_t)(now - port.lastTestTicFrameMs) >= CAN_FAKE_TEST_TIC_PERIOD_MS) {
+    Frame frame;
+    buildTestTicFrame(frame);
+    if (!enqueueRxFrame(controller, frame)) {
+      port.lastError = CAN_EVENT_FAKE_RX_OVERFLOW;
+      logEvent(controller, CAN_EVENT_FAKE_RX_OVERFLOW, 0x05, _rxCount, RxCapacity);
+      return;
+    }
+
+    port.lastTestTicFrameMs += CAN_FAKE_TEST_TIC_PERIOD_MS;
+  }
+
+  while ((uint32_t)(now - port.lastTestEditFrameMs) >= CAN_FAKE_TEST_EDIT_PERIOD_MS) {
+    if ((uint32_t)(port.lastTestEditFrameMs + CAN_FAKE_TEST_EDIT_PERIOD_MS - port.lastTestEditDataChangeMs) >=
+        CAN_FAKE_TEST_EDIT_DATA_STEP_MS) {
+      updateTestEditData(port);
+      port.lastTestEditDataChangeMs = port.lastTestEditFrameMs + CAN_FAKE_TEST_EDIT_PERIOD_MS;
+    }
+
+    Frame frame;
+    buildTestEditFrame(port, frame);
+    if (!enqueueRxFrame(controller, frame)) {
+      port.lastError = CAN_EVENT_FAKE_RX_OVERFLOW;
+      logEvent(controller, CAN_EVENT_FAKE_RX_OVERFLOW, 0x06, _rxCount, RxCapacity);
+      return;
+    }
+
+    port.lastTestEditFrameMs += CAN_FAKE_TEST_EDIT_PERIOD_MS;
+  }
+
+  while ((uint32_t)(now - port.lastTestTimeoutFrameMs) >= CAN_FAKE_TEST_TIMEOUT_PERIOD_MS) {
+    Frame frame;
+    buildTestTimeoutFrame(frame);
+    if (!enqueueRxFrame(controller, frame)) {
+      port.lastError = CAN_EVENT_FAKE_RX_OVERFLOW;
+      logEvent(controller, CAN_EVENT_FAKE_RX_OVERFLOW, 0x07, _rxCount, RxCapacity);
+      return;
+    }
+
+    port.lastTestTimeoutFrameMs += CAN_FAKE_TEST_TIMEOUT_PERIOD_MS;
+  }
+
   while ((uint32_t)(now - port.lastBurstTimestampMs) >= CAN_FAKE_BURST_PERIOD_MS) {
     const uint32_t burstTimestamp = port.lastBurstTimestampMs + CAN_FAKE_BURST_PERIOD_MS;
     const uint32_t elapsedSinceOpen = burstTimestamp - port.openTimestampMs;
@@ -569,6 +635,38 @@ void CanDriverFake::buildFastFrame(const PortState& port, Frame& frame) const {
   }
 }
 
+void CanDriverFake::buildTestTicFrame(Frame& frame) const {
+  frame.id = CAN_FAKE_TEST_TIC_ID;
+  frame.extended = true;
+  frame.rtr = false;
+  frame.dlc = CAN_FAKE_FRAME_DLC;
+  const uint8_t pattern[CAN_FAKE_FRAME_DLC] = {0x05, 0x15, 0x25, 0x35, 0x45, 0x55, 0x65, 0x75};
+  for (uint8_t i = 0; i < CAN_FAKE_FRAME_DLC; ++i) {
+    frame.data[i] = pattern[i];
+  }
+}
+
+void CanDriverFake::buildTestEditFrame(const PortState& port, Frame& frame) const {
+  frame.id = CAN_FAKE_TEST_EDIT_ID;
+  frame.extended = true;
+  frame.rtr = false;
+  frame.dlc = CAN_FAKE_FRAME_DLC;
+  for (uint8_t i = 0; i < CAN_FAKE_FRAME_DLC; ++i) {
+    frame.data[i] = port.testEditData[i];
+  }
+}
+
+void CanDriverFake::buildTestTimeoutFrame(Frame& frame) const {
+  frame.id = CAN_FAKE_TEST_TIMEOUT_ID;
+  frame.extended = true;
+  frame.rtr = false;
+  frame.dlc = CAN_FAKE_FRAME_DLC;
+  const uint8_t pattern[CAN_FAKE_FRAME_DLC] = {0x07, 0x17, 0x27, 0x37, 0x47, 0x57, 0x67, 0x77};
+  for (uint8_t i = 0; i < CAN_FAKE_FRAME_DLC; ++i) {
+    frame.data[i] = pattern[i];
+  }
+}
+
 void CanDriverFake::resetFastData(PortState& port) const {
   for (uint8_t i = 0; i < CAN_FAKE_FRAME_DLC; ++i) {
     port.fakeFastData[i] = (uint8_t)(i << 4);
@@ -582,6 +680,20 @@ void CanDriverFake::updateFastData(PortState& port) const {
   const uint8_t lowNibble = (uint8_t)((port.fakeFastData[index] + 1U) & 0x0FU);
   port.fakeFastData[index] = (uint8_t)((index << 4) | lowNibble);
   port.fakeFastByteIndex = (uint8_t)((index + 1U) % CAN_FAKE_FRAME_DLC);
+}
+
+void CanDriverFake::resetTestEditData(PortState& port) const {
+  for (uint8_t i = 0; i < CAN_FAKE_FRAME_DLC; ++i) {
+    port.testEditData[i] = (uint8_t)(i << 4);
+  }
+  port.testEditByteIndex = 0;
+}
+
+void CanDriverFake::updateTestEditData(PortState& port) const {
+  const uint8_t index = port.testEditByteIndex;
+  const uint8_t lowNibble = (uint8_t)((port.testEditData[index] + 1U) & 0x0FU);
+  port.testEditData[index] = (uint8_t)((index << 4) | lowNibble);
+  port.testEditByteIndex = (uint8_t)((index + 1U) % CAN_FAKE_FRAME_DLC);
 }
 
 void CanDriverFake::rememberTxFrame(uint8_t controller, const Frame& frame) {

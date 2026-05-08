@@ -56,7 +56,13 @@ private:
     uint32_t lastSingleShotMs;
     uint32_t lastFastFrameMs;
     uint32_t lastFastOverflowLogMs;
+    uint32_t lastTestTicFrameMs;
+    uint32_t lastTestEditFrameMs;
+    uint32_t lastTestEditDataChangeMs;
+    uint32_t lastTestTimeoutFrameMs;
     uint8_t dataNibble;
+    uint8_t testEditByteIndex;
+    uint8_t testEditData[8];
     uint32_t fakeIds[3];
     uint32_t fakeId4;
     uint32_t fakeFastId;
@@ -108,7 +114,12 @@ private:
   void buildBurstFrame(uint32_t id, uint8_t dataNibble, Frame& frame) const;
   void buildSingleShotFrame(uint32_t id, Frame& frame) const;
   void buildFastFrame(const PortState& port, Frame& frame) const;
+  void buildTestTicFrame(Frame& frame) const;
+  void buildTestEditFrame(const PortState& port, Frame& frame) const;
+  void buildTestTimeoutFrame(Frame& frame) const;
   void resetFastData(PortState& port) const;
   void updateFastData(PortState& port) const;
+  void resetTestEditData(PortState& port) const;
+  void updateTestEditData(PortState& port) const;
   void rememberTxFrame(uint8_t controller, const Frame& frame);
 };

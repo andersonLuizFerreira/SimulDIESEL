@@ -49,6 +49,7 @@ CanRxTableManager::ProcessResult CanRxTableManager::processFrame(const ObservedF
   event.valid = false;
   event.type = 0;
   event.mask = 0;
+  event.dataMask = 0;
 
   if (frame.dlc > 8) {
     return ProcessIgnored;
@@ -68,6 +69,7 @@ CanRxTableManager::ProcessResult CanRxTableManager::processFrame(const ObservedF
     event.valid = true;
     event.type = CMD_CAN_CREATE;
     event.mask = 0;
+    event.dataMask = 0;
     event.entry = *entry;
     return ProcessCreate;
   }
@@ -76,6 +78,7 @@ CanRxTableManager::ProcessResult CanRxTableManager::processFrame(const ObservedF
   entry->lastSeenMs = nowMs;
 
   uint8_t mask = 0;
+  uint8_t dataMask = 0;
   if (entry->dlc != frame.dlc) {
     entry->dlc = frame.dlc;
     mask |= 0x04;
@@ -87,6 +90,7 @@ CanRxTableManager::ProcessResult CanRxTableManager::processFrame(const ObservedF
     if (entry->data[index] != nextValue) {
       entry->data[index] = nextValue;
       dataChanged = true;
+      dataMask |= (uint8_t)(1U << index);
     }
   }
   if (dataChanged) {
@@ -100,14 +104,20 @@ CanRxTableManager::ProcessResult CanRxTableManager::processFrame(const ObservedF
     mask |= 0x10;
   }
 
-  if (mask == 0) {
-    return ProcessNoChange;
+  if ((mask & (uint8_t)~0x10U) == 0) {
+    event.valid = true;
+    event.type = CMD_CAN_TIC;
+    event.mask = 0;
+    event.dataMask = 0;
+    event.entry = *entry;
+    return ProcessTic;
   }
 
   entry->messageOrder = _nextMessageOrder++;
   event.valid = true;
   event.type = CMD_CAN_EDIT;
   event.mask = mask;
+  event.dataMask = dataMask;
   event.entry = *entry;
   return ProcessEdit;
 }
@@ -116,6 +126,7 @@ CanRxTableManager::ProcessResult CanRxTableManager::checkTimeouts(uint32_t nowMs
   event.valid = false;
   event.type = 0;
   event.mask = 0;
+  event.dataMask = 0;
 
   for (uint8_t index = 0; index < Capacity; ++index) {
     Entry& entry = _entries[index];

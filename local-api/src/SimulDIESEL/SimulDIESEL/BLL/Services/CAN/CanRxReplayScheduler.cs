@@ -5,6 +5,7 @@ using SimulDIESEL.DTL.Boards.UCE.Can;
 
 namespace SimulDIESEL.BLL.Services.CAN
 {
+    [Obsolete("Legado: o fluxo normal de RX agora e alimentado por CAN_CREATE/CAN_EDIT/CAN_TIC/CAN_RX_EVENT, sem replay local por cycleTime.")]
     public sealed class CanRxReplayScheduler : IDisposable
     {
         private const int TickPeriodMs = 50;

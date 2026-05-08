@@ -49,6 +49,7 @@ namespace SimulDIESEL.DTL.Protocols.SDGW
         public const byte UceCanReadAllType = 0x43;
         public const byte UceCanRowType = 0x44;
         public const byte UceCanReadAllDoneType = 0x45;
+        public const byte UceCanTicType = 0x46;
         public const byte UceTransportDiagType = 0x7E;
         public const byte UceErrorType = 0x7F;
         public const byte GatewayErrorType = 0xFE;
@@ -71,8 +72,9 @@ namespace SimulDIESEL.DTL.Protocols.SDGW
         public const byte UceCanRxEventMaxFrames = 0x01;
         public const byte UceCanCreatePayloadLength = 0x15;
         public const byte UceCanEditPayloadMinLength = 0x06;
-        public const byte UceCanEditPayloadMaxLength = 0x15;
+        public const byte UceCanEditPayloadMaxLength = 0x17;
         public const byte UceCanDeletePayloadLength = 0x06;
+        public const byte UceCanTicPayloadLength = 0x01;
         public const byte UceCanReadAllPayloadLength = 0x00;
         public const byte UceCanRowPayloadLength = 0x15;
         public const byte UceCanReadAllDonePayloadLength = 0x05;

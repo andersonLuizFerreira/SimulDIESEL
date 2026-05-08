@@ -447,6 +447,7 @@ namespace SimulDIESEL.BLL.Boards.UCE
                 case GwProtocol.UceCanDeleteType:
                 case GwProtocol.UceCanRowType:
                 case GwProtocol.UceCanReadAllDoneType:
+                case GwProtocol.UceCanTicType:
                     eventType = frame.Payload[0];
                     return TryReadVariableTlv(frame, eventType, "evento CAN CRUD da UCE", out payload, out error);
                 default:

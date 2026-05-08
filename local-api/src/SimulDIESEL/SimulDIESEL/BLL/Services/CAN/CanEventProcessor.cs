@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using SimulDIESEL.BLL.Boards.UCE;
 using SimulDIESEL.DTL.Boards.UCE;
 using SimulDIESEL.DTL.Boards.UCE.Can;
 using SimulDIESEL.DTL.Protocols.SDGW;
@@ -43,6 +44,15 @@ namespace SimulDIESEL.BLL.Services.CAN
                         return false;
                     }
                     return ProcessDelete(delete);
+                case GwProtocol.UceCanTicType:
+                    CanTicDto tic;
+                    if (!TryParseTic(payload, out tic))
+                    {
+                        Debug.WriteLine("CanEventProcessor: payload CAN_TIC inválido.");
+                        UceGatewayDiagnosticLog.AppendCanProtocolDiagnostic("CAN_TIC_INVALID_PAYLOAD", "CAN_TIC deve ter payload de 1 byte.", -1);
+                        return false;
+                    }
+                    return ProcessTic(tic);
                 case GwProtocol.UceCanRowType:
                     CanRowDto row;
                     if (!TryParseRow(payload, out row))
@@ -92,6 +102,11 @@ namespace SimulDIESEL.BLL.Services.CAN
             return _mirrorManager.ApplyDelete(delete);
         }
 
+        public bool ProcessTic(CanTicDto tic)
+        {
+            return _mirrorManager.ApplyTic(tic);
+        }
+
         public bool ProcessRow(CanRowDto row)
         {
             return _mirrorManager.ApplyRow(row);
@@ -127,7 +142,10 @@ namespace SimulDIESEL.BLL.Services.CAN
         {
             edit = null;
             if (payload == null || payload.Length < GwProtocol.UceCanEditPayloadMinLength)
+            {
+                UceGatewayDiagnosticLog.AppendCanProtocolDiagnostic("CAN_EDIT_TRUNCATED", "Payload menor que o cabeçalho CAN_EDIT.", -1);
                 return false;
+            }
 
             int offset = 0;
             var candidate = new CanEditDto
@@ -142,14 +160,20 @@ namespace SimulDIESEL.BLL.Services.CAN
             if ((candidate.Mask & GwProtocol.UceCanCrudEditMaskFlags) != 0)
             {
                 if (!CanRead(payload, offset, 1))
+                {
+                    UceGatewayDiagnosticLog.AppendCanProtocolDiagnostic("CAN_EDIT_TRUNCATED", "Payload terminou antes de FLAGS.", candidate.Index);
                     return false;
+                }
                 candidate.Flags = payload[offset++];
             }
 
             if ((candidate.Mask & GwProtocol.UceCanCrudEditMaskCanId) != 0)
             {
                 if (!CanRead(payload, offset, 4))
+                {
+                    UceGatewayDiagnosticLog.AppendCanProtocolDiagnostic("CAN_EDIT_TRUNCATED", "Payload terminou antes de CAN_ID.", candidate.Index);
                     return false;
+                }
                 candidate.CanId = ReadUInt32Le(payload, offset);
                 offset += 4;
             }
@@ -157,30 +181,82 @@ namespace SimulDIESEL.BLL.Services.CAN
             if ((candidate.Mask & GwProtocol.UceCanCrudEditMaskDlc) != 0)
             {
                 if (!CanRead(payload, offset, 1))
+                {
+                    UceGatewayDiagnosticLog.AppendCanProtocolDiagnostic("CAN_EDIT_TRUNCATED", "Payload terminou antes de DLC.", candidate.Index);
                     return false;
+                }
                 candidate.Dlc = payload[offset++];
             }
 
             if ((candidate.Mask & GwProtocol.UceCanCrudEditMaskData) != 0)
             {
-                if (!CanRead(payload, offset, 8))
+                int bytesReservedAfterData = (candidate.Mask & GwProtocol.UceCanCrudEditMaskCycleTime) != 0 ? 2 : 0;
+                int availableForData = payload.Length - offset - bytesReservedAfterData;
+                if (availableForData <= 0)
+                {
+                    UceGatewayDiagnosticLog.AppendCanProtocolDiagnostic("CAN_EDIT_INVALID_DATA_MASK", "DATA ativo sem DATA_MASK ou DATA[8].", candidate.Index);
                     return false;
-                Buffer.BlockCopy(payload, offset, candidate.Data, 0, 8);
-                offset += 8;
+                }
+
+                byte dataMask = payload[offset];
+                int maskedByteCount = CountBits(dataMask);
+                bool canReadMasked = dataMask != 0 && availableForData == 1 + maskedByteCount;
+                if (canReadMasked)
+                {
+                    candidate.DataMask = dataMask;
+                    candidate.UsesDataMask = true;
+                    offset++;
+                    for (int dataIndex = 0; dataIndex < 8; ++dataIndex)
+                    {
+                        if ((dataMask & (1 << dataIndex)) != 0)
+                            candidate.Data[dataIndex] = payload[offset++];
+                    }
+                }
+                else if (availableForData == 8)
+                {
+                    Buffer.BlockCopy(payload, offset, candidate.Data, 0, 8);
+                    candidate.DataMask = 0xFF;
+                    candidate.UsesDataMask = false;
+                    offset += 8;
+                }
+                else
+                {
+                    UceGatewayDiagnosticLog.AppendCanProtocolDiagnostic("CAN_EDIT_INVALID_DATA_MASK", "DATA_MASK incompatível com o tamanho do payload.", candidate.Index);
+                    return false;
+                }
             }
 
             if ((candidate.Mask & GwProtocol.UceCanCrudEditMaskCycleTime) != 0)
             {
                 if (!CanRead(payload, offset, 2))
+                {
+                    UceGatewayDiagnosticLog.AppendCanProtocolDiagnostic("CAN_EDIT_TRUNCATED", "Payload terminou antes de CYCLE_TIME.", candidate.Index);
                     return false;
+                }
                 candidate.CycleTime = ReadUInt16Le(payload, offset);
                 offset += 2;
             }
 
             if (offset != payload.Length)
+            {
+                UceGatewayDiagnosticLog.AppendCanProtocolDiagnostic("CAN_EDIT_INVALID_PAYLOAD", "Payload CAN_EDIT possui bytes excedentes.", candidate.Index);
                 return false;
+            }
 
             edit = candidate;
+            return true;
+        }
+
+        private static bool TryParseTic(byte[] payload, out CanTicDto tic)
+        {
+            tic = null;
+            if (payload == null || payload.Length != GwProtocol.UceCanTicPayloadLength)
+                return false;
+
+            tic = new CanTicDto
+            {
+                Index = payload[0]
+            };
             return true;
         }
 
@@ -237,6 +313,17 @@ namespace SimulDIESEL.BLL.Services.CAN
         private static bool CanRead(byte[] payload, int offset, int count)
         {
             return payload != null && offset >= 0 && count >= 0 && offset + count <= payload.Length;
+        }
+
+        private static int CountBits(byte value)
+        {
+            int count = 0;
+            for (int bit = 0; bit < 8; ++bit)
+            {
+                if ((value & (1 << bit)) != 0)
+                    ++count;
+            }
+            return count;
         }
 
         private static ushort ReadUInt16Le(byte[] payload, int offset)

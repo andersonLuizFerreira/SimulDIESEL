@@ -17,7 +17,6 @@ namespace SimulDIESEL.BLL.Services.CAN
         private readonly IUceDispatcher _uceDispatcher;
         private readonly CanRxMirrorManager _rxMirrorManager;
         private readonly CanRxOutputBuffer _rxOutputBuffer;
-        private readonly CanRxReplayScheduler _rxReplayScheduler;
         private readonly CanTxManager _txManager;
         private readonly CanEventProcessor _eventProcessor;
         private bool _isMirrorOutOfSync;
@@ -42,10 +41,6 @@ namespace SimulDIESEL.BLL.Services.CAN
             _uceDispatcher = uceDispatcher;
             _rxMirrorManager = rxMirrorManager;
             _rxOutputBuffer = new CanRxOutputBuffer();
-            _rxReplayScheduler = new CanRxReplayScheduler(
-                _rxMirrorManager,
-                _rxOutputBuffer,
-                () => IsSyncingReadAll || IsMirrorOutOfSync);
             _txManager = new CanTxManager(uceDispatcher);
             _eventProcessor = new CanEventProcessor(rxMirrorManager);
 
@@ -53,8 +48,6 @@ namespace SimulDIESEL.BLL.Services.CAN
             _uceDispatcher.CanCrudEventReceived += OnCanCrudEventReceived;
             _uceDispatcher.DispatcherOverflowDiagnosticReceived += OnDispatcherOverflowDiagnosticReceived;
             _rxMirrorManager.MirrorOutOfSyncDetected += OnMirrorOutOfSyncDetected;
-            _rxReplayScheduler.FrameReplayed += OnReplayedFrameAvailable;
-            _rxReplayScheduler.Start();
         }
 
         public event EventHandler CanRxTableChanged;
@@ -208,7 +201,6 @@ namespace SimulDIESEL.BLL.Services.CAN
         {
             Debug.WriteLine("ApiCanService: API enviou CAN_READ_ALL (0x43) para controller " + controller + ".");
             _rxMirrorManager.StartReadAll();
-            _rxReplayScheduler.ClearSchedule();
             SetSyncingReadAll(true);
 
             UceOperationResult<UceCanReadAllResponse> result = await _uceDispatcher
@@ -251,8 +243,6 @@ namespace SimulDIESEL.BLL.Services.CAN
         {
             if (_eventProcessor.ProcessDelete(delete))
             {
-                if (delete != null)
-                    _rxReplayScheduler.RemoveSchedule(delete.Index);
                 CanRxTableChanged?.Invoke(this, EventArgs.Empty);
             }
         }
@@ -275,6 +265,8 @@ namespace SimulDIESEL.BLL.Services.CAN
                 Debug.WriteLine("ApiCanService: API recebeu CAN_EDIT (0x41).");
             else if (type == GwProtocol.UceCanDeleteType)
                 Debug.WriteLine("ApiCanService: API recebeu CAN_DELETE (0x42).");
+            else if (type == GwProtocol.UceCanTicType)
+                Debug.WriteLine("ApiCanService: API recebeu CAN_TIC (0x46).");
             else if (type == GwProtocol.UceCanRowType)
                 Debug.WriteLine("ApiCanService: API recebeu CAN_ROW (0x44).");
             else if (type == GwProtocol.UceCanReadAllDoneType)
@@ -284,10 +276,8 @@ namespace SimulDIESEL.BLL.Services.CAN
             {
                 if (type == GwProtocol.UceCanReadAllDoneType)
                     FinishReadAllSync();
-                else if (type == GwProtocol.UceCanCreateType || type == GwProtocol.UceCanEditType)
+                else if (type == GwProtocol.UceCanCreateType || type == GwProtocol.UceCanEditType || type == GwProtocol.UceCanTicType)
                     EnqueueReconstructedFrame(GetIndexFromPayload(payload));
-                else if (type == GwProtocol.UceCanDeleteType)
-                    _rxReplayScheduler.RemoveSchedule(GetIndexFromPayload(payload));
 
                 CanRxTableChanged?.Invoke(this, EventArgs.Empty);
             }
@@ -315,7 +305,6 @@ namespace SimulDIESEL.BLL.Services.CAN
             OnCanDiagnosticStateChanged();
 
             _rxMirrorManager.ClearAll();
-            _rxReplayScheduler.ClearSchedule();
             CanRxTableChanged?.Invoke(this, EventArgs.Empty);
 
             SetSyncingReadAll(true);
@@ -393,12 +382,6 @@ namespace SimulDIESEL.BLL.Services.CAN
                 IncrementReconstructedFrameCount();
                 OnCanRxFrameAvailable();
             }
-        }
-
-        private void OnReplayedFrameAvailable(CanFrameDto frame)
-        {
-            IncrementReconstructedFrameCount();
-            OnCanRxFrameAvailable();
         }
 
         private void IncrementReconstructedFrameCount()
@@ -479,8 +462,6 @@ namespace SimulDIESEL.BLL.Services.CAN
             _uceDispatcher.CanCrudEventReceived -= OnCanCrudEventReceived;
             _uceDispatcher.DispatcherOverflowDiagnosticReceived -= OnDispatcherOverflowDiagnosticReceived;
             _rxMirrorManager.MirrorOutOfSyncDetected -= OnMirrorOutOfSyncDetected;
-            _rxReplayScheduler.FrameReplayed -= OnReplayedFrameAvailable;
-            _rxReplayScheduler.Dispose();
             _disposed = true;
         }
     }

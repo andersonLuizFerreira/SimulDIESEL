@@ -32,6 +32,7 @@ CanRxHub::ProcessResult CanRxHub::process(const CanDriverSelected::Frame& frame,
   result.crudEvent.valid = false;
   result.crudEvent.type = 0;
   result.crudEvent.mask = 0;
+  result.crudEvent.dataMask = 0;
 
   if (_mode == CAN_RX_MODE_DIRECT_ONLY) {
     result.direct = true;

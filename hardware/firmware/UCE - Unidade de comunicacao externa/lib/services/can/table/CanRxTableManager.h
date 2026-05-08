@@ -31,6 +31,7 @@ public:
     bool valid;
     uint8_t type;
     uint8_t mask;
+    uint8_t dataMask;
     Entry entry;
   };
 
@@ -40,7 +41,8 @@ public:
     ProcessCreate = 2,
     ProcessEdit = 3,
     ProcessTableFull = 4,
-    ProcessDelete = 5
+    ProcessDelete = 5,
+    ProcessTic = 6
   };
 
   CanRxTableManager();

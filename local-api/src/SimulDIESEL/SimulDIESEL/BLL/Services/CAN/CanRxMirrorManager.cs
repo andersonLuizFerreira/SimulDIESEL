@@ -128,7 +128,18 @@ namespace SimulDIESEL.BLL.Services.CAN
                     if ((edit.Mask & GwProtocol.UceCanCrudEditMaskData) != 0)
                     {
                         EnsureDataArray(row);
-                        CopyEightBytes(edit.Data, row.Data);
+                        if (edit.UsesDataMask)
+                        {
+                            for (int dataIndex = 0; dataIndex < 8; ++dataIndex)
+                            {
+                                if ((edit.DataMask & (1 << dataIndex)) != 0 && edit.Data != null && dataIndex < edit.Data.Length)
+                                    row.Data[dataIndex] = edit.Data[dataIndex];
+                            }
+                        }
+                        else
+                        {
+                            CopyEightBytes(edit.Data, row.Data);
+                        }
                     }
 
                     if ((edit.Mask & GwProtocol.UceCanCrudEditMaskCycleTime) != 0)
@@ -142,6 +153,34 @@ namespace SimulDIESEL.BLL.Services.CAN
             {
                 MirrorOutOfSyncDetected?.Invoke(edit.Index, "EDIT received without CREATE");
                 return false;
+            }
+
+            return true;
+        }
+
+        public bool ApplyTic(CanTicDto tic)
+        {
+            if (_isSyncingReadAll)
+                return false;
+
+            if (tic == null || !IsValidIndex(tic.Index))
+            {
+                Debug.WriteLine("CanRxMirrorManager.ApplyTic ignorado: payload nulo ou index fora da faixa.");
+                MirrorOutOfSyncDetected?.Invoke(tic != null ? tic.Index : -1, "TIC received with invalid index");
+                return false;
+            }
+
+            lock (_sync)
+            {
+                CanRowDto row = _rows[tic.Index];
+                if (!row.Valid)
+                {
+                    Debug.WriteLine("CanRxMirrorManager.ApplyTic ignorado: linha inválida para index " + tic.Index + ".");
+                    MirrorOutOfSyncDetected?.Invoke(tic.Index, "TIC received for invalid row");
+                    return false;
+                }
+
+                row.MessageOrder = NextLocalMessageOrder(row.MessageOrder);
             }
 
             return true;
@@ -317,6 +356,11 @@ namespace SimulDIESEL.BLL.Services.CAN
                 return;
 
             Buffer.BlockCopy(source, 0, destination, 0, Math.Min(8, source.Length));
+        }
+
+        private static uint NextLocalMessageOrder(uint current)
+        {
+            return current == uint.MaxValue ? current : current + 1;
         }
     }
 }

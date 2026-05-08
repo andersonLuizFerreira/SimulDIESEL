@@ -25,9 +25,13 @@ bool CanCrudProtocol::encodeRow(const Record& record, uint8_t* out, uint8_t& out
   return encodeCreate(record, out, outLen);
 }
 
-bool CanCrudProtocol::encodeEdit(const Record& record, uint8_t mask, uint8_t* out, uint8_t& outLen) const {
+bool CanCrudProtocol::encodeEdit(const Record& record, uint8_t mask, uint8_t dataMask, uint8_t* out, uint8_t& outLen) const {
   outLen = 0;
   if (!out) {
+    return false;
+  }
+
+  if ((mask & EditMaskData) != 0 && dataMask == 0) {
     return false;
   }
 
@@ -48,8 +52,12 @@ bool CanCrudProtocol::encodeEdit(const Record& record, uint8_t mask, uint8_t* ou
     out[offset++] = record.dlc;
   }
   if ((mask & EditMaskData) != 0) {
-    memcpy(&out[offset], record.data, 8);
-    offset += 8;
+    out[offset++] = dataMask;
+    for (uint8_t index = 0; index < 8; ++index) {
+      if ((dataMask & (uint8_t)(1U << index)) != 0) {
+        out[offset++] = record.data[index];
+      }
+    }
   }
   if ((mask & EditMaskCycleTime) != 0) {
     writeUint16Le(record.cycleTime, &out[offset]);
@@ -57,6 +65,17 @@ bool CanCrudProtocol::encodeEdit(const Record& record, uint8_t mask, uint8_t* ou
   }
 
   outLen = offset;
+  return true;
+}
+
+bool CanCrudProtocol::encodeTic(uint8_t index, uint8_t* out, uint8_t& outLen) const {
+  outLen = 0;
+  if (!out) {
+    return false;
+  }
+
+  out[0] = index;
+  outLen = TicPayloadLen;
   return true;
 }
 

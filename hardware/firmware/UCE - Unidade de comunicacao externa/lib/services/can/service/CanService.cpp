@@ -31,10 +31,6 @@ const uint8_t CAN_TX_STOP_ALL = 0xFF;
 const uint8_t CAN_TX_SINGLE_SLOT = 0x00;
 const uint32_t CAN_RX_TABLE_FULL_LOG_INTERVAL_MS = 5000UL;
 
-#ifndef CAN_LEGACY_RX_EVENT_DIRECT
-#define CAN_LEGACY_RX_EVENT_DIRECT 0
-#endif
-
 void traceCanReadAll(const char* message) {
   Serial.print("[CAN_READ_ALL] ");
   Serial.println(message);
@@ -393,9 +389,14 @@ void CanService::collectRxFrames() {
 
       uint8_t payload[CanCrudProtocol::EditPayloadMaxLen] = {0};
       uint8_t payloadLen = 0;
-      const bool encoded = (hubResult.tableResult == CanRxTableManager::ProcessCreate)
-          ? _crudProtocol.encodeCreate(record, payload, payloadLen)
-          : _crudProtocol.encodeEdit(record, crudEvent.mask, payload, payloadLen);
+      bool encoded = false;
+      if (hubResult.tableResult == CanRxTableManager::ProcessCreate) {
+        encoded = _crudProtocol.encodeCreate(record, payload, payloadLen);
+      } else if (hubResult.tableResult == CanRxTableManager::ProcessTic) {
+        encoded = _crudProtocol.encodeTic(record.index, payload, payloadLen);
+      } else {
+        encoded = _crudProtocol.encodeEdit(record, crudEvent.mask, crudEvent.dataMask, payload, payloadLen);
+      }
 
       if (encoded) {
         enqueueCrudEvent(crudEvent.type, payload, payloadLen);

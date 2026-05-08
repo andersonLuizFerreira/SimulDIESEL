@@ -43,6 +43,7 @@
 #define CMD_CAN_READ_ALL          0x43
 #define CMD_CAN_ROW               0x44
 #define CMD_CAN_READ_ALL_DONE     0x45
+#define CMD_CAN_TIC               0x46
 #define CMD_CAN_CREATE            0x40
 #define CMD_CAN_EDIT              0x41
 #define CMD_CAN_DELETE            0x42

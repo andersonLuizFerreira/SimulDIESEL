@@ -224,7 +224,7 @@ namespace SimulDIESEL.BLL.Boards.UCE
                 builder.AppendLine("LAYER = API / CAN MIRROR");
                 builder.AppendLine("STATUS = MIRROR_OUT_OF_SYNC");
                 builder.AppendLine("ERROR PHASE = CAN RX MIRROR");
-                builder.AppendLine("POSSIBLE CAUSE = EDIT received without CREATE");
+                builder.AppendLine("POSSIBLE CAUSE = CAN table event referenced a row missing in the API mirror");
                 builder.Append("INDEX = ");
                 builder.AppendLine(index.ToString(CultureInfo.InvariantCulture));
                 if (!string.IsNullOrWhiteSpace(reason))
@@ -239,6 +239,37 @@ namespace SimulDIESEL.BLL.Boards.UCE
             catch (Exception)
             {
                 // O diagnostico nao pode interromper a recuperacao automatica do espelho.
+            }
+        }
+
+        public static void AppendCanProtocolDiagnostic(string status, string reason, int index)
+        {
+            try
+            {
+                Directory.CreateDirectory(UceGatewayDiagnostic.LogDirectory);
+
+                var builder = new StringBuilder();
+                builder.AppendLine("============================================================");
+                builder.Append("TIMESTAMP = ");
+                builder.AppendLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture));
+                builder.AppendLine("LAYER = API / CAN EVENT PROCESSOR");
+                builder.Append("STATUS = ");
+                builder.AppendLine(string.IsNullOrWhiteSpace(status) ? "CAN_PROTOCOL_DIAGNOSTIC" : status);
+                builder.AppendLine("ERROR PHASE = CAN RX EVENT PARSE");
+                builder.Append("INDEX = ");
+                builder.AppendLine(index.ToString(CultureInfo.InvariantCulture));
+                if (!string.IsNullOrWhiteSpace(reason))
+                {
+                    builder.Append("REASON = ");
+                    builder.AppendLine(reason);
+                }
+                builder.AppendLine();
+
+                File.AppendAllText(UceGatewayDiagnostic.LogFilePath, builder.ToString(), Encoding.ASCII);
+            }
+            catch (Exception)
+            {
+                // O diagnostico nao pode interromper o fluxo principal da aplicacao.
             }
         }
 

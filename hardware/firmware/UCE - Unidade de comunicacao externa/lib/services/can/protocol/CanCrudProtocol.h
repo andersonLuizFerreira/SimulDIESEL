@@ -21,7 +21,8 @@ public:
   static const uint8_t EditMaskCycleTime = 0x10;
   static const uint8_t CreatePayloadLen = 21;
   static const uint8_t RowPayloadLen = 21;
-  static const uint8_t EditPayloadMaxLen = 21;
+  static const uint8_t EditPayloadMaxLen = 23;
+  static const uint8_t TicPayloadLen = 1;
   static const uint8_t DeletePayloadLen = 6;
   static const uint8_t ReadAllDonePayloadLen = 5;
   static const uint8_t DeleteReasonTimeout = 0x01;
@@ -30,7 +31,8 @@ public:
 
   bool encodeCreate(const Record& record, uint8_t* out, uint8_t& outLen) const;
   bool encodeRow(const Record& record, uint8_t* out, uint8_t& outLen) const;
-  bool encodeEdit(const Record& record, uint8_t mask, uint8_t* out, uint8_t& outLen) const;
+  bool encodeEdit(const Record& record, uint8_t mask, uint8_t dataMask, uint8_t* out, uint8_t& outLen) const;
+  bool encodeTic(uint8_t index, uint8_t* out, uint8_t& outLen) const;
   bool encodeDelete(uint8_t index, uint8_t reason, uint32_t messageOrder, uint8_t* out, uint8_t& outLen) const;
   bool encodeReadAllDone(uint8_t count, uint32_t messageOrder, uint8_t* out, uint8_t& outLen) const;
   bool decodeReadAllRequest(const uint8_t* value, uint8_t valueLen) const;
