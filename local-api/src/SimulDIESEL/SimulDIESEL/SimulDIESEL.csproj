@@ -102,6 +102,12 @@
     <Compile Include="BLL\Services\CAN\SDCTP\SdctpTxManager.cs" />
     <Compile Include="BLL\Services\CAN\SDCTP\SdctpTypes.cs" />
     <Compile Include="BLL\Protocols\ProtocolDecoderGateway.cs" />
+    <Compile Include="BLL\Protocols\J1939\Application\J1939ApplicationLayerService.cs" />
+    <Compile Include="BLL\Protocols\J1939\Application\J1939PgnCatalog.cs" />
+    <Compile Include="BLL\Protocols\J1939\Application\J1939PgnDecoder.cs" />
+    <Compile Include="BLL\Protocols\J1939\Application\J1939RawValueReader.cs" />
+    <Compile Include="BLL\Protocols\J1939\Application\J1939SignalRangeEvaluator.cs" />
+    <Compile Include="BLL\Protocols\J1939\Application\J1939SpnDecoder.cs" />
     <Compile Include="BLL\Protocols\J1939\J1939ProtocolService.cs" />
     <Compile Include="BLL\Protocols\J1939\Common\J1939ByteOrder.cs" />
     <Compile Include="BLL\Protocols\J1939\Common\J1939Constants.cs" />
@@ -155,6 +161,11 @@
     <Compile Include="DTL\Boards\UCE\UceLedResponse.cs" />
     <Compile Include="DTL\Common\DeviceInfo.cs" />
     <Compile Include="DTL\Common\OperationStatusDto.cs" />
+    <Compile Include="DTL\Protocols\J1939\Application\J1939ApplicationMessageDto.cs" />
+    <Compile Include="DTL\Protocols\J1939\Application\J1939DecodedSignalDto.cs" />
+    <Compile Include="DTL\Protocols\J1939\Application\J1939PgnDefinitionDto.cs" />
+    <Compile Include="DTL\Protocols\J1939\Application\J1939SignalStatusDto.cs" />
+    <Compile Include="DTL\Protocols\J1939\Application\J1939SpnDefinitionDto.cs" />
     <Compile Include="DTL\Protocols\J1939\Common\J1939ProcessingStatusDto.cs" />
     <Compile Include="DTL\Protocols\J1939\DataLink\J1939DataLinkMessageDto.cs" />
     <Compile Include="DTL\Protocols\J1939\DataLink\J1939DataLinkProcessingResultDto.cs" />
@@ -266,6 +277,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <Content Include="..\..\..\..\Data\Protocols\J1939\j1939-71-mini-catalog.json" />
     <None Include="SDH_HOST_OVERVIEW.md" />
   </ItemGroup>
   <ItemGroup>

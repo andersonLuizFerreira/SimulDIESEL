@@ -1,0 +1,69 @@
+{
+  "catalog": "SAE J1939-71 mini catalog",
+  "source": "J1939-71 Vehicle Application Layer PDF supplied for this stage",
+  "runtime": "Static C# catalog in BLL/Protocols/J1939/Application/J1939PgnCatalog.cs",
+  "pgns": [
+    {
+      "pgn": 61444,
+      "hex": "00F004",
+      "name": "Electronic Engine Controller 1",
+      "acronym": "EEC1",
+      "spns": [
+        { "spn": 190, "name": "Engine Speed", "startByte": 4, "bitLength": 16, "resolution": 0.125, "offset": 0, "unit": "rpm" }
+      ]
+    },
+    {
+      "pgn": 61443,
+      "hex": "00F003",
+      "name": "Electronic Engine Controller 2",
+      "acronym": "EEC2",
+      "spns": [
+        { "spn": 91, "name": "Accelerator Pedal Position 1", "startByte": 2, "bitLength": 8, "resolution": 0.4, "offset": 0, "unit": "%" },
+        { "spn": 92, "name": "Percent Load At Current Speed", "startByte": 3, "bitLength": 8, "resolution": 1, "offset": 0, "unit": "%" }
+      ]
+    },
+    {
+      "pgn": 65262,
+      "hex": "00FEEE",
+      "name": "Engine Temperature 1",
+      "acronym": "ET1",
+      "spns": [
+        { "spn": 110, "name": "Engine Coolant Temperature", "startByte": 1, "bitLength": 8, "resolution": 1, "offset": -40, "unit": "deg C" },
+        { "spn": 174, "name": "Fuel Temperature", "startByte": 2, "bitLength": 8, "resolution": 1, "offset": -40, "unit": "deg C" },
+        { "spn": 175, "name": "Engine Oil Temperature 1", "startByte": 3, "bitLength": 16, "resolution": 0.03125, "offset": -273, "unit": "deg C" }
+      ]
+    },
+    {
+      "pgn": 65263,
+      "hex": "00FEEF",
+      "name": "Engine Fluid Level/Pressure 1",
+      "acronym": "EFL/P1",
+      "spns": [
+        { "spn": 94, "name": "Fuel Delivery Pressure", "startByte": 1, "bitLength": 8, "resolution": 4, "offset": 0, "unit": "kPa" },
+        { "spn": 98, "name": "Engine Oil Level", "startByte": 3, "bitLength": 8, "resolution": 0.4, "offset": 0, "unit": "%" },
+        { "spn": 100, "name": "Engine Oil Pressure", "startByte": 4, "bitLength": 8, "resolution": 4, "offset": 0, "unit": "kPa" },
+        { "spn": 111, "name": "Coolant Level", "startByte": 8, "bitLength": 8, "resolution": 0.4, "offset": 0, "unit": "%" }
+      ]
+    },
+    {
+      "pgn": 65265,
+      "hex": "00FEF1",
+      "name": "Cruise Control/Vehicle Speed",
+      "acronym": "CCVS",
+      "spns": [
+        { "spn": 84, "name": "Wheel-Based Vehicle Speed", "startByte": 2, "bitLength": 16, "resolution": 0.00390625, "offset": 0, "unit": "km/h" },
+        { "spn": 70, "name": "Parking Brake Switch", "startByte": 1, "startBit": 3, "bitLength": 2, "type": "discrete" }
+      ]
+    },
+    {
+      "pgn": 65271,
+      "hex": "00FEF7",
+      "name": "Vehicle Electrical Power",
+      "acronym": "VEP",
+      "spns": [
+        { "spn": 168, "name": "Electrical Potential (Voltage)", "startByte": 5, "bitLength": 16, "resolution": 0.05, "offset": 0, "unit": "V" },
+        { "spn": 158, "name": "Battery Potential (Voltage), Switched", "startByte": 7, "bitLength": 16, "resolution": 0.05, "offset": 0, "unit": "V" }
+      ]
+    }
+  ]
+}
