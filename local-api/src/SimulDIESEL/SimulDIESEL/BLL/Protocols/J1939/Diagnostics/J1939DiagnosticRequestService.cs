@@ -1,4 +1,5 @@
 using System;
+using SimulDIESEL.BLL.Protocols.J1939.Common;
 using SimulDIESEL.DTL.Boards.UCE.Can;
 
 namespace SimulDIESEL.BLL.Protocols.J1939.Diagnostics
@@ -8,17 +9,15 @@ namespace SimulDIESEL.BLL.Protocols.J1939.Diagnostics
         public const uint RequestPgn = 59904;
         public const uint Dm1Pgn = 65226;
         public const uint Dm2Pgn = 65227;
-        public const byte GlobalDestinationAddress = 0xFF;
-        public const byte DefaultToolSourceAddress = 0xF9;
 
         public CanFrameDto BuildDm1Request()
         {
-            return BuildRequest(Dm1Pgn, GlobalDestinationAddress, DefaultToolSourceAddress);
+            return BuildRequest(Dm1Pgn, J1939ToolAddressConfig.GlobalAddress, J1939ToolAddressConfig.DefaultToolSourceAddress);
         }
 
         public CanFrameDto BuildDm2Request()
         {
-            return BuildRequest(Dm2Pgn, GlobalDestinationAddress, DefaultToolSourceAddress);
+            return BuildRequest(Dm2Pgn, J1939ToolAddressConfig.GlobalAddress, J1939ToolAddressConfig.DefaultToolSourceAddress);
         }
 
         public CanFrameDto BuildRequest(uint requestedPgn, byte destinationAddress, byte sourceAddress)

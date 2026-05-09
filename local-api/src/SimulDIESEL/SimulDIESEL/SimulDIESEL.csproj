@@ -111,6 +111,7 @@
     <Compile Include="BLL\Protocols\J1939\J1939ProtocolService.cs" />
     <Compile Include="BLL\Protocols\J1939\Common\J1939ByteOrder.cs" />
     <Compile Include="BLL\Protocols\J1939\Common\J1939Constants.cs" />
+    <Compile Include="BLL\Protocols\J1939\Common\J1939ToolAddressConfig.cs" />
     <Compile Include="BLL\Protocols\J1939\DataLink\J1939DataLinkService.cs" />
     <Compile Include="BLL\Protocols\J1939\DataLink\J1939IdParser.cs" />
     <Compile Include="BLL\Protocols\J1939\DataLink\J1939MessageTypeClassifier.cs" />
@@ -124,6 +125,13 @@
     <Compile Include="BLL\Protocols\J1939\Diagnostics\J1939DtcParser.cs" />
     <Compile Include="BLL\Protocols\J1939\Diagnostics\J1939FmiCatalog.cs" />
     <Compile Include="BLL\Protocols\J1939\Diagnostics\J1939LampStatusDecoder.cs" />
+    <Compile Include="BLL\Protocols\J1939\NetworkManagement\J1939AddressClaimDecoder.cs" />
+    <Compile Include="BLL\Protocols\J1939\NetworkManagement\J1939AddressClaimRequestService.cs" />
+    <Compile Include="BLL\Protocols\J1939\NetworkManagement\J1939AddressRegistry.cs" />
+    <Compile Include="BLL\Protocols\J1939\NetworkManagement\J1939CommandedAddressService.cs" />
+    <Compile Include="BLL\Protocols\J1939\NetworkManagement\J1939NameParser.cs" />
+    <Compile Include="BLL\Protocols\J1939\NetworkManagement\J1939NetworkManagementService.cs" />
+    <Compile Include="BLL\Protocols\J1939\NetworkManagement\J1939WorkingSetService.cs" />
     <Compile Include="BLL\FormsLogic\BPM\FrmBpmLogic.cs" />
     <Compile Include="BLL\FormsLogic\GSA\FrmGsaLogic.cs" />
     <Compile Include="BLL\FormsLogic\UCE\FrmUceLogic.cs" />
@@ -187,6 +195,12 @@
     <Compile Include="DTL\Protocols\J1939\Diagnostics\J1939DtcDto.cs" />
     <Compile Include="DTL\Protocols\J1939\Diagnostics\J1939FmiDefinitionDto.cs" />
     <Compile Include="DTL\Protocols\J1939\Diagnostics\J1939LampStatusDto.cs" />
+    <Compile Include="DTL\Protocols\J1939\NetworkManagement\J1939AddressClaimDto.cs" />
+    <Compile Include="DTL\Protocols\J1939\NetworkManagement\J1939AddressRegistryEntryDto.cs" />
+    <Compile Include="DTL\Protocols\J1939\NetworkManagement\J1939NameDto.cs" />
+    <Compile Include="DTL\Protocols\J1939\NetworkManagement\J1939NetworkEventDto.cs" />
+    <Compile Include="DTL\Protocols\J1939\NetworkManagement\J1939WorkingSetDto.cs" />
+    <Compile Include="DTL\Protocols\J1939\NetworkManagement\J1939WorkingSetMemberDto.cs" />
     <Compile Include="DTL\Protocols\SDGW\GwProtocol.cs" />
     <Compile Include="DTL\Protocols\SDGW\SdhCommand.cs" />
     <Compile Include="DTL\Protocols\SDGW\SdhResponse.cs" />
