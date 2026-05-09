@@ -1,20 +1,20 @@
 using System;
 using System.Collections.Generic;
 using SimulDIESEL.DTL.Boards.UCE.Can;
-using SimulDIESEL.DTL.J1939;
+using SimulDIESEL.DTL.Protocols.J1939;
 
-namespace SimulDIESEL.BLL.Services.J1939
+namespace SimulDIESEL.BLL.Protocols.J1939
 {
-    public sealed class J1939DecodeService
+    public sealed class J1939ProtocolService
     {
         private readonly J1939IdParser _idParser;
 
-        public J1939DecodeService()
+        public J1939ProtocolService()
             : this(new J1939IdParser())
         {
         }
 
-        public J1939DecodeService(J1939IdParser idParser)
+        public J1939ProtocolService(J1939IdParser idParser)
         {
             _idParser = idParser ?? throw new ArgumentNullException(nameof(idParser));
         }
@@ -24,12 +24,7 @@ namespace SimulDIESEL.BLL.Services.J1939
             if (frame == null)
                 throw new ArgumentNullException(nameof(frame));
 
-            return DecodeFrame(
-                frame.CanId,
-                frame.IsExtended,
-                frame.Dlc,
-                frame.Data,
-                frame.Timestamp);
+            return DecodeFrame(frame.CanId, frame.IsExtended, frame.Dlc, frame.Data, frame.Timestamp);
         }
 
         public J1939DecodedMessageDto Decode(CanRowDto row)
@@ -37,12 +32,7 @@ namespace SimulDIESEL.BLL.Services.J1939
             if (row == null)
                 throw new ArgumentNullException(nameof(row));
 
-            return DecodeFrame(
-                row.CanId,
-                row.IsExtended,
-                row.Dlc,
-                row.Data,
-                DateTime.MinValue);
+            return DecodeFrame(row.CanId, row.IsExtended, row.Dlc, row.Data, DateTime.MinValue);
         }
 
         public IReadOnlyList<J1939DecodedMessageDto> DecodeSnapshot(IEnumerable<CanRowDto> rows)
@@ -56,7 +46,9 @@ namespace SimulDIESEL.BLL.Services.J1939
                 if (row == null || !row.Valid)
                     continue;
 
-                decoded.Add(Decode(row));
+                J1939DecodedMessageDto message = Decode(row);
+                if (message.IsStructurallyDecoded)
+                    decoded.Add(message);
             }
 
             return decoded;
@@ -66,15 +58,19 @@ namespace SimulDIESEL.BLL.Services.J1939
         {
             J1939DecodedMessageDto decoded = new J1939DecodedMessageDto
             {
+                CanId = canId,
                 Dlc = dlc > 8 ? (byte)8 : dlc,
                 Data = NormalizeData(data),
                 Timestamp = timestamp,
-                IsValidJ1939 = isExtended,
-                ValidationMessage = isExtended ? "OK" : "J1939 requer CAN ID estendido de 29 bits."
+                IsStructurallyDecoded = isExtended,
+                StatusText = isExtended ? "J1939 estrutural decodificado." : "Mensagem CAN STD 11-bit nao suportada pelo bloco J1939."
             };
 
             if (isExtended)
+            {
                 decoded.IdFields = _idParser.Parse(canId);
+                decoded.FormattedPgn = "0x" + decoded.IdFields.Pgn.ToString("X5", System.Globalization.CultureInfo.InvariantCulture);
+            }
 
             return decoded;
         }

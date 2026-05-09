@@ -1,4 +1,4 @@
-namespace SimulDIESEL.DTL.J1939
+namespace SimulDIESEL.DTL.Protocols.J1939
 {
     public sealed class J1939IdFieldsDto
     {
@@ -13,5 +13,6 @@ namespace SimulDIESEL.DTL.J1939
         public byte? DestinationAddress { get; set; }
         public bool IsPdu1 { get; set; }
         public bool IsPdu2 { get; set; }
+        public bool IsGlobalDestination { get; set; }
     }
 }

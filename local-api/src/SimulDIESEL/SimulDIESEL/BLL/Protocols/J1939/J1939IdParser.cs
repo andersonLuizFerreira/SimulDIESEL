@@ -1,11 +1,12 @@
-using SimulDIESEL.DTL.J1939;
+using SimulDIESEL.DTL.Protocols.J1939;
 
-namespace SimulDIESEL.BLL.Services.J1939
+namespace SimulDIESEL.BLL.Protocols.J1939
 {
     public sealed class J1939IdParser
     {
         private const uint ExtendedCanIdMask = 0x1FFFFFFF;
         private const byte Pdu1Threshold = 240;
+        private const byte GlobalDestinationAddress = 0xFF;
 
         public J1939IdFieldsDto Parse(uint canId)
         {
@@ -17,9 +18,10 @@ namespace SimulDIESEL.BLL.Services.J1939
             byte pduSpecific = (byte)((normalizedId >> 8) & 0xFF);
             byte sourceAddress = (byte)(normalizedId & 0xFF);
             bool isPdu1 = pduFormat < Pdu1Threshold;
+            uint pageBits = (uint)(((reserved ? 1 : 0) << 17) | ((dataPage ? 1 : 0) << 16));
             uint pgn = isPdu1
-                ? (uint)(((dataPage ? 1 : 0) << 16) | (pduFormat << 8))
-                : (uint)(((dataPage ? 1 : 0) << 16) | (pduFormat << 8) | pduSpecific);
+                ? pageBits | (uint)(pduFormat << 8)
+                : pageBits | (uint)(pduFormat << 8) | pduSpecific;
 
             return new J1939IdFieldsDto
             {
@@ -33,7 +35,8 @@ namespace SimulDIESEL.BLL.Services.J1939
                 Pgn = pgn,
                 DestinationAddress = isPdu1 ? (byte?)pduSpecific : null,
                 IsPdu1 = isPdu1,
-                IsPdu2 = !isPdu1
+                IsPdu2 = !isPdu1,
+                IsGlobalDestination = isPdu1 && pduSpecific == GlobalDestinationAddress
             };
         }
     }
