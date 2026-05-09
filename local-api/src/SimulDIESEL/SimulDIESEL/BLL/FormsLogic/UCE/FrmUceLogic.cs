@@ -2,10 +2,14 @@ using System;
 using System.Threading.Tasks;
 using SimulDIESEL.BLL.Boards.BPM.Comm.Serial;
 using SimulDIESEL.BLL.Boards.UCE;
+using SimulDIESEL.BLL.Protocols.J1939;
+using SimulDIESEL.BLL.Protocols.J1939.Diagnostics;
 using SimulDIESEL.BLL.Services.CAN;
 using SimulDIESEL.BLL.Services.CAN.SDCTP;
 using SimulDIESEL.DTL.Boards.UCE;
 using SimulDIESEL.DTL.Boards.UCE.Can;
+using SimulDIESEL.DTL.Protocols.J1939.DataLink;
+using SimulDIESEL.DTL.Protocols.J1939.Diagnostics;
 
 namespace SimulDIESEL.BLL.FormsLogic.UCE
 {
@@ -30,6 +34,9 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
         private readonly IUceDispatcher _uceDispatcher;
         private readonly Func<bool> _isLinked;
         private readonly SdctpApiService _sdctp;
+        private readonly J1939ProtocolService _j1939Protocol;
+        private readonly J1939DiagnosticsService _j1939Diagnostics;
+        private readonly J1939DiagnosticRequestService _j1939DiagnosticRequests;
         private readonly bool _ownsSdctp;
         private bool _disposed;
 
@@ -54,6 +61,9 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             _uceDispatcher = uceDispatcher ?? throw new ArgumentNullException(nameof(uceDispatcher));
             _isLinked = isLinked ?? throw new ArgumentNullException(nameof(isLinked));
             _sdctp = sdctp ?? throw new ArgumentNullException(nameof(sdctp));
+            _j1939Protocol = new J1939ProtocolService();
+            _j1939Diagnostics = new J1939DiagnosticsService();
+            _j1939DiagnosticRequests = new J1939DiagnosticRequestService();
             _ownsSdctp = ownsSdctp;
             _uceDispatcher.LedEventReceived += OnLedEventReceived;
             _uceDispatcher.CanRxEventReceived += OnCanRxEventReceived;
@@ -175,6 +185,44 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
         public bool TryReadRxFrame(out CanFrameDto frame)
         {
             return _sdctp.TryReadRxFrame(out frame);
+        }
+
+        public async Task<UceOperationResult<J1939DiagnosticReadResultDto>> RequestJ1939DiagnosticCodesAsync()
+        {
+            if (!_isLinked())
+                return UceOperationResult<J1939DiagnosticReadResultDto>.Fail("Link serial não está em estado Linked.");
+
+            UceOperationResult<UceCanTxResponse> dm1 = await _sdctp
+                .SendDirectAsync(DefaultCanController, _j1939DiagnosticRequests.BuildDm1Request())
+                .ConfigureAwait(false);
+            if (!dm1.Success)
+                return UceOperationResult<J1939DiagnosticReadResultDto>.Fail("Falha ao solicitar DM1: " + dm1.Message, dm1.SendOutcome);
+
+            UceOperationResult<UceCanTxResponse> dm2 = await _sdctp
+                .SendDirectAsync(DefaultCanController, _j1939DiagnosticRequests.BuildDm2Request())
+                .ConfigureAwait(false);
+            if (!dm2.Success)
+                return UceOperationResult<J1939DiagnosticReadResultDto>.Fail("Falha ao solicitar DM2: " + dm2.Message, dm2.SendOutcome);
+
+            return UceOperationResult<J1939DiagnosticReadResultDto>.Succeeded(
+                new J1939DiagnosticReadResultDto
+                {
+                    Dm1RequestSent = true,
+                    Dm2RequestSent = true,
+                    Status = "Requests DM1/DM2 enviados via Request PGN 59904."
+                },
+                dm2.SendOutcome.GetValueOrDefault(),
+                "Requests DM1/DM2 enviados.");
+        }
+
+        public bool TryDecodeJ1939DiagnosticFrame(CanFrameDto frame, out J1939DiagnosticMessageDto diagnosticMessage)
+        {
+            diagnosticMessage = null;
+            if (frame == null)
+                return false;
+
+            J1939DataLinkProcessingResultDto result = _j1939Protocol.ProcessCanFrame(frame);
+            return _j1939Diagnostics.TryDecode(result, out diagnosticMessage);
         }
 
         public CanDiagnosticStatusDto GetCanDiagnosticStatus(UceCanStatusResponse canStatus)
