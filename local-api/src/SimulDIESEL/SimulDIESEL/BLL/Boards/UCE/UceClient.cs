@@ -131,6 +131,7 @@ namespace SimulDIESEL.BLL.Boards.UCE
                 UceParsers.TryReadCanDriverLogPollResponse);
         }
 
+        [Obsolete("Use SdctpApiService.SendDirectAsync / CAN_TX_DIRECT 0x50, or SDCTP TX table methods.")]
         public Task<UceOperationResult<UceCanTxResponse>> SendCanAsync(string controller, bool extended, uint id, byte dlc, byte[] data, ushort periodMs)
         {
             return ExecuteOperationAsync<UceCanTxResponse>(

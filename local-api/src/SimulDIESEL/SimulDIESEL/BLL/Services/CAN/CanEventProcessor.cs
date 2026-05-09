@@ -7,6 +7,9 @@ using SimulDIESEL.DTL.Protocols.SDGW;
 
 namespace SimulDIESEL.BLL.Services.CAN
 {
+    /// <summary>
+    /// Validated SDCTP event processor implementation.
+    /// </summary>
     public sealed class CanEventProcessor
     {
         private readonly CanRxMirrorManager _mirrorManager;

@@ -274,7 +274,7 @@ def write_report(direct, table):
         f"- Total de IDs: `{TOTAL_IDS}`",
         f"- Frames por rodada: `{TOTAL_FRAMES}`",
         "- CAN: `EXT`, `DLC=8`, `RTR=false`",
-        "- Loopback: `CAN_FAKE_TX_LOOPBACK` no ambiente `dueUSB_canFake`",
+        "- Loopback: modelo SDCTP TX/RX sem dependencia de `CanDriver_fake`",
         "- Rodada TX_DIRECT RX_MODE: `DIRECT_ONLY`",
         "- Rodada TX_TABLE RX_MODE: `AUTO`",
         "",

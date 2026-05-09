@@ -8,6 +8,9 @@
 #include "services/can/table/CanRxTableManager.h"
 #include "services/can/table/CanTxTableManager.h"
 
+// Validated SDCTP UCE engine implementation. The official protocol entrypoint
+// is SdctpService; this class is kept to avoid renaming the proven RX/TX path
+// in a single risky step.
 class CanService {
 public:
   typedef bool (*EventPublisher)(void* context, uint8_t type, const uint8_t* value, uint8_t valueLen);

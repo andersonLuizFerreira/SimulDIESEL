@@ -6,6 +6,10 @@ using SimulDIESEL.DTL.Protocols.SDGW;
 
 namespace SimulDIESEL.BLL.Services.CAN
 {
+    /// <summary>
+    /// Validated SDCTP RX mirror implementation. This table is protocol state;
+    /// CanRxOutputBuffer/TryReadRxFrame remains the official consumer output.
+    /// </summary>
     public sealed class CanRxMirrorManager
     {
         private readonly object _sync = new object();

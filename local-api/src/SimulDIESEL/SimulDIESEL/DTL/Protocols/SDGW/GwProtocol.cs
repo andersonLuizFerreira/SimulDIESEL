@@ -111,6 +111,7 @@ namespace SimulDIESEL.DTL.Protocols.SDGW
         public const byte UceCanBitrate1000Code = 0x08;
         public const byte UceCanModeNormal = 0x00;
         public const byte UceCanModeListen = 0x01;
+        public const byte UceCanModeLoopback = 0x02;
         public const byte UceCanRxModeAuto = 0x00;
         public const byte UceCanRxModeDirectOnly = 0x01;
         public const byte UceCanStateOff = 0x00;
@@ -139,6 +140,7 @@ namespace SimulDIESEL.DTL.Protocols.SDGW
         public const byte UceCanDriverEventInvalidBitrate = 0x10;
         public const byte UceCanDriverEventInvalidMode = 0x11;
         public const byte UceCanDriverEventCanPhysicalError = 0x12;
+        public const byte UceCanDriverEventLoopbackDropped = 0x16;
         public const byte UceCanTxStatusAcceptedSent = 0x00;
         public const byte UceCanTxStatusInvalidPayload = 0x01;
         public const byte UceCanTxStatusControllerDisabled = 0x02;

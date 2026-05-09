@@ -9,7 +9,8 @@ namespace SimulDIESEL.DTL.Boards.UCE
     public enum UceCanMode : byte
     {
         Normal = 0x00,
-        Listen = 0x01
+        Listen = 0x01,
+        Loopback = 0x02
     }
 
     public enum UceCanInterfaceState : byte
@@ -66,6 +67,12 @@ namespace SimulDIESEL.DTL.Boards.UCE
             if (string.Equals(rawValue, "listen", System.StringComparison.OrdinalIgnoreCase))
             {
                 mode = UceCanMode.Listen;
+                return true;
+            }
+
+            if (string.Equals(rawValue, "loopback", System.StringComparison.OrdinalIgnoreCase))
+            {
+                mode = UceCanMode.Loopback;
                 return true;
             }
 
@@ -144,6 +151,9 @@ namespace SimulDIESEL.DTL.Boards.UCE
                 case UceCanMode.Listen:
                     code = 0x01;
                     return true;
+                case UceCanMode.Loopback:
+                    code = 0x02;
+                    return true;
                 default:
                     code = 0x00;
                     return false;
@@ -159,6 +169,9 @@ namespace SimulDIESEL.DTL.Boards.UCE
                     return true;
                 case 0x01:
                     mode = UceCanMode.Listen;
+                    return true;
+                case 0x02:
+                    mode = UceCanMode.Loopback;
                     return true;
                 default:
                     mode = UceCanMode.Normal;
@@ -269,12 +282,28 @@ namespace SimulDIESEL.DTL.Boards.UCE
 
         public static string ToSdhMode(UceCanMode mode)
         {
-            return mode == UceCanMode.Listen ? "listen" : "normal";
+            switch (mode)
+            {
+                case UceCanMode.Listen:
+                    return "listen";
+                case UceCanMode.Loopback:
+                    return "loopback";
+                default:
+                    return "normal";
+            }
         }
 
         public static string ToDisplayMode(UceCanMode mode)
         {
-            return mode == UceCanMode.Listen ? "listen" : "normal";
+            switch (mode)
+            {
+                case UceCanMode.Listen:
+                    return "listen";
+                case UceCanMode.Loopback:
+                    return "loopback";
+                default:
+                    return "normal";
+            }
         }
 
         public static string ToDisplayState(UceCanInterfaceState state)

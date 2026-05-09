@@ -8,6 +8,9 @@ using SimulDIESEL.DTL.Protocols.SDGW;
 
 namespace SimulDIESEL.BLL.Services.CAN
 {
+    /// <summary>
+    /// Validated SDCTP API TX manager for DIRECT and TABLE commands.
+    /// </summary>
     public sealed class CanTxManager
     {
         private const int Capacity = 100;

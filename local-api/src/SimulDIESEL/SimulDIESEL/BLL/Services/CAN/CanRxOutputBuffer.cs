@@ -4,6 +4,9 @@ using SimulDIESEL.DTL.Boards.UCE.Can;
 
 namespace SimulDIESEL.BLL.Services.CAN
 {
+    /// <summary>
+    /// Official validated SDCTP API RX output queue.
+    /// </summary>
     public sealed class CanRxOutputBuffer
     {
         public const int DefaultCapacity = 256;

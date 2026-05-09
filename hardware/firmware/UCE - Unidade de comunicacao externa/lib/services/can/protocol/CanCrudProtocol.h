@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+// Validated SDCTP codec for CREATE/EDIT/TIC/DELETE/ROW payloads.
+// SdctpCodec/SdctpProtocol are facade names over this implementation.
 class CanCrudProtocol {
 public:
   struct Record {

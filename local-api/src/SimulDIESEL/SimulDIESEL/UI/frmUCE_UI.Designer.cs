@@ -143,7 +143,8 @@ namespace SimulDIESEL.UI
             this.cmbCanMode.FormattingEnabled = true;
             this.cmbCanMode.Items.AddRange(new object[] {
             "Normal",
-            "Listen"});
+            "Listen",
+            "Loopback"});
             this.cmbCanMode.Location = new System.Drawing.Point(119, 96);
             this.cmbCanMode.Name = "cmbCanMode";
             this.cmbCanMode.Size = new System.Drawing.Size(175, 24);

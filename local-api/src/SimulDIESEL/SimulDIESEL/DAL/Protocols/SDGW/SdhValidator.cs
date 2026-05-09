@@ -606,9 +606,10 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
                 throw new InvalidOperationException("Argumento obrigatório ausente para " + command.Target + ": mode.");
 
             if (!string.Equals(mode, "normal", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(mode, "listen", StringComparison.OrdinalIgnoreCase))
+                !string.Equals(mode, "listen", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(mode, "loopback", StringComparison.OrdinalIgnoreCase))
             {
-                throw new InvalidOperationException("Mode inválido para " + command.Target + ". Valores aceitos: normal, listen.");
+                throw new InvalidOperationException("Mode inválido para " + command.Target + ". Valores aceitos: normal, listen, loopback.");
             }
 
             return mode;

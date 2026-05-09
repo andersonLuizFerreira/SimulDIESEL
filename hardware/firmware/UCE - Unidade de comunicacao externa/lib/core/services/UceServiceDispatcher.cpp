@@ -7,12 +7,12 @@
 
 void UceServiceDispatcher::begin() {
   _led.begin();
-  _can.setEventPublisher(publishAsyncEvent, this);
-  _can.begin();
+  _sdctp.setEventPublisher(publishAsyncEvent, this);
+  _sdctp.begin();
 }
 
 void UceServiceDispatcher::loop() {
-  _can.loop();
+  _sdctp.loop();
 }
 
 bool UceServiceDispatcher::takePendingEvent(uint8_t& eventType, uint8_t* eventValue, uint8_t& eventValueLen) {
@@ -50,8 +50,12 @@ bool UceServiceDispatcher::dispatch(uint8_t type,
     case CMD_CAN_READ_ALL:
     case CMD_CAN_TX:
     case CMD_CAN_TX_STOP:
+    case CMD_CAN_TX_DIRECT:
+    case CMD_CAN_TX_CREATE:
+    case CMD_CAN_TX_EDIT:
+    case CMD_CAN_TX_DELETE:
       responseType = type;
-      return _can.handleTlv(type, value, valueLen, responseValue, responseValueLen, errorCode);
+      return _sdctp.handleTlv(type, value, valueLen, responseValue, responseValueLen, errorCode);
 
     default:
       errorCode = UCE_ERROR_COMMAND_NOT_SUPPORTED;

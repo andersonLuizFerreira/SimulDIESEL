@@ -9,6 +9,10 @@ using SimulDIESEL.DTL.Protocols.SDGW;
 
 namespace SimulDIESEL.BLL.Services.CAN
 {
+    /// <summary>
+    /// Validated API-side SDCTP implementation. SdctpApiService is the official
+    /// protocol facade; this class remains in place to preserve current consumers.
+    /// </summary>
     public sealed class ApiCanService : IDisposable
     {
         private const string DefaultCanController = "can0";

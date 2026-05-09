@@ -9,6 +9,7 @@ namespace {
 const uint8_t CAN_CONTROLLER_CAN0 = 0x00;
 const uint8_t CAN_CONTROLLER_CAN1 = 0x01;
 const uint8_t CAN_MODE_NORMAL = 0x00;
+const uint8_t CAN_MODE_LOOPBACK = 0x02;
 const uint8_t CAN_STATE_OFF = 0x00;
 const uint8_t CAN_STATE_ON = 0x01;
 const uint8_t CAN_INTERFACE_DISABLED = 0x00;
@@ -157,7 +158,7 @@ bool CanService::validateBitrate(uint8_t bitrateCode) const {
 }
 
 bool CanService::validateMode(uint8_t modeCode) const {
-  return modeCode <= 0x01;
+  return modeCode <= CAN_MODE_LOOPBACK;
 }
 
 bool CanService::validateRxMode(uint8_t rxMode) const {

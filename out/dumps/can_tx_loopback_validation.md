@@ -4,7 +4,7 @@
 - Total de IDs: `200`
 - Frames por rodada: `5000`
 - CAN: `EXT`, `DLC=8`, `RTR=false`
-- Loopback: `CAN_FAKE_TX_LOOPBACK` no ambiente `dueUSB_canFake`
+- Loopback: modelo SDCTP TX/RX sem dependencia de `CanDriver_fake`
 - Rodada TX_DIRECT RX_MODE: `DIRECT_ONLY`
 - Rodada TX_TABLE RX_MODE: `AUTO`
 

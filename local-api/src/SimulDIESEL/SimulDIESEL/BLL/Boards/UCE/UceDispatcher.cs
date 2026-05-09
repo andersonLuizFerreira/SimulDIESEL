@@ -20,6 +20,7 @@ namespace SimulDIESEL.BLL.Boards.UCE
         Task<UceOperationResult<UceCanRxPollResponse>> PollCanRxAsync(string controller);
         Task<UceOperationResult<UceCanReadAllResponse>> RequestCanReadAllAsync(string controller);
         Task<UceOperationResult<UceCanDriverLogPollResponse>> PollCanDriverLogAsync(string controller);
+        [Obsolete("Use SdctpApiService.SendDirectAsync / CAN_TX_DIRECT 0x50, or SDCTP TX table methods.")]
         Task<UceOperationResult<UceCanTxResponse>> SendCanAsync(string controller, bool extended, uint id, byte dlc, byte[] data, ushort periodMs);
         Task<UceOperationResult<UceCanTxResponse>> SendCanDirectAsync(string controller, bool extended, bool rtr, uint id, byte dlc, byte[] data);
         Task<UceOperationResult<UceCanTxResponse>> CreateCanTxRowAsync(string controller, byte index, bool extended, bool rtr, uint id, byte dlc, byte[] data, ushort periodMs, bool enabled);
@@ -91,6 +92,7 @@ namespace SimulDIESEL.BLL.Boards.UCE
             return _client.PollCanDriverLogAsync(controller);
         }
 
+        [Obsolete("Use SdctpApiService.SendDirectAsync / CAN_TX_DIRECT 0x50, or SDCTP TX table methods.")]
         public Task<UceOperationResult<UceCanTxResponse>> SendCanAsync(string controller, bool extended, uint id, byte dlc, byte[] data, ushort periodMs)
         {
             return _client.SendCanAsync(controller, extended, id, dlc, data, periodMs);

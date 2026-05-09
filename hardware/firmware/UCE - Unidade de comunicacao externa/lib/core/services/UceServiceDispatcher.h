@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 #include "defs.h"
-#include "services/can/service/CanService.h"
+#include "services/can/sdctp/SdctpService.h"
 #include "services/led/LedService.h"
 
 #define DISPATCHER_EVENT_QUEUE_SIZE 20
@@ -11,8 +11,8 @@
 
 class UceServiceDispatcher {
 public:
-  UceServiceDispatcher(LedService& led, CanService& can)
-      : _led(led), _can(can) {}
+  UceServiceDispatcher(LedService& led, SdctpService& sdctp)
+      : _led(led), _sdctp(sdctp) {}
 
   void begin();
   void loop();
@@ -43,7 +43,7 @@ private:
   void enqueuePendingDispatcherOverflowDiagnostic();
 
   LedService& _led;
-  CanService& _can;
+  SdctpService& _sdctp;
   DispatcherEvent _eventQueue[DISPATCHER_EVENT_QUEUE_SIZE];
   uint8_t _eventQueueHead = 0;
   uint8_t _eventQueueTail = 0;
