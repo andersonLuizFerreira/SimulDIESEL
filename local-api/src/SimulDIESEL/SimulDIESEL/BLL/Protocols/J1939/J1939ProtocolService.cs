@@ -1,87 +1,43 @@
 using System;
 using System.Collections.Generic;
+using SimulDIESEL.BLL.Protocols.J1939.DataLink;
 using SimulDIESEL.DTL.Boards.UCE.Can;
-using SimulDIESEL.DTL.Protocols.J1939;
+using SimulDIESEL.DTL.Protocols.J1939.DataLink;
 
 namespace SimulDIESEL.BLL.Protocols.J1939
 {
     public sealed class J1939ProtocolService
     {
-        private readonly J1939IdParser _idParser;
+        private readonly J1939DataLinkService _dataLinkService;
 
         public J1939ProtocolService()
-            : this(new J1939IdParser())
+            : this(new J1939DataLinkService())
         {
         }
 
-        public J1939ProtocolService(J1939IdParser idParser)
+        public J1939ProtocolService(J1939DataLinkService dataLinkService)
         {
-            _idParser = idParser ?? throw new ArgumentNullException(nameof(idParser));
+            _dataLinkService = dataLinkService ?? throw new ArgumentNullException(nameof(dataLinkService));
         }
 
-        public J1939DecodedMessageDto Decode(CanFrameDto frame)
+        public J1939DataLinkProcessingResultDto ProcessCanFrame(CanFrameDto frame)
         {
-            if (frame == null)
-                throw new ArgumentNullException(nameof(frame));
-
-            return DecodeFrame(frame.CanId, frame.IsExtended, frame.Dlc, frame.Data, frame.Timestamp);
+            return _dataLinkService.ProcessCanFrame(frame);
         }
 
-        public J1939DecodedMessageDto Decode(CanRowDto row)
+        public J1939DataLinkProcessingResultDto ProcessCanRow(CanRowDto row)
         {
-            if (row == null)
-                throw new ArgumentNullException(nameof(row));
-
-            return DecodeFrame(row.CanId, row.IsExtended, row.Dlc, row.Data, DateTime.MinValue);
+            return _dataLinkService.ProcessCanRow(row);
         }
 
-        public IReadOnlyList<J1939DecodedMessageDto> DecodeSnapshot(IEnumerable<CanRowDto> rows)
+        public IReadOnlyList<J1939DataLinkProcessingResultDto> ProcessSnapshot(IEnumerable<CanRowDto> rows)
         {
-            List<J1939DecodedMessageDto> decoded = new List<J1939DecodedMessageDto>();
-            if (rows == null)
-                return decoded;
-
-            foreach (CanRowDto row in rows)
-            {
-                if (row == null || !row.Valid)
-                    continue;
-
-                J1939DecodedMessageDto message = Decode(row);
-                if (message.IsStructurallyDecoded)
-                    decoded.Add(message);
-            }
-
-            return decoded;
+            return _dataLinkService.ProcessSnapshot(rows);
         }
 
-        private J1939DecodedMessageDto DecodeFrame(uint canId, bool isExtended, byte dlc, byte[] data, DateTime timestamp)
+        public IReadOnlyList<J1939TransportSessionDto> CheckTimeouts(DateTime now)
         {
-            J1939DecodedMessageDto decoded = new J1939DecodedMessageDto
-            {
-                CanId = canId,
-                Dlc = dlc > 8 ? (byte)8 : dlc,
-                Data = NormalizeData(data),
-                Timestamp = timestamp,
-                IsStructurallyDecoded = isExtended,
-                StatusText = isExtended ? "J1939 estrutural decodificado." : "Mensagem CAN STD 11-bit nao suportada pelo bloco J1939."
-            };
-
-            if (isExtended)
-            {
-                decoded.IdFields = _idParser.Parse(canId);
-                decoded.FormattedPgn = "0x" + decoded.IdFields.Pgn.ToString("X5", System.Globalization.CultureInfo.InvariantCulture);
-            }
-
-            return decoded;
-        }
-
-        private static byte[] NormalizeData(byte[] data)
-        {
-            byte[] normalized = new byte[8];
-            if (data != null)
-                Array.Copy(data, normalized, Math.Min(8, data.Length));
-
-            return normalized;
+            return _dataLinkService.CheckTimeouts(now);
         }
     }
 }
