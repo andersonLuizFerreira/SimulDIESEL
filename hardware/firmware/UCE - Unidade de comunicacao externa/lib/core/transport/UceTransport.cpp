@@ -9,6 +9,15 @@ void UceTransport::begin() {
 }
 
 void UceTransport::poll() {
+  if (!_pendingEvent) {
+    uint8_t dispatcherEventType = 0;
+    uint8_t dispatcherEventValue[SpiLink::BufferSize - 3] = {0};
+    uint8_t dispatcherEventValueLen = 0;
+    if (_dispatcher.takePendingEvent(dispatcherEventType, dispatcherEventValue, dispatcherEventValueLen)) {
+      queueEvent(dispatcherEventType, dispatcherEventValue, dispatcherEventValueLen);
+    }
+  }
+
   if (!_link.available()) {
     drainPendingEvent();
     return;

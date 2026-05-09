@@ -23,11 +23,30 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\x86\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -69,6 +88,19 @@
     <Compile Include="BLL\Boards\UCE\UceGatewayDiagnosticLog.cs" />
     <Compile Include="BLL\Boards\UCE\UceOperationResult.cs" />
     <Compile Include="BLL\Boards\UCE\UceParsers.cs" />
+    <Compile Include="BLL\Services\CAN\ApiCanService.cs" />
+    <Compile Include="BLL\Services\CAN\CanEventProcessor.cs" />
+    <Compile Include="BLL\Services\CAN\CanRxOutputBuffer.cs" />
+    <Compile Include="BLL\Services\CAN\CanRxMirrorManager.cs" />
+    <Compile Include="BLL\Services\CAN\CanTxManager.cs" />
+    <Compile Include="BLL\Services\CAN\SDCTP\SdctpApiService.cs" />
+    <Compile Include="BLL\Services\CAN\SDCTP\SdctpDiagnostics.cs" />
+    <Compile Include="BLL\Services\CAN\SDCTP\SdctpEventProcessor.cs" />
+    <Compile Include="BLL\Services\CAN\SDCTP\SdctpProtocol.cs" />
+    <Compile Include="BLL\Services\CAN\SDCTP\SdctpRxMirrorManager.cs" />
+    <Compile Include="BLL\Services\CAN\SDCTP\SdctpRxOutputBuffer.cs" />
+    <Compile Include="BLL\Services\CAN\SDCTP\SdctpTxManager.cs" />
+    <Compile Include="BLL\Services\CAN\SDCTP\SdctpTypes.cs" />
     <Compile Include="BLL\FormsLogic\BPM\FrmBpmLogic.cs" />
     <Compile Include="BLL\FormsLogic\GSA\FrmGsaLogic.cs" />
     <Compile Include="BLL\FormsLogic\UCE\FrmUceLogic.cs" />
@@ -100,6 +132,14 @@
     <Compile Include="DTL\Boards\GSA\GsaCommon.cs" />
     <Compile Include="DTL\Boards\GSA\GsaRequests.cs" />
     <Compile Include="DTL\Boards\GSA\GsaResponses.cs" />
+    <Compile Include="DTL\Boards\UCE\Can\CanCreateDto.cs" />
+    <Compile Include="DTL\Boards\UCE\Can\CanDeleteDto.cs" />
+    <Compile Include="DTL\Boards\UCE\Can\CanEditDto.cs" />
+    <Compile Include="DTL\Boards\UCE\Can\CanFrameDto.cs" />
+    <Compile Include="DTL\Boards\UCE\Can\CanReadAllResponseDto.cs" />
+    <Compile Include="DTL\Boards\UCE\Can\CanRowDto.cs" />
+    <Compile Include="DTL\Boards\UCE\Can\CanTicDto.cs" />
+    <Compile Include="DTL\Boards\UCE\Can\CanTxRowDto.cs" />
     <Compile Include="DTL\Boards\UCE\UceCanProtocol.cs" />
     <Compile Include="DTL\Boards\UCE\UceCanResponses.cs" />
     <Compile Include="DTL\Boards\UCE\UceLedResponse.cs" />

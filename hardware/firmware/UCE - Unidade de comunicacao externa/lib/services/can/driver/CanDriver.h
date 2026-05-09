@@ -52,17 +52,25 @@ private:
 
   static const uint8_t ControllerCount = 2;
   static const uint8_t LogCapacity = 24;
+  static const uint8_t LoopbackRxCapacity = 64;
 
   PortState _ports[ControllerCount];
   LogEntry _logs[ControllerCount][LogCapacity];
   uint8_t _logHead[ControllerCount];
   uint8_t _logCount[ControllerCount];
   uint8_t _logSequence;
+  Frame _loopbackRxQueue[ControllerCount][LoopbackRxCapacity];
+  uint8_t _loopbackRxHead[ControllerCount];
+  uint8_t _loopbackRxCount[ControllerCount];
 
   bool isValidController(uint8_t controller) const;
   bool isPhysicalCan0(uint8_t controller) const;
   bool mapBitrate(uint8_t bitrateCode, uint32_t& bitrateKbps) const;
   bool validateMode(uint8_t modeCode) const;
+  bool isLoopbackMode(uint8_t controller) const;
+  bool enqueueLoopbackFrame(uint8_t controller, const Frame& frame);
+  bool dequeueLoopbackFrame(uint8_t controller, Frame& frame);
+  void clearLoopbackQueue(uint8_t controller);
   void configureRxMailboxes();
   void configureTxMailbox();
   uint32_t encodeId(const Frame& frame) const;

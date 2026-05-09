@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
@@ -6,6 +7,8 @@ using System.Windows.Forms;
 using SimulDIESEL.BLL.Boards.UCE;
 using SimulDIESEL.BLL.FormsLogic.UCE;
 using SimulDIESEL.DTL.Boards.UCE;
+using SimulDIESEL.DTL.Boards.UCE.Can;
+using SimulDIESEL.DTL.Protocols.SDGW;
 
 namespace SimulDIESEL.UI
 {
@@ -17,11 +20,16 @@ namespace SimulDIESEL.UI
         private bool _acceptedLedState;
         private bool _suppressLedEvent;
         private bool _suppressCanEvents;
-        private readonly Timer _canRxTimer;
         private readonly Timer _canDriverLogTimer;
-        private bool _canRxPolling;
+        private readonly Timer _canRxGridRefreshTimer;
         private bool _canDriverLogPolling;
         private bool _canPeriodicTxActive;
+        private bool _dispatcherOverflowDialogShown;
+        private UceCanStatusResponse _lastCanStatus;
+        private Button _btnCanRxClear;
+        private readonly Dictionary<UiCanMonitorKey, UiCanMonitorRow> _canMonitorRowsByKey =
+            new Dictionary<UiCanMonitorKey, UiCanMonitorRow>();
+        private readonly List<UiCanMonitorRow> _canMonitorRows = new List<UiCanMonitorRow>();
 
         public frmUCE_UI()
         {
@@ -29,7 +37,10 @@ namespace SimulDIESEL.UI
 
             _logic = FrmUceLogic.CreateDefault();
             _logic.LedEventReceived += Logic_LedEventReceived;
-            _logic.CanRxEventReceived += Logic_CanRxEventReceived;
+            _logic.CanRxFrameAvailable += Logic_CanRxFrameAvailable;
+            _logic.CanRxTableChanged += Logic_CanRxTableChanged;
+            _logic.DispatcherOverflowDiagnosticReceived += Logic_DispatcherOverflowDiagnosticReceived;
+            _logic.CanDiagnosticStateChanged += Logic_CanDiagnosticStateChanged;
 
             chkLed.CheckedChanged += ChkLed_CheckedChanged;
             chkCanEnabled.CheckedChanged += CanControl_Changed;
@@ -37,16 +48,20 @@ namespace SimulDIESEL.UI
             cmbCanMode.SelectedIndexChanged += CanControl_Changed;
             btnEnable.Click += BtnEnable_Click;
             Load += FrmUCE_UI_Load;
-
-            _canRxTimer = new Timer();
-            _canRxTimer.Interval = 500;
-            _canRxTimer.Tick += CanRxTimer_Tick;
+            tabUCE.SelectedIndexChanged += TabUCE_SelectedIndexChanged;
 
             _canDriverLogTimer = new Timer();
             _canDriverLogTimer.Interval = 500;
             _canDriverLogTimer.Tick += CanDriverLogTimer_Tick;
 
+            _canRxGridRefreshTimer = new Timer();
+            _canRxGridRefreshTimer.Interval = 200;
+            _canRxGridRefreshTimer.Tick += CanRxGridRefreshTimer_Tick;
+
             ApplyInitialCanUiState();
+            ConfigureCanRxGrid();
+            RefreshCanRxGrid();
+            UpdateCanDiagnosticIndicators();
         }
 
         public static frmUCE_UI Instance
@@ -64,18 +79,25 @@ namespace SimulDIESEL.UI
         {
             chkLed.CheckedChanged -= ChkLed_CheckedChanged;
             _logic.LedEventReceived -= Logic_LedEventReceived;
-            _logic.CanRxEventReceived -= Logic_CanRxEventReceived;
+            _logic.CanRxFrameAvailable -= Logic_CanRxFrameAvailable;
+            _logic.CanRxTableChanged -= Logic_CanRxTableChanged;
+            _logic.DispatcherOverflowDiagnosticReceived -= Logic_DispatcherOverflowDiagnosticReceived;
+            _logic.CanDiagnosticStateChanged -= Logic_CanDiagnosticStateChanged;
             chkCanEnabled.CheckedChanged -= CanControl_Changed;
             cmbCanSpeed.SelectedIndexChanged -= CanControl_Changed;
             cmbCanMode.SelectedIndexChanged -= CanControl_Changed;
             btnEnable.Click -= BtnEnable_Click;
             Load -= FrmUCE_UI_Load;
-            _canRxTimer.Stop();
-            _canRxTimer.Tick -= CanRxTimer_Tick;
-            _canRxTimer.Dispose();
+            tabUCE.SelectedIndexChanged -= TabUCE_SelectedIndexChanged;
+            if (_btnCanRxClear != null)
+                _btnCanRxClear.Click -= BtnCanRxClear_Click;
             _canDriverLogTimer.Stop();
             _canDriverLogTimer.Tick -= CanDriverLogTimer_Tick;
             _canDriverLogTimer.Dispose();
+            _canRxGridRefreshTimer.Stop();
+            _canRxGridRefreshTimer.Tick -= CanRxGridRefreshTimer_Tick;
+            _canRxGridRefreshTimer.Dispose();
+            _logic.Dispose();
 
             base.OnFormClosed(e);
         }
@@ -108,6 +130,19 @@ namespace SimulDIESEL.UI
             await RefreshCanStatusAsync(false).ConfigureAwait(true);
             // CAN_RX_EVENT assíncrono é o caminho primário; o poll fica preservado como fallback/diagnóstico.
             _canDriverLogTimer.Start();
+            _canRxGridRefreshTimer.Start();
+            RefreshCanRxGrid();
+            UpdateCanDiagnosticIndicators();
+        }
+
+        private async void TabUCE_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (ReferenceEquals(tabUCE.SelectedTab, tabDados))
+            {
+                await RefreshCanStatusAsync(false).ConfigureAwait(true);
+                RefreshCanRxGrid();
+                UpdateCanDiagnosticIndicators();
+            }
         }
 
         private async void ChkLed_CheckedChanged(object sender, EventArgs e)
@@ -132,20 +167,13 @@ namespace SimulDIESEL.UI
             await ApplyCanConfigAsync().ConfigureAwait(true);
         }
 
-        private async void CanRxTimer_Tick(object sender, EventArgs e)
+        private void CanRxGridRefreshTimer_Tick(object sender, EventArgs e)
         {
-            if (_canRxPolling || !ReferenceEquals(tabUCE.SelectedTab, tabDados))
+            if (IsDisposed || Disposing)
                 return;
 
-            _canRxPolling = true;
-            try
-            {
-                await PollCanRxAsync().ConfigureAwait(true);
-            }
-            finally
-            {
-                _canRxPolling = false;
-            }
+            if (DrainCanRxOutputBuffer())
+                RefreshCanRxGrid();
         }
 
         private async void CanDriverLogTimer_Tick(object sender, EventArgs e)
@@ -260,27 +288,65 @@ namespace SimulDIESEL.UI
                 lstMensagens.TopIndex = lstMensagens.Items.Count - 1;
         }
 
-        private void Logic_CanRxEventReceived(UceCanRxEvent canRxEvent)
+        private void Logic_CanRxFrameAvailable(object sender, EventArgs e)
         {
-            if (canRxEvent == null)
+            ScheduleCanRxGridRefresh();
+        }
+
+        private void Logic_CanRxTableChanged(object sender, EventArgs e)
+        {
+            if (IsDisposed || Disposing)
                 return;
 
             if (InvokeRequired)
             {
-                BeginInvoke(new Action(() => Logic_CanRxEventReceived(canRxEvent)));
+                if (!IsDisposed && !Disposing)
+                    BeginInvoke(new Action(() => Logic_CanRxTableChanged(sender, e)));
                 return;
             }
 
-            foreach (UceCanFrame frame in canRxEvent.Frames)
+            UpdateCanDiagnosticIndicators();
+        }
+
+        private void Logic_CanDiagnosticStateChanged(object sender, EventArgs e)
+        {
+            UpdateCanDiagnosticIndicators();
+        }
+
+        private void Logic_DispatcherOverflowDiagnosticReceived(UceDispatcherOverflowDiagnostic diagnostic)
+        {
+            if (IsDisposed || Disposing)
+                return;
+
+            if (InvokeRequired)
             {
-                lstRX.Items.Add(FormatCanFrame(canRxEvent.Controller, frame));
+                try
+                {
+                    BeginInvoke(new Action(() => Logic_DispatcherOverflowDiagnosticReceived(diagnostic)));
+                }
+                catch (InvalidOperationException)
+                {
+                }
+
+                return;
             }
 
-            while (lstRX.Items.Count > 500)
-                lstRX.Items.RemoveAt(0);
+            UpdateCanDiagnosticIndicators();
 
-            if (lstRX.Items.Count > 0)
-                lstRX.TopIndex = lstRX.Items.Count - 1;
+            if (_dispatcherOverflowDialogShown)
+                return;
+
+            _dispatcherOverflowDialogShown = true;
+            ShowOperationError(UceGatewayDiagnosticLog.BuildDispatcherFifoOverflowMessage(diagnostic));
+        }
+
+        private void ScheduleCanRxGridRefresh()
+        {
+            if (IsDisposed || Disposing)
+                return;
+
+            if (!_canRxGridRefreshTimer.Enabled)
+                _canRxGridRefreshTimer.Start();
         }
 
         private void SetLedCheckboxState(bool value)
@@ -349,34 +415,160 @@ namespace SimulDIESEL.UI
 
             if (!result.Success || result.Response == null)
             {
+                _lastCanStatus = null;
                 SetCanStatusError(result.Message);
+                UpdateCanDiagnosticIndicators();
                 if (showErrorDialog)
                     ShowOperationError(result.Message);
                 return;
             }
 
+            _lastCanStatus = result.Response;
             ApplyCanStatus(result.Response);
+            UpdateCanDiagnosticIndicators();
         }
 
-        private async Task PollCanRxAsync()
+        private void ConfigureCanRxGrid()
         {
-            UceOperationResult<UceCanRxPollResponse> result = await _logic
-                .PollCanRxAsync()
-                .ConfigureAwait(true);
-
-            if (!result.Success || result.Response == null)
+            if (dgCanRx.Columns.Count > 0)
                 return;
 
-            foreach (UceCanFrame frame in result.Response.Frames)
+            ConfigureCanRxClearButton();
+            dgCanRx.AutoGenerateColumns = false;
+            dgCanRx.Columns.Add("CAN_ID", "CAN_ID");
+            dgCanRx.Columns.Add("EXT", "EXT");
+            dgCanRx.Columns.Add("RTR", "RTR");
+            dgCanRx.Columns.Add("DLC", "DLC");
+            dgCanRx.Columns.Add("D0", "D0");
+            dgCanRx.Columns.Add("D1", "D1");
+            dgCanRx.Columns.Add("D2", "D2");
+            dgCanRx.Columns.Add("D3", "D3");
+            dgCanRx.Columns.Add("D4", "D4");
+            dgCanRx.Columns.Add("D5", "D5");
+            dgCanRx.Columns.Add("D6", "D6");
+            dgCanRx.Columns.Add("D7", "D7");
+            dgCanRx.Columns.Add("LAST_TIMESTAMP", "LAST_TIMESTAMP");
+            dgCanRx.Columns.Add("RX_COUNT", "RX_COUNT");
+            dgCanRx.Columns.Add("SOURCE", "SOURCE");
+            dgCanRx.Columns.Add("LAST_UPDATE", "LAST_UPDATE");
+
+            dgCanRx.Rows.Clear();
+        }
+
+        private void RefreshCanRxGrid()
+        {
+            DrainCanRxOutputBuffer();
+
+            while (dgCanRx.Rows.Count < _canMonitorRows.Count)
+                dgCanRx.Rows.Add();
+
+            while (dgCanRx.Rows.Count > _canMonitorRows.Count)
+                dgCanRx.Rows.RemoveAt(dgCanRx.Rows.Count - 1);
+
+            for (int index = 0; index < _canMonitorRows.Count; ++index)
             {
-                lstRX.Items.Add(FormatCanFrame(result.Response.Controller, frame));
+                PopulateCanRxGridRow(dgCanRx.Rows[index], _canMonitorRows[index]);
+            }
+        }
+
+        private void ConfigureCanRxClearButton()
+        {
+            if (_btnCanRxClear != null)
+                return;
+
+            _btnCanRxClear = new Button
+            {
+                Text = "LIMPAR",
+                Width = 90,
+                Height = 26,
+                Anchor = AnchorStyles.Top | AnchorStyles.Right
+            };
+            _btnCanRxClear.Click += BtnCanRxClear_Click;
+            groupBox1.Controls.Add(_btnCanRxClear);
+
+            dgCanRx.Dock = DockStyle.None;
+            dgCanRx.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            LayoutCanRxMonitorControls();
+            groupBox1.Resize += (sender, args) => LayoutCanRxMonitorControls();
+        }
+
+        private void LayoutCanRxMonitorControls()
+        {
+            if (_btnCanRxClear == null)
+                return;
+
+            _btnCanRxClear.Location = new System.Drawing.Point(Math.Max(6, groupBox1.ClientSize.Width - _btnCanRxClear.Width - 8), 18);
+            dgCanRx.Location = new System.Drawing.Point(6, 50);
+            dgCanRx.Size = new System.Drawing.Size(Math.Max(50, groupBox1.ClientSize.Width - 12), Math.Max(50, groupBox1.ClientSize.Height - 56));
+        }
+
+        private void BtnCanRxClear_Click(object sender, EventArgs e)
+        {
+            _canMonitorRowsByKey.Clear();
+            _canMonitorRows.Clear();
+            dgCanRx.Rows.Clear();
+        }
+
+        private bool DrainCanRxOutputBuffer()
+        {
+            bool changed = false;
+            CanFrameDto frame;
+            while (_logic.TryReadRxFrame(out frame))
+            {
+                UpdateCanMonitorRow(frame);
+                changed = true;
             }
 
-            while (lstRX.Items.Count > 500)
-                lstRX.Items.RemoveAt(0);
+            return changed;
+        }
 
-            if (lstRX.Items.Count > 0)
-                lstRX.TopIndex = lstRX.Items.Count - 1;
+        private void UpdateCanMonitorRow(CanFrameDto frame)
+        {
+            if (frame == null)
+                return;
+
+            UiCanMonitorKey key = new UiCanMonitorKey(frame.CanId, frame.IsExtended, frame.IsRemoteRequest);
+            UiCanMonitorRow row;
+            if (!_canMonitorRowsByKey.TryGetValue(key, out row))
+            {
+                row = new UiCanMonitorRow(key);
+                _canMonitorRowsByKey.Add(key, row);
+                _canMonitorRows.Add(row);
+            }
+
+            row.Dlc = frame.Dlc > 8 ? (byte)8 : frame.Dlc;
+            if (row.Data == null || row.Data.Length != 8)
+                row.Data = new byte[8];
+
+            for (int dataIndex = 0; dataIndex < 8; ++dataIndex)
+                row.Data[dataIndex] = frame.Data != null && dataIndex < frame.Data.Length ? frame.Data[dataIndex] : (byte)0;
+
+            row.LastTimestamp = frame.Timestamp == default(DateTime) ? DateTime.Now : frame.Timestamp;
+            row.LastUpdate = DateTime.Now;
+            row.Source = frame.Source;
+            ++row.RxCount;
+        }
+
+        private static void PopulateCanRxGridRow(DataGridViewRow gridRow, UiCanMonitorRow row)
+        {
+            gridRow.Cells[0].Value = "0x" + row.Key.CanId.ToString(row.Key.IsExtended ? "X8" : "X3", CultureInfo.InvariantCulture);
+            gridRow.Cells[1].Value = row.Key.IsExtended ? "True" : "False";
+            gridRow.Cells[2].Value = row.Key.IsRemoteRequest ? "True" : "False";
+            gridRow.Cells[3].Value = row.Dlc.ToString(CultureInfo.InvariantCulture);
+
+            for (int dataIndex = 0; dataIndex < 8; ++dataIndex)
+            {
+                string cellValue = dataIndex < row.Dlc && row.Data != null && dataIndex < row.Data.Length
+                    ? row.Data[dataIndex].ToString("X2", CultureInfo.InvariantCulture)
+                    : string.Empty;
+
+                gridRow.Cells[4 + dataIndex].Value = cellValue;
+            }
+
+            gridRow.Cells[12].Value = row.LastTimestamp.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture);
+            gridRow.Cells[13].Value = row.RxCount.ToString(CultureInfo.InvariantCulture);
+            gridRow.Cells[14].Value = row.Source.ToString();
+            gridRow.Cells[15].Value = row.LastUpdate.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture);
         }
 
         private async Task PollCanDriverLogAsync()
@@ -421,6 +613,48 @@ namespace SimulDIESEL.UI
                 status.BitrateKbps +
                 " kbps, modo " +
                 UceCanProtocol.ToDisplayMode(status.Mode));
+            UpdateCanDiagnosticIndicators();
+        }
+
+        private void UpdateCanDiagnosticIndicators()
+        {
+            if (IsDisposed || Disposing)
+                return;
+
+            if (InvokeRequired)
+            {
+                try
+                {
+                    BeginInvoke(new Action(UpdateCanDiagnosticIndicators));
+                }
+                catch (InvalidOperationException)
+                {
+                }
+
+                return;
+            }
+
+            CanDiagnosticStatusDto status = _logic.GetCanDiagnosticStatus(_lastCanStatus);
+            lblCanDiagMirror.Text = "Mirror: " + status.MirrorStatusText;
+            lblCanDiagSync.Text = "Sync: " + status.SyncStatusText;
+            lblCanDiagDispatcher.Text = "Dispatcher FIFO: " + status.DispatcherStatusText;
+            lblCanDiagTable.Text = "Tabela: " + status.TableStatusText;
+            lblCanDiagCan.Text = "CAN: " + status.CanStatusText;
+            lblCanDiagLastError.Text = "Último erro: " + status.LastErrorText;
+
+            SetDiagnosticLabelColor(lblCanDiagMirror, status.MirrorStatusText == "OK");
+            SetDiagnosticLabelColor(lblCanDiagSync, status.SyncStatusText == "Estável");
+            SetDiagnosticLabelColor(lblCanDiagDispatcher, status.DispatcherStatusText == "OK");
+            SetDiagnosticLabelColor(lblCanDiagTable, true);
+            SetDiagnosticLabelColor(lblCanDiagCan, status.CanStatusText != "ERRO");
+            SetDiagnosticLabelColor(lblCanDiagLastError, status.LastErrorText == "-");
+        }
+
+        private static void SetDiagnosticLabelColor(Label label, bool normal)
+        {
+            label.ForeColor = normal
+                ? System.Drawing.SystemColors.ControlText
+                : System.Drawing.Color.DarkOrange;
         }
 
         private void SetCanBitrateSelection(int bitrateKbps)
@@ -459,7 +693,18 @@ namespace SimulDIESEL.UI
 
         private void SetCanModeSelection(UceCanMode mode)
         {
-            cmbCanMode.SelectedIndex = mode == UceCanMode.Listen ? 1 : 0;
+            switch (mode)
+            {
+                case UceCanMode.Listen:
+                    cmbCanMode.SelectedIndex = 1;
+                    break;
+                case UceCanMode.Loopback:
+                    cmbCanMode.SelectedIndex = 2;
+                    break;
+                default:
+                    cmbCanMode.SelectedIndex = 0;
+                    break;
+            }
         }
 
         private bool TryGetSelectedCanConfig(out int bitrateKbps, out string mode)
@@ -508,9 +753,66 @@ namespace SimulDIESEL.UI
                 case 1:
                     mode = "listen";
                     return true;
+                case 2:
+                    mode = "loopback";
+                    return true;
                 default:
                     return false;
             }
+        }
+
+        private struct UiCanMonitorKey : IEquatable<UiCanMonitorKey>
+        {
+            public readonly uint CanId;
+            public readonly bool IsExtended;
+            public readonly bool IsRemoteRequest;
+
+            public UiCanMonitorKey(uint canId, bool isExtended, bool isRemoteRequest)
+            {
+                CanId = canId;
+                IsExtended = isExtended;
+                IsRemoteRequest = isRemoteRequest;
+            }
+
+            public bool Equals(UiCanMonitorKey other)
+            {
+                return CanId == other.CanId &&
+                    IsExtended == other.IsExtended &&
+                    IsRemoteRequest == other.IsRemoteRequest;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is UiCanMonitorKey && Equals((UiCanMonitorKey)obj);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    int hash = (int)CanId;
+                    hash = (hash * 397) ^ IsExtended.GetHashCode();
+                    hash = (hash * 397) ^ IsRemoteRequest.GetHashCode();
+                    return hash;
+                }
+            }
+        }
+
+        private sealed class UiCanMonitorRow
+        {
+            public UiCanMonitorRow(UiCanMonitorKey key)
+            {
+                Key = key;
+                Data = new byte[8];
+            }
+
+            public UiCanMonitorKey Key { get; private set; }
+            public byte Dlc { get; set; }
+            public byte[] Data { get; set; }
+            public DateTime LastTimestamp { get; set; }
+            public uint RxCount { get; set; }
+            public CanFrameSource Source { get; set; }
+            public DateTime LastUpdate { get; set; }
         }
 
         private async Task StopCanTxAsync()
@@ -760,6 +1062,8 @@ namespace SimulDIESEL.UI
                     return "INVALID MODE";
                 case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventCanPhysicalError:
                     return "CAN PHYSICAL ERROR";
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventLoopbackDropped:
+                    return "LOOPBACK DROPPED";
                 default:
                     return "EVENT 0x" + eventCode.ToString("X2", CultureInfo.InvariantCulture);
             }
@@ -789,6 +1093,8 @@ namespace SimulDIESEL.UI
                     return "bitrateCode=0x" + entry.Detail0.ToString("X2", CultureInfo.InvariantCulture);
                 case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventInvalidMode:
                     return "modeCode=0x" + entry.Detail0.ToString("X2", CultureInfo.InvariantCulture);
+                case SimulDIESEL.DTL.Protocols.SDGW.GwProtocol.UceCanDriverEventLoopbackDropped:
+                    return "queued=" + entry.Detail0.ToString(CultureInfo.InvariantCulture);
                 default:
                     return string.Empty;
             }

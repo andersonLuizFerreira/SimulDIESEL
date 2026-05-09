@@ -1,4 +1,4 @@
-#include "services/can/CanDriver.h"
+#include "services/can/driver/CanDriver.h"
 
 #include <Arduino.h>
 #include "can.h"
@@ -9,6 +9,7 @@ const uint8_t CAN_CONTROLLER_CAN0 = 0x00;
 const uint8_t CAN_MODE_DEFAULT = 0x00;
 const uint8_t CAN_MODE_NORMAL = 0x00;
 const uint8_t CAN_MODE_LISTEN = 0x01;
+const uint8_t CAN_MODE_LOOPBACK = 0x02;
 const uint8_t CAN_INTERFACE_DISABLED = 0x00;
 const uint8_t CAN_INTERFACE_CONFIGURED = 0x01;
 const uint8_t CAN_INTERFACE_OPEN = 0x02;
@@ -37,6 +38,7 @@ const uint8_t CAN_EVENT_CAN_PHYSICAL_ERROR = 0x12;
 const uint8_t CAN_EVENT_TX_REQUESTED = 0x13;
 const uint8_t CAN_EVENT_TX_OK = 0x14;
 const uint8_t CAN_EVENT_TX_FAULT = 0x15;
+const uint8_t CAN_EVENT_LOOPBACK_DROPPED = 0x16;
 }
 
 void CanDriver::begin() {
@@ -44,6 +46,8 @@ void CanDriver::begin() {
   for (uint8_t controller = 0; controller < ControllerCount; ++controller) {
     _logHead[controller] = 0;
     _logCount[controller] = 0;
+    _loopbackRxHead[controller] = 0;
+    _loopbackRxCount[controller] = 0;
     resetPort(controller);
     logEvent(controller, CAN_EVENT_DRIVER_BEGIN);
   }
@@ -75,6 +79,16 @@ bool CanDriver::configure(uint8_t controller, uint8_t bitrateCode, uint8_t modeC
     logEvent(controller, CAN_EVENT_UNSUPPORTED_CONTROLLER);
     logEvent(controller, CAN_EVENT_CONFIG_FAULT, bitrateCode, modeCode);
     return false;
+  }
+
+  if (modeCode == CAN_MODE_LOOPBACK) {
+    can_disable(CAN0);
+    clearLoopbackQueue(controller);
+    port.bitrateCode = bitrateCode;
+    port.modeCode = modeCode;
+    port.interfaceState = wasOpen ? CAN_INTERFACE_OPEN : CAN_INTERFACE_CONFIGURED;
+    logEvent(controller, CAN_EVENT_CONFIG_OK, CAN_MODE_LOOPBACK);
+    return true;
   }
 
   pmc_enable_periph_clk(ID_CAN0);
@@ -134,6 +148,13 @@ bool CanDriver::open(uint8_t controller) {
     return false;
   }
 
+  if (port.modeCode == CAN_MODE_LOOPBACK) {
+    clearLoopbackQueue(controller);
+    port.interfaceState = CAN_INTERFACE_OPEN;
+    logEvent(controller, CAN_EVENT_OPEN_OK, CAN_MODE_LOOPBACK);
+    return true;
+  }
+
   if (port.modeCode == CAN_MODE_LISTEN) {
     can_disable_autobaud_listen_mode(CAN0);
   }
@@ -158,6 +179,7 @@ bool CanDriver::close(uint8_t controller) {
   }
 
   can_disable(CAN0);
+  clearLoopbackQueue(controller);
   port.interfaceState = CAN_INTERFACE_DISABLED;
   logEvent(controller, CAN_EVENT_CLOSE_OK);
   return true;
@@ -178,6 +200,7 @@ bool CanDriver::reset(uint8_t controller) {
   can_disable(CAN0);
   can_disable_autobaud_listen_mode(CAN0);
   can_reset_all_mailbox(CAN0);
+  clearLoopbackQueue(controller);
   resetPort(controller);
   logEvent(controller, CAN_EVENT_RESET_OK);
   return true;
@@ -195,7 +218,8 @@ bool CanDriver::getStatus(uint8_t controller, Status& status) {
   status.interfaceState = port.interfaceState;
   status.configured = port.interfaceState != CAN_INTERFACE_DISABLED;
   status.open = port.interfaceState == CAN_INTERFACE_OPEN;
-  logEvent(controller, CAN_EVENT_STATUS_SNAPSHOT, isPhysicalCan0(controller) ? (uint8_t)(can_get_status(CAN0) & 0xFFU) : 0, isPhysicalCan0(controller) ? can_get_tx_error_cnt(CAN0) : 0, isPhysicalCan0(controller) ? can_get_rx_error_cnt(CAN0) : 0);
+  const bool physicalActive = isPhysicalCan0(controller) && port.modeCode != CAN_MODE_LOOPBACK;
+  logEvent(controller, CAN_EVENT_STATUS_SNAPSHOT, physicalActive ? (uint8_t)(can_get_status(CAN0) & 0xFFU) : 0, physicalActive ? can_get_tx_error_cnt(CAN0) : 0, physicalActive ? can_get_rx_error_cnt(CAN0) : 0);
   return true;
 }
 
@@ -212,6 +236,19 @@ bool CanDriver::pollReceived(uint8_t controller, Frame* frames, uint8_t maxFrame
 
   if (!frames || maxFrames == 0 || _ports[controller].interfaceState != CAN_INTERFACE_OPEN) {
     logEvent(controller, CAN_EVENT_RX_POLL, 0);
+    return true;
+  }
+
+  if (isLoopbackMode(controller)) {
+    while (frameCount < maxFrames && dequeueLoopbackFrame(controller, frames[frameCount])) {
+      logEvent(controller, CAN_EVENT_RX_FRAME_READ, frames[frameCount].extended ? 0x01 : 0x00, frames[frameCount].rtr ? 0x01 : 0x00, frames[frameCount].dlc);
+      ++frameCount;
+    }
+
+    if (frameCount > 0) {
+      logEvent(controller, CAN_EVENT_RX_POLL, frameCount);
+    }
+
     return true;
   }
 
@@ -260,6 +297,17 @@ bool CanDriver::send(uint8_t controller, const Frame& frame) {
   if (!isPhysicalCan0(controller) || _ports[controller].interfaceState != CAN_INTERFACE_OPEN || frame.dlc > 8) {
     logEvent(controller, CAN_EVENT_TX_FAULT, 0x01);
     return false;
+  }
+
+  if (isLoopbackMode(controller)) {
+    if (!enqueueLoopbackFrame(controller, frame)) {
+      logEvent(controller, CAN_EVENT_LOOPBACK_DROPPED, _loopbackRxCount[controller]);
+      logEvent(controller, CAN_EVENT_TX_FAULT, 0x03);
+      return false;
+    }
+
+    logEvent(controller, CAN_EVENT_TX_OK, CAN_MODE_LOOPBACK, _loopbackRxCount[controller]);
+    return true;
   }
 
   can_mb_conf_t mailbox;
@@ -342,7 +390,42 @@ bool CanDriver::mapBitrate(uint8_t bitrateCode, uint32_t& bitrateKbps) const {
 }
 
 bool CanDriver::validateMode(uint8_t modeCode) const {
-  return modeCode == CAN_MODE_NORMAL || modeCode == CAN_MODE_LISTEN;
+  return modeCode == CAN_MODE_NORMAL || modeCode == CAN_MODE_LISTEN || modeCode == CAN_MODE_LOOPBACK;
+}
+
+bool CanDriver::isLoopbackMode(uint8_t controller) const {
+  return isValidController(controller) && _ports[controller].modeCode == CAN_MODE_LOOPBACK;
+}
+
+bool CanDriver::enqueueLoopbackFrame(uint8_t controller, const Frame& frame) {
+  if (!isValidController(controller) || _loopbackRxCount[controller] >= LoopbackRxCapacity) {
+    return false;
+  }
+
+  const uint8_t index = (uint8_t)((_loopbackRxHead[controller] + _loopbackRxCount[controller]) % LoopbackRxCapacity);
+  _loopbackRxQueue[controller][index] = frame;
+  ++_loopbackRxCount[controller];
+  return true;
+}
+
+bool CanDriver::dequeueLoopbackFrame(uint8_t controller, Frame& frame) {
+  if (!isValidController(controller) || _loopbackRxCount[controller] == 0) {
+    return false;
+  }
+
+  frame = _loopbackRxQueue[controller][_loopbackRxHead[controller]];
+  _loopbackRxHead[controller] = (uint8_t)((_loopbackRxHead[controller] + 1) % LoopbackRxCapacity);
+  --_loopbackRxCount[controller];
+  return true;
+}
+
+void CanDriver::clearLoopbackQueue(uint8_t controller) {
+  if (!isValidController(controller)) {
+    return;
+  }
+
+  _loopbackRxHead[controller] = 0;
+  _loopbackRxCount[controller] = 0;
 }
 
 void CanDriver::configureRxMailboxes() {
@@ -475,4 +558,5 @@ void CanDriver::resetPort(uint8_t controller) {
   _ports[controller].bitrateCode = CAN_BITRATE_250_KBPS;
   _ports[controller].modeCode = CAN_MODE_DEFAULT;
   _ports[controller].interfaceState = CAN_INTERFACE_DISABLED;
+  clearLoopbackQueue(controller);
 }

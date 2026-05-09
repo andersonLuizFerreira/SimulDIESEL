@@ -255,6 +255,46 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
                 return;
             }
 
+            if (string.Equals(command.Op, "direct", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireArgCount(command, 13);
+                RequireControllerArg(command);
+                ValidateCanFrameArgs(command);
+                return;
+            }
+
+            if (string.Equals(command.Op, "create", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireArgCount(command, 16);
+                RequireControllerArg(command);
+                RequireTxIndexArg(command);
+                ValidateCanFrameArgs(command);
+                int period = RequireIntArg(command, "period");
+                if (period < 0 || period > ushort.MaxValue)
+                    throw new InvalidOperationException("Periodo inválido para CAN_TX_CREATE. Faixa aceita: 0..65535 ms.");
+                byte enabled = RequireByteArg(command, "enabled");
+                if (enabled > 1)
+                    throw new InvalidOperationException("Enabled inválido para CAN_TX_CREATE. Valores aceitos: 0 ou 1.");
+                return;
+            }
+
+            if (string.Equals(command.Op, "edit", StringComparison.OrdinalIgnoreCase))
+            {
+                ValidateUceCanTxEdit(command);
+                return;
+            }
+
+            if (string.Equals(command.Op, "delete", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireArgCount(command, 3);
+                RequireControllerArg(command);
+                RequireTxIndexArg(command);
+                byte reason = RequireByteArg(command, "reason");
+                if (reason < 1 || reason > 4)
+                    throw new InvalidOperationException("Reason inválido para CAN_TX_DELETE. Faixa aceita: 1..4.");
+                return;
+            }
+
             if (string.Equals(command.Op, "stop", StringComparison.OrdinalIgnoreCase))
             {
                 RequireArgCount(command, 2);
@@ -266,6 +306,85 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
             }
 
             throw new NotSupportedException("Op SDH não suportada para " + command.Target + ": " + command.Op + ".");
+        }
+
+        private static void ValidateCanFrameArgs(SdhCommand command)
+        {
+            bool extended = RequireBool01Arg(command, "extended");
+            RequireBool01Arg(command, "rtr");
+            uint id = RequireUInt32Arg(command, "id");
+            if (!extended && id > 0x7FFU)
+                throw new InvalidOperationException("ID inválido para CAN STD. Valor máximo: 0x7FF.");
+            if (extended && id > 0x1FFFFFFFU)
+                throw new InvalidOperationException("ID inválido para CAN EXT. Valor máximo: 0x1FFFFFFF.");
+
+            byte dlc = RequireByteArg(command, "dlc");
+            if (dlc > 8)
+                throw new InvalidOperationException("DLC inválido para CAN_TX. Faixa aceita: 0..8.");
+
+            for (int i = 0; i < 8; ++i)
+                RequireByteArg(command, "d" + i.ToString(CultureInfo.InvariantCulture));
+        }
+
+        private static void ValidateUceCanTxEdit(SdhCommand command)
+        {
+            RequireControllerArg(command);
+            RequireTxIndexArg(command);
+            byte mask = RequireByteArg(command, "mask");
+            if ((mask & 0xC0) != 0)
+                throw new InvalidOperationException("Mask inválida para CAN_TX_EDIT.");
+
+            int expectedCount = 3;
+            if ((mask & GwProtocol.UceCanTxEditMaskFlags) != 0)
+            {
+                byte flags = RequireByteArg(command, "flags");
+                if ((flags & 0xFC) != 0)
+                    throw new InvalidOperationException("Flags inválidas para CAN_TX_EDIT.");
+                ++expectedCount;
+            }
+            if ((mask & GwProtocol.UceCanTxEditMaskCanId) != 0)
+            {
+                RequireUInt32Arg(command, "id");
+                ++expectedCount;
+            }
+            if ((mask & GwProtocol.UceCanTxEditMaskDlc) != 0)
+            {
+                byte dlc = RequireByteArg(command, "dlc");
+                if (dlc > 8)
+                    throw new InvalidOperationException("DLC inválido para CAN_TX_EDIT. Faixa aceita: 0..8.");
+                ++expectedCount;
+            }
+            if ((mask & GwProtocol.UceCanTxEditMaskData) != 0)
+            {
+                byte dataMask = RequireByteArg(command, "dataMask");
+                if (dataMask == 0)
+                    throw new InvalidOperationException("DATA_MASK inválida para CAN_TX_EDIT.");
+                ++expectedCount;
+                for (int i = 0; i < 8; ++i)
+                {
+                    if ((dataMask & (1 << i)) != 0)
+                    {
+                        RequireByteArg(command, "d" + i.ToString(CultureInfo.InvariantCulture));
+                        ++expectedCount;
+                    }
+                }
+            }
+            if ((mask & GwProtocol.UceCanTxEditMaskPeriodMs) != 0)
+            {
+                int period = RequireIntArg(command, "period");
+                if (period < 0 || period > ushort.MaxValue)
+                    throw new InvalidOperationException("Periodo inválido para CAN_TX_EDIT. Faixa aceita: 0..65535 ms.");
+                ++expectedCount;
+            }
+            if ((mask & GwProtocol.UceCanTxEditMaskEnabled) != 0)
+            {
+                byte enabled = RequireByteArg(command, "enabled");
+                if (enabled > 1)
+                    throw new InvalidOperationException("Enabled inválido para CAN_TX_EDIT. Valores aceitos: 0 ou 1.");
+                ++expectedCount;
+            }
+
+            RequireArgCount(command, expectedCount);
         }
 
         private static void ValidateGsaChannels(SdhTarget target, SdhCommand command)
@@ -343,6 +462,15 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
                 throw new InvalidOperationException("Canal inválido para " + command.Target + ". Faixa aceita: 1..16.");
 
             return channel;
+        }
+
+        private static byte RequireTxIndexArg(SdhCommand command)
+        {
+            byte index = RequireByteArg(command, "index");
+            if (index >= GwProtocol.UceCanRxMirrorCapacity)
+                throw new InvalidOperationException("Index inválido para CAN_TX. Faixa aceita: 0..99.");
+
+            return index;
         }
 
         private static byte RequireByteArg(SdhCommand command, string argName)
@@ -478,9 +606,10 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
                 throw new InvalidOperationException("Argumento obrigatório ausente para " + command.Target + ": mode.");
 
             if (!string.Equals(mode, "normal", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(mode, "listen", StringComparison.OrdinalIgnoreCase))
+                !string.Equals(mode, "listen", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(mode, "loopback", StringComparison.OrdinalIgnoreCase))
             {
-                throw new InvalidOperationException("Mode inválido para " + command.Target + ". Valores aceitos: normal, listen.");
+                throw new InvalidOperationException("Mode inválido para " + command.Target + ". Valores aceitos: normal, listen, loopback.");
             }
 
             return mode;

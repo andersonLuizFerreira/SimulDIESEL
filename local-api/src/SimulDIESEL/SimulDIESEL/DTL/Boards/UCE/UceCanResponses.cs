@@ -78,4 +78,16 @@ namespace SimulDIESEL.DTL.Boards.UCE
         public UceCanController Controller { get; set; }
         public byte TxStatus { get; set; }
     }
+
+    public sealed class UceCanReadAllResponse
+    {
+        public bool Accepted { get; set; }
+    }
+
+    public sealed class UceDispatcherOverflowDiagnostic
+    {
+        public uint OverflowCount { get; set; }
+        public byte QueueSize { get; set; }
+        public byte MaxEventSize { get; set; }
+    }
 }

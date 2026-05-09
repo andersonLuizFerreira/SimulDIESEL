@@ -431,6 +431,59 @@ namespace SimulDIESEL.BLL.Boards.UCE
             return true;
         }
 
+        public static bool TryReadCanCrudEvent(SdgwFrame frame, out byte eventType, out byte[] payload, out string error)
+        {
+            eventType = 0;
+            payload = null;
+            error = null;
+
+            if (frame?.Payload == null || frame.Payload.Length < 2)
+                return false;
+
+            switch (frame.Payload[0])
+            {
+                case GwProtocol.UceCanCreateType:
+                case GwProtocol.UceCanEditType:
+                case GwProtocol.UceCanDeleteType:
+                case GwProtocol.UceCanRowType:
+                case GwProtocol.UceCanReadAllDoneType:
+                case GwProtocol.UceCanTicType:
+                    eventType = frame.Payload[0];
+                    return TryReadVariableTlv(frame, eventType, "evento CAN CRUD da UCE", out payload, out error);
+                default:
+                    return false;
+            }
+        }
+
+        public static bool TryReadTransportDiagnosticEvent(SdgwFrame frame, out UceDispatcherOverflowDiagnostic diagnostic, out string error)
+        {
+            diagnostic = null;
+
+            byte[] data;
+            if (!TryReadTlv(frame, GwProtocol.UceTransportDiagType, GwProtocol.UceTransportDiagDispatcherFifoOverflowPayloadLength, "diagnostico de transporte da UCE", out data, out error))
+                return false;
+
+            if (data[0] != GwProtocol.UceTransportDiagDispatcherFifoOverflow)
+            {
+                error = "Diagnostico de transporte da UCE com tipo desconhecido.";
+                return false;
+            }
+
+            uint overflowCount = (uint)data[1] |
+                ((uint)data[2] << 8) |
+                ((uint)data[3] << 16) |
+                ((uint)data[4] << 24);
+
+            diagnostic = new UceDispatcherOverflowDiagnostic
+            {
+                OverflowCount = overflowCount,
+                QueueSize = data[5],
+                MaxEventSize = data[6]
+            };
+
+            return true;
+        }
+
         public static bool TryReadCanDriverLogPollResponse(SdgwFrame frame, out UceCanDriverLogPollResponse response, out string error)
         {
             response = null;
@@ -517,27 +570,27 @@ namespace SimulDIESEL.BLL.Boards.UCE
 
         public static bool TryReadCanTxResponse(SdgwFrame frame, out UceCanTxResponse response, out string error)
         {
-            response = null;
+            return TryReadCanTxResponseForType(frame, GwProtocol.UceCanTxType, "envio CAN_TX legado da UCE", out response, out error);
+        }
 
-            byte[] data;
-            if (!TryReadTlv(frame, GwProtocol.UceCanTxType, GwProtocol.UceCanTxResponsePayloadLength, "envio CAN_TX da UCE", out data, out error))
-                return false;
+        public static bool TryReadCanTxDirectResponse(SdgwFrame frame, out UceCanTxResponse response, out string error)
+        {
+            return TryReadCanTxResponseForType(frame, GwProtocol.UceCanTxDirectType, "CAN_TX_DIRECT da UCE", out response, out error);
+        }
 
-            UceCanController controller;
-            if (!UceCanProtocol.TryDecodeController(data[0], out controller))
-            {
-                error = "Resposta CAN_TX da UCE com controller inválido.";
-                return false;
-            }
+        public static bool TryReadCanTxCreateResponse(SdgwFrame frame, out UceCanTxResponse response, out string error)
+        {
+            return TryReadCanTxResponseForType(frame, GwProtocol.UceCanTxCreateType, "CAN_TX_CREATE da UCE", out response, out error);
+        }
 
-            response = new UceCanTxResponse
-            {
-                Controller = controller,
-                TxStatus = data[1],
-                SequenceOrSlot = data[2]
-            };
+        public static bool TryReadCanTxEditResponse(SdgwFrame frame, out UceCanTxResponse response, out string error)
+        {
+            return TryReadCanTxResponseForType(frame, GwProtocol.UceCanTxEditType, "CAN_TX_EDIT da UCE", out response, out error);
+        }
 
-            return true;
+        public static bool TryReadCanTxDeleteResponse(SdgwFrame frame, out UceCanTxResponse response, out string error)
+        {
+            return TryReadCanTxResponseForType(frame, GwProtocol.UceCanTxDeleteType, "CAN_TX_DELETE da UCE", out response, out error);
         }
 
         public static bool TryReadCanTxStopResponse(SdgwFrame frame, out UceCanTxStopResponse response, out string error)
@@ -559,6 +612,47 @@ namespace SimulDIESEL.BLL.Boards.UCE
             {
                 Controller = controller,
                 TxStatus = data[1]
+            };
+
+            return true;
+        }
+
+        public static bool TryReadCanReadAllResponse(SdgwFrame frame, out UceCanReadAllResponse response, out string error)
+        {
+            response = null;
+
+            byte[] data;
+            if (!TryReadTlv(frame, GwProtocol.UceCanReadAllType, GwProtocol.UceCanReadAllPayloadLength, "solicitação CAN_READ_ALL da UCE", out data, out error))
+                return false;
+
+            response = new UceCanReadAllResponse
+            {
+                Accepted = true
+            };
+
+            return true;
+        }
+
+        private static bool TryReadCanTxResponseForType(SdgwFrame frame, byte expectedType, string operationName, out UceCanTxResponse response, out string error)
+        {
+            response = null;
+
+            byte[] data;
+            if (!TryReadTlv(frame, expectedType, GwProtocol.UceCanTxResponsePayloadLength, operationName, out data, out error))
+                return false;
+
+            UceCanController controller;
+            if (!UceCanProtocol.TryDecodeController(data[0], out controller))
+            {
+                error = "Resposta " + operationName + " com controller inválido.";
+                return false;
+            }
+
+            response = new UceCanTxResponse
+            {
+                Controller = controller,
+                TxStatus = data[1],
+                SequenceOrSlot = data[2]
             };
 
             return true;
@@ -678,6 +772,16 @@ namespace SimulDIESEL.BLL.Boards.UCE
                     return "o envio CAN_TX da UCE";
                 case GwProtocol.UceCanTxStopType:
                     return "a parada CAN_TX periódico da UCE";
+                case GwProtocol.UceCanTxDirectType:
+                    return "o CAN_TX_DIRECT da UCE";
+                case GwProtocol.UceCanTxCreateType:
+                    return "o CAN_TX_CREATE da UCE";
+                case GwProtocol.UceCanTxEditType:
+                    return "o CAN_TX_EDIT da UCE";
+                case GwProtocol.UceCanTxDeleteType:
+                    return "o CAN_TX_DELETE da UCE";
+                case GwProtocol.UceCanReadAllType:
+                    return "a leitura completa da tabela RX da UCE";
                 default:
                     return "a operação solicitada para a UCE";
             }
