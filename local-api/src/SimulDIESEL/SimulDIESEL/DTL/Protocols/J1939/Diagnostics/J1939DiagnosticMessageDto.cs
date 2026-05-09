@@ -8,6 +8,8 @@ namespace SimulDIESEL.DTL.Protocols.J1939.Diagnostics
         public string Type { get; set; }
         public uint Pgn { get; set; }
         public string PgnHex { get; set; }
+        public string PgnAcronym { get; set; }
+        public string PgnLabel { get; set; }
         public byte SourceAddress { get; set; }
         public byte? DestinationAddress { get; set; }
         public DateTime Timestamp { get; set; }

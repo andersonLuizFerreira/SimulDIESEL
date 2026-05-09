@@ -10,6 +10,9 @@ namespace SimulDIESEL.DTL.Protocols.J1939.DataLink
         public J1939IdFieldsDto IdFields { get; set; }
         public uint Pgn { get; set; }
         public string FormattedPgn { get; set; }
+        public string PgnAcronym { get; set; }
+        public string PgnLabel { get; set; }
+        public string PgnCategory { get; set; }
         public J1939MessageTypeDto MessageType { get; set; }
         public bool IsSingleFrame { get; set; }
         public bool IsTransportProtocol { get; set; }

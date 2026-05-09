@@ -12,9 +12,10 @@ namespace SimulDIESEL.BLL.Protocols.J1939.DataLink
         private readonly J1939IdParser _idParser;
         private readonly J1939MessageTypeClassifier _messageTypeClassifier;
         private readonly J1939TransportProtocolService _transportProtocolService;
+        private readonly J1939PgnStandardCatalog _pgnCatalog;
 
         public J1939DataLinkService()
-            : this(new J1939IdParser(), new J1939MessageTypeClassifier(), new J1939TransportProtocolService())
+            : this(new J1939IdParser(), new J1939MessageTypeClassifier(), new J1939TransportProtocolService(), new J1939PgnStandardCatalog())
         {
         }
 
@@ -22,10 +23,20 @@ namespace SimulDIESEL.BLL.Protocols.J1939.DataLink
             J1939IdParser idParser,
             J1939MessageTypeClassifier messageTypeClassifier,
             J1939TransportProtocolService transportProtocolService)
+            : this(idParser, messageTypeClassifier, transportProtocolService, new J1939PgnStandardCatalog())
+        {
+        }
+
+        public J1939DataLinkService(
+            J1939IdParser idParser,
+            J1939MessageTypeClassifier messageTypeClassifier,
+            J1939TransportProtocolService transportProtocolService,
+            J1939PgnStandardCatalog pgnCatalog)
         {
             _idParser = idParser ?? throw new ArgumentNullException(nameof(idParser));
             _messageTypeClassifier = messageTypeClassifier ?? throw new ArgumentNullException(nameof(messageTypeClassifier));
             _transportProtocolService = transportProtocolService ?? throw new ArgumentNullException(nameof(transportProtocolService));
+            _pgnCatalog = pgnCatalog ?? throw new ArgumentNullException(nameof(pgnCatalog));
         }
 
         public J1939DataLinkProcessingResultDto ProcessCanFrame(CanFrameDto frame)
@@ -80,6 +91,7 @@ namespace SimulDIESEL.BLL.Protocols.J1939.DataLink
 
             J1939MessageTypeDto messageType = _messageTypeClassifier.Classify(idFields);
             J1939DataLinkMessageDto message = BuildMessage(canId, dlc, data, timestamp, idFields, messageType);
+            EnrichPgnMetadata(message);
             if (messageType == J1939MessageTypeDto.TransportConnectionManagement)
                 return _transportProtocolService.ProcessTransportConnectionManagement(message, ResolveTimestamp(timestamp));
 
@@ -94,6 +106,9 @@ namespace SimulDIESEL.BLL.Protocols.J1939.DataLink
                 IdFields = idFields,
                 Pgn = idFields.Pgn,
                 FormattedPgn = idFields.FormattedPgn,
+                PgnAcronym = message.PgnAcronym,
+                PgnLabel = message.PgnLabel,
+                PgnCategory = message.PgnCategory,
                 MessageType = messageType,
                 IsSingleFrame = true,
                 IsTransportProtocol = false,
@@ -118,6 +133,20 @@ namespace SimulDIESEL.BLL.Protocols.J1939.DataLink
                     messageType != J1939MessageTypeDto.TransportDataTransfer,
                 Status = Status(J1939Constants.StatusOk, "J1939-21 estrutural.", false)
             };
+        }
+
+        private void EnrichPgnMetadata(J1939DataLinkMessageDto message)
+        {
+            if (message == null)
+                return;
+
+            J1939PgnDefinitionDto definition = _pgnCatalog.FindByPgn((int)message.Pgn);
+            if (definition == null)
+                return;
+
+            message.PgnAcronym = definition.Acronym;
+            message.PgnLabel = definition.Label;
+            message.PgnCategory = definition.Category;
         }
 
         private static J1939DataLinkProcessingResultDto BuildUnsupportedStandardFrame(uint canId, byte dlc, byte[] data, DateTime timestamp)

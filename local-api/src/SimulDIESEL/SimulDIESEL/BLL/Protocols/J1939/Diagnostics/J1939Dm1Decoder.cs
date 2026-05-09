@@ -1,4 +1,5 @@
 using System;
+using SimulDIESEL.BLL.Protocols.J1939.Common;
 using SimulDIESEL.DTL.Protocols.J1939.Diagnostics;
 
 namespace SimulDIESEL.BLL.Protocols.J1939.Diagnostics
@@ -10,16 +11,23 @@ namespace SimulDIESEL.BLL.Protocols.J1939.Diagnostics
 
         private readonly J1939LampStatusDecoder _lampStatusDecoder;
         private readonly J1939DtcParser _dtcParser;
+        private readonly J1939PgnStandardCatalog _standardCatalog;
 
         public J1939Dm1Decoder()
-            : this(new J1939LampStatusDecoder(), new J1939DtcParser())
+            : this(new J1939LampStatusDecoder(), new J1939DtcParser(), new J1939PgnStandardCatalog())
         {
         }
 
         public J1939Dm1Decoder(J1939LampStatusDecoder lampStatusDecoder, J1939DtcParser dtcParser)
+            : this(lampStatusDecoder, dtcParser, new J1939PgnStandardCatalog())
+        {
+        }
+
+        public J1939Dm1Decoder(J1939LampStatusDecoder lampStatusDecoder, J1939DtcParser dtcParser, J1939PgnStandardCatalog standardCatalog)
         {
             _lampStatusDecoder = lampStatusDecoder ?? throw new ArgumentNullException(nameof(lampStatusDecoder));
             _dtcParser = dtcParser ?? throw new ArgumentNullException(nameof(dtcParser));
+            _standardCatalog = standardCatalog ?? throw new ArgumentNullException(nameof(standardCatalog));
         }
 
         public J1939DiagnosticMessageDto Decode(byte sourceAddress, byte? destinationAddress, DateTime timestamp, byte[] payload, bool isReassembled)
@@ -30,11 +38,14 @@ namespace SimulDIESEL.BLL.Protocols.J1939.Diagnostics
         protected J1939DiagnosticMessageDto DecodeCommon(string type, uint pgn, string pgnHex, byte sourceAddress, byte? destinationAddress, DateTime timestamp, byte[] payload, bool isReassembled)
         {
             byte[] data = payload ?? new byte[0];
+            SimulDIESEL.DTL.Protocols.J1939.Common.J1939PgnDefinitionDto definition = _standardCatalog.FindByPgn((int)pgn);
             J1939DiagnosticMessageDto message = new J1939DiagnosticMessageDto
             {
                 Type = type,
                 Pgn = pgn,
                 PgnHex = pgnHex,
+                PgnAcronym = definition != null ? definition.Acronym : type,
+                PgnLabel = definition != null ? definition.Label : type,
                 SourceAddress = sourceAddress,
                 DestinationAddress = destinationAddress,
                 Timestamp = timestamp == default(DateTime) ? DateTime.Now : timestamp,

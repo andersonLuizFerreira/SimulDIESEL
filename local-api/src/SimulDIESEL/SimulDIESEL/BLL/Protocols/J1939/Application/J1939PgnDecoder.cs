@@ -1,4 +1,5 @@
 using System;
+using SimulDIESEL.BLL.Protocols.J1939.Common;
 using SimulDIESEL.DTL.Protocols.J1939.Application;
 
 namespace SimulDIESEL.BLL.Protocols.J1939.Application
@@ -6,17 +7,24 @@ namespace SimulDIESEL.BLL.Protocols.J1939.Application
     public sealed class J1939PgnDecoder
     {
         private readonly J1939PgnCatalog _catalog;
+        private readonly J1939PgnStandardCatalog _standardCatalog;
         private readonly J1939SpnDecoder _spnDecoder;
 
         public J1939PgnDecoder()
-            : this(new J1939PgnCatalog(), new J1939SpnDecoder())
+            : this(new J1939PgnCatalog(), new J1939PgnStandardCatalog(), new J1939SpnDecoder())
         {
         }
 
-        public J1939PgnDecoder(J1939PgnCatalog catalog, J1939SpnDecoder spnDecoder)
+        public J1939PgnDecoder(J1939PgnCatalog catalog, J1939PgnStandardCatalog standardCatalog, J1939SpnDecoder spnDecoder)
         {
             _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
+            _standardCatalog = standardCatalog ?? throw new ArgumentNullException(nameof(standardCatalog));
             _spnDecoder = spnDecoder ?? throw new ArgumentNullException(nameof(spnDecoder));
+        }
+
+        public J1939PgnDecoder(J1939PgnCatalog catalog, J1939SpnDecoder spnDecoder)
+            : this(catalog, new J1939PgnStandardCatalog(), spnDecoder)
+        {
         }
 
         public J1939ApplicationMessageDto Decode(
@@ -30,10 +38,13 @@ namespace SimulDIESEL.BLL.Protocols.J1939.Application
             J1939PgnDefinitionDto definition;
             if (!_catalog.TryGetDefinition(pgn, out definition))
             {
+                SimulDIESEL.DTL.Protocols.J1939.Common.J1939PgnDefinitionDto standard = _standardCatalog.FindByPgn(pgn);
                 return new J1939ApplicationMessageDto
                 {
                     Pgn = pgn,
                     PgnHex = pgnHex,
+                    PgnName = standard != null ? standard.Label : "PGN nao cadastrado",
+                    Acronym = standard != null ? standard.Acronym : string.Empty,
                     SourceAddress = sourceAddress,
                     DestinationAddress = destinationAddress,
                     Timestamp = timestamp,
