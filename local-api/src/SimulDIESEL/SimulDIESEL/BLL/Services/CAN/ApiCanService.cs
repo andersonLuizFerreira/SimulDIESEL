@@ -252,19 +252,6 @@ namespace SimulDIESEL.BLL.Services.CAN
 
         private void OnCanCrudEventReceived(byte type, byte[] payload)
         {
-            if (type == GwProtocol.UceCanCreateType)
-                Debug.WriteLine("ApiCanService: API recebeu CAN_CREATE (0x40).");
-            else if (type == GwProtocol.UceCanEditType)
-                Debug.WriteLine("ApiCanService: API recebeu CAN_EDIT (0x41).");
-            else if (type == GwProtocol.UceCanDeleteType)
-                Debug.WriteLine("ApiCanService: API recebeu CAN_DELETE (0x42).");
-            else if (type == GwProtocol.UceCanTicType)
-                Debug.WriteLine("ApiCanService: API recebeu CAN_TIC (0x46).");
-            else if (type == GwProtocol.UceCanRowType)
-                Debug.WriteLine("ApiCanService: API recebeu CAN_ROW (0x44).");
-            else if (type == GwProtocol.UceCanReadAllDoneType)
-                Debug.WriteLine("ApiCanService: API recebeu CAN_READ_ALL_DONE (0x45).");
-
             if (_eventProcessor.ProcessEvent(type, payload))
             {
                 if (type == GwProtocol.UceCanReadAllDoneType)
