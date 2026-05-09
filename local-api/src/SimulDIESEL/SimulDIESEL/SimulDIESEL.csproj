@@ -101,6 +101,8 @@
     <Compile Include="BLL\Services\CAN\SDCTP\SdctpRxOutputBuffer.cs" />
     <Compile Include="BLL\Services\CAN\SDCTP\SdctpTxManager.cs" />
     <Compile Include="BLL\Services\CAN\SDCTP\SdctpTypes.cs" />
+    <Compile Include="BLL\Services\J1939\J1939DecodeService.cs" />
+    <Compile Include="BLL\Services\J1939\J1939IdParser.cs" />
     <Compile Include="BLL\FormsLogic\BPM\FrmBpmLogic.cs" />
     <Compile Include="BLL\FormsLogic\GSA\FrmGsaLogic.cs" />
     <Compile Include="BLL\FormsLogic\UCE\FrmUceLogic.cs" />
@@ -145,6 +147,8 @@
     <Compile Include="DTL\Boards\UCE\UceLedResponse.cs" />
     <Compile Include="DTL\Common\DeviceInfo.cs" />
     <Compile Include="DTL\Common\OperationStatusDto.cs" />
+    <Compile Include="DTL\J1939\J1939DecodedMessageDto.cs" />
+    <Compile Include="DTL\J1939\J1939IdFieldsDto.cs" />
     <Compile Include="DTL\Protocols\SDGW\GwProtocol.cs" />
     <Compile Include="DTL\Protocols\SDGW\SdhCommand.cs" />
     <Compile Include="DTL\Protocols\SDGW\SdhResponse.cs" />
