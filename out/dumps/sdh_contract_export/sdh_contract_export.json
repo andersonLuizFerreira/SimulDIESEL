@@ -1,0 +1,626 @@
+﻿{
+    "version":  "sdh/1",
+    "source":  "SdhValidator",
+    "notes":  [
+                  "Catalogo documental exportado para uso do Banco de Modulos.",
+                  "O export reflete os comandos aceitos pelo SdhValidator nesta etapa."
+              ],
+    "commands":  [
+                     {
+                         "acceptedValues":  {
+
+                                            },
+                         "service":  "gateway",
+                         "board":  "BPM",
+                         "requiredArgs":  [
+
+                                          ],
+                         "target":  "BPM.gateway",
+                         "notes":  "Gateway ping sem argumentos.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "ping"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "state":  [
+                                                              "on",
+                                                              "off"
+                                                          ]
+                                            },
+                         "service":  "led",
+                         "board":  "GSA",
+                         "requiredArgs":  [
+                                              "state"
+                                          ],
+                         "target":  "GSA.led",
+                         "notes":  "Controle do LED da GSA.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "set"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "channel":  "1..16",
+                                                "value":  "0..255"
+                                            },
+                         "service":  "channel",
+                         "board":  "GSA",
+                         "requiredArgs":  [
+                                              "channel",
+                                              "value"
+                                          ],
+                         "target":  "GSA.channel.setpoint",
+                         "notes":  "Define setpoint de canal GSA.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "set"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "channel":  "1..16",
+                                                "state":  [
+                                                              "on",
+                                                              "off"
+                                                          ]
+                                            },
+                         "service":  "channel",
+                         "board":  "GSA",
+                         "requiredArgs":  [
+                                              "channel",
+                                              "state"
+                                          ],
+                         "target":  "GSA.channel.enable",
+                         "notes":  "Habilita ou desabilita canal GSA.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "set"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "state":  [
+                                                              "on",
+                                                              "off"
+                                                          ]
+                                            },
+                         "service":  "channels",
+                         "board":  "GSA",
+                         "requiredArgs":  [
+                                              "state"
+                                          ],
+                         "target":  "GSA.channels.enable",
+                         "notes":  "Habilita ou desabilita canais GSA em conjunto.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "set"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "channel":  "1..16"
+                                            },
+                         "service":  "channel",
+                         "board":  "GSA",
+                         "requiredArgs":  [
+                                              "channel"
+                                          ],
+                         "target":  "GSA.channel.status",
+                         "notes":  "Le status de canal GSA.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "get"
+                     },
+                     {
+                         "acceptedValues":  {
+
+                                            },
+                         "service":  "channels",
+                         "board":  "GSA",
+                         "requiredArgs":  [
+
+                                          ],
+                         "target":  "GSA.channels.status",
+                         "notes":  "Le status consolidado dos canais GSA.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "get"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "channel":  "1..16"
+                                            },
+                         "service":  "channel",
+                         "board":  "GSA",
+                         "requiredArgs":  [
+                                              "channel"
+                                          ],
+                         "target":  "GSA.channel.fault",
+                         "notes":  "Reseta fault de canal GSA.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "reset"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "channel":  "1..16",
+                                                "value":  "-32768..32767",
+                                                "kind":  [
+                                                             "vout",
+                                                             "vread",
+                                                             "iread"
+                                                         ]
+                                            },
+                         "service":  "channel",
+                         "board":  "GSA",
+                         "requiredArgs":  [
+                                              "channel",
+                                              "kind",
+                                              "value"
+                                          ],
+                         "target":  "GSA.channel.offset",
+                         "notes":  "Define offset de canal GSA.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "set"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "channel":  "1..16",
+                                                "kind":  [
+                                                             "vout",
+                                                             "vread",
+                                                             "iread"
+                                                         ]
+                                            },
+                         "service":  "channel",
+                         "board":  "GSA",
+                         "requiredArgs":  [
+                                              "channel",
+                                              "kind"
+                                          ],
+                         "target":  "GSA.channel.offset",
+                         "notes":  "Le offset de canal GSA.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "get"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "channel":  "1..16"
+                                            },
+                         "service":  "channel",
+                         "board":  "GSA",
+                         "requiredArgs":  [
+                                              "channel"
+                                          ],
+                         "target":  "GSA.channel.offset",
+                         "notes":  "Salva offset de canal GSA.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "save"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "channel":  "1..16"
+                                            },
+                         "service":  "channel",
+                         "board":  "GSA",
+                         "requiredArgs":  [
+                                              "channel"
+                                          ],
+                         "target":  "GSA.channel.offset",
+                         "notes":  "Reseta offset de canal GSA.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "reset"
+                     },
+                     {
+                         "acceptedValues":  {
+
+                                            },
+                         "service":  "offset",
+                         "board":  "GSA",
+                         "requiredArgs":  [
+
+                                          ],
+                         "target":  "GSA.offset",
+                         "notes":  "Reseta offsets GSA.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "reset"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "state":  [
+                                                              "on",
+                                                              "off"
+                                                          ]
+                                            },
+                         "service":  "led",
+                         "board":  "UCE",
+                         "requiredArgs":  [
+                                              "state"
+                                          ],
+                         "target":  "UCE.led",
+                         "notes":  "Controle do LED da UCE.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "set"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "bitrate":  [
+                                                                5,
+                                                                10,
+                                                                25,
+                                                                50,
+                                                                125,
+                                                                250,
+                                                                500,
+                                                                800,
+                                                                1000
+                                                            ],
+                                                "controller":  [
+                                                                   "can0",
+                                                                   "can1"
+                                                               ],
+                                                "mode":  [
+                                                             "normal",
+                                                             "listen",
+                                                             "loopback"
+                                                         ],
+                                                "rxMode":  [
+                                                               "auto",
+                                                               "directOnly"
+                                                           ]
+                                            },
+                         "service":  "can",
+                         "board":  "UCE",
+                         "requiredArgs":  [
+                                              "controller",
+                                              "bitrate",
+                                              "mode"
+                                          ],
+                         "target":  "UCE.can.config",
+                         "notes":  "rxMode e opcional para compatibilidade com o contrato antigo.",
+                         "optionalArgs":  [
+                                              "rxMode"
+                                          ],
+                         "op":  "set"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "state":  [
+                                                              "on",
+                                                              "off"
+                                                          ],
+                                                "controller":  [
+                                                                   "can0",
+                                                                   "can1"
+                                                               ]
+                                            },
+                         "service":  "can",
+                         "board":  "UCE",
+                         "requiredArgs":  [
+                                              "controller",
+                                              "state"
+                                          ],
+                         "target":  "UCE.can.enable",
+                         "notes":  "Habilita ou desabilita controlador CAN UCE.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "set"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "controller":  [
+                                                                   "can0",
+                                                                   "can1"
+                                                               ]
+                                            },
+                         "service":  "can",
+                         "board":  "UCE",
+                         "requiredArgs":  [
+                                              "controller"
+                                          ],
+                         "target":  "UCE.can.status",
+                         "notes":  "Le status do controlador CAN UCE.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "get"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "controller":  [
+                                                                   "can0",
+                                                                   "can1"
+                                                               ]
+                                            },
+                         "service":  "can",
+                         "board":  "UCE",
+                         "requiredArgs":  [
+                                              "controller"
+                                          ],
+                         "target":  "UCE.can.rx",
+                         "notes":  "Poll de recepcao CAN.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "poll"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "controller":  [
+                                                                   "can0",
+                                                                   "can1"
+                                                               ]
+                                            },
+                         "service":  "can",
+                         "board":  "UCE",
+                         "requiredArgs":  [
+                                              "controller"
+                                          ],
+                         "target":  "UCE.can.rx",
+                         "notes":  "Contrato semantico exige controller; mapper atual envia TLV CAN_READ_ALL sem value payload.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "readAll"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "controller":  [
+                                                                   "can0",
+                                                                   "can1"
+                                                               ]
+                                            },
+                         "service":  "can",
+                         "board":  "UCE",
+                         "requiredArgs":  [
+                                              "controller"
+                                          ],
+                         "target":  "UCE.can.driverLog",
+                         "notes":  "Poll do log do driver CAN.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "poll"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "extended":  "0/1",
+                                                "data":  "d0..d7 em 0..255",
+                                                "id":  "STD \u003c= 0x7FF, EXT \u003c= 0x1FFFFFFF",
+                                                "dlc":  "0..8",
+                                                "controller":  [
+                                                                   "can0",
+                                                                   "can1"
+                                                               ],
+                                                "period":  "0..65535"
+                                            },
+                         "service":  "can",
+                         "board":  "UCE",
+                         "requiredArgs":  [
+                                              "controller",
+                                              "extended",
+                                              "id",
+                                              "dlc",
+                                              "period",
+                                              "d0",
+                                              "d1",
+                                              "d2",
+                                              "d3",
+                                              "d4",
+                                              "d5",
+                                              "d6",
+                                              "d7"
+                                          ],
+                         "target":  "UCE.can.tx",
+                         "notes":  "Envio CAN TX periodico/normal conforme mapper.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "send"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "extended":  "0/1",
+                                                "data":  "d0..d7 em 0..255",
+                                                "id":  "STD \u003c= 0x7FF, EXT \u003c= 0x1FFFFFFF",
+                                                "dlc":  "0..8",
+                                                "controller":  [
+                                                                   "can0",
+                                                                   "can1"
+                                                               ],
+                                                "rtr":  "0/1"
+                                            },
+                         "service":  "can",
+                         "board":  "UCE",
+                         "requiredArgs":  [
+                                              "controller",
+                                              "extended",
+                                              "rtr",
+                                              "id",
+                                              "dlc",
+                                              "d0",
+                                              "d1",
+                                              "d2",
+                                              "d3",
+                                              "d4",
+                                              "d5",
+                                              "d6",
+                                              "d7"
+                                          ],
+                         "target":  "UCE.can.tx",
+                         "notes":  "Envio CAN direto.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "direct"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "controller":  [
+                                                                   "can0",
+                                                                   "can1"
+                                                               ],
+                                                "extended":  "0/1",
+                                                "enabled":  "0/1",
+                                                "id":  "STD \u003c= 0x7FF, EXT \u003c= 0x1FFFFFFF",
+                                                "data":  "d0..d7 em 0..255",
+                                                "rtr":  "0/1",
+                                                "period":  "0..65535",
+                                                "index":  "0..99",
+                                                "dlc":  "0..8"
+                                            },
+                         "service":  "can",
+                         "board":  "UCE",
+                         "requiredArgs":  [
+                                              "controller",
+                                              "index",
+                                              "extended",
+                                              "rtr",
+                                              "id",
+                                              "dlc",
+                                              "d0",
+                                              "d1",
+                                              "d2",
+                                              "d3",
+                                              "d4",
+                                              "d5",
+                                              "d6",
+                                              "d7",
+                                              "period",
+                                              "enabled"
+                                          ],
+                         "target":  "UCE.can.tx",
+                         "notes":  "Cria entrada no espelho TX CAN.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "create"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "dataMask":  "1..255 quando dados forem editados",
+                                                "mask":  "0..63",
+                                                "index":  "0..99",
+                                                "dlc":  "0..8",
+                                                "flags":  "0..3",
+                                                "enabled":  "0/1",
+                                                "controller":  [
+                                                                   "can0",
+                                                                   "can1"
+                                                               ],
+                                                "period":  "0..65535"
+                                            },
+                         "service":  "can",
+                         "board":  "UCE",
+                         "requiredArgs":  [
+                                              "controller",
+                                              "index",
+                                              "mask"
+                                          ],
+                         "target":  "UCE.can.tx",
+                         "notes":  "Edita campos indicados pela mask CAN_TX_EDIT.",
+                         "optionalArgs":  [
+                                              "flags",
+                                              "id",
+                                              "dlc",
+                                              "dataMask",
+                                              "d0",
+                                              "d1",
+                                              "d2",
+                                              "d3",
+                                              "d4",
+                                              "d5",
+                                              "d6",
+                                              "d7",
+                                              "period",
+                                              "enabled"
+                                          ],
+                         "op":  "edit"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "reason":  "1..4",
+                                                "controller":  [
+                                                                   "can0",
+                                                                   "can1"
+                                                               ],
+                                                "index":  "0..99"
+                                            },
+                         "service":  "can",
+                         "board":  "UCE",
+                         "requiredArgs":  [
+                                              "controller",
+                                              "index",
+                                              "reason"
+                                          ],
+                         "target":  "UCE.can.tx",
+                         "notes":  "Remove entrada TX CAN.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "delete"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "slot":  [
+                                                             0,
+                                                             255
+                                                         ],
+                                                "controller":  [
+                                                                   "can0",
+                                                                   "can1"
+                                                               ]
+                                            },
+                         "service":  "can",
+                         "board":  "UCE",
+                         "requiredArgs":  [
+                                              "controller",
+                                              "slot"
+                                          ],
+                         "target":  "UCE.can.tx",
+                         "notes":  "Para transmissao TX por slot.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "stop"
+                     },
+                     {
+                         "acceptedValues":  {
+                                                "controller":  [
+                                                                   "can0",
+                                                                   "can1"
+                                                               ]
+                                            },
+                         "service":  "can",
+                         "board":  "UCE",
+                         "requiredArgs":  [
+                                              "controller"
+                                          ],
+                         "target":  "UCE.can",
+                         "notes":  "Reset do controlador CAN UCE.",
+                         "optionalArgs":  [
+
+                                          ],
+                         "op":  "reset"
+                     }
+                 ]
+}

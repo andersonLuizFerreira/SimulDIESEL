@@ -35,9 +35,15 @@ namespace SimulDIESEL.UI
         private Button _btnReadJ1939FaultCodes;
         private DataGridView _dgJ1939Diagnostics;
         private Label _lblJ1939DiagnosticsStatus;
+        private TabPage _tabJ1939Data;
+        private Button _btnJ1939DataClear;
+        private DataGridView _dgJ1939Data;
         private readonly Dictionary<UiCanMonitorKey, UiCanMonitorRow> _canMonitorRowsByKey =
             new Dictionary<UiCanMonitorKey, UiCanMonitorRow>();
         private readonly List<UiCanMonitorRow> _canMonitorRows = new List<UiCanMonitorRow>();
+        private readonly Dictionary<UiJ1939DataKey, UiJ1939DataRow> _j1939DataRowsByKey =
+            new Dictionary<UiJ1939DataKey, UiJ1939DataRow>();
+        private readonly List<UiJ1939DataRow> _j1939DataRows = new List<UiJ1939DataRow>();
         private readonly List<J1939DiagnosticMessageDto> _j1939DiagnosticMessages =
             new List<J1939DiagnosticMessageDto>();
 
@@ -75,7 +81,9 @@ namespace SimulDIESEL.UI
             ApplyInitialCanUiState();
             ConfigureCanRxGrid();
             ConfigureJ1939DiagnosticsTab();
+            ConfigureJ1939DataTab();
             RefreshCanRxGrid();
+            RefreshJ1939DataGrid();
             UpdateCanDiagnosticIndicators();
         }
 
@@ -108,6 +116,8 @@ namespace SimulDIESEL.UI
                 _btnCanRxClear.Click -= BtnCanRxClear_Click;
             if (_btnReadJ1939FaultCodes != null)
                 _btnReadJ1939FaultCodes.Click -= BtnReadJ1939FaultCodes_Click;
+            if (_btnJ1939DataClear != null)
+                _btnJ1939DataClear.Click -= BtnJ1939DataClear_Click;
             _canDriverLogTimer.Stop();
             _canDriverLogTimer.Tick -= CanDriverLogTimer_Tick;
             _canDriverLogTimer.Dispose();
@@ -163,6 +173,10 @@ namespace SimulDIESEL.UI
                 RefreshCanRxGrid();
                 UpdateCanDiagnosticIndicators();
             }
+            else if (ReferenceEquals(tabUCE.SelectedTab, _tabJ1939Data))
+            {
+                RefreshJ1939DataGrid();
+            }
         }
 
         private async void ChkLed_CheckedChanged(object sender, EventArgs e)
@@ -196,6 +210,7 @@ namespace SimulDIESEL.UI
             {
                 RefreshCanRxGrid();
                 RefreshJ1939DiagnosticsGrid();
+                RefreshJ1939DataGrid();
             }
         }
 
@@ -209,6 +224,7 @@ namespace SimulDIESEL.UI
             {
                 RefreshCanRxGrid();
                 RefreshJ1939DiagnosticsGrid();
+                RefreshJ1939DataGrid();
             }
 
             if (_j1939DiagnosticReadActive && DateTime.Now >= _j1939DiagnosticReadDeadline)
@@ -507,7 +523,7 @@ namespace SimulDIESEL.UI
 
             _tabJ1939Diagnostics = new TabPage
             {
-                Text = "Diagnóstico J1939",
+                Text = "Exibir Códigos de falha",
                 Name = "tabJ1939Diagnostics",
                 Padding = new Padding(8)
             };
@@ -554,6 +570,51 @@ namespace SimulDIESEL.UI
             LayoutJ1939DiagnosticsControls();
         }
 
+        private void ConfigureJ1939DataTab()
+        {
+            if (_tabJ1939Data != null)
+                return;
+
+            _tabJ1939Data = new TabPage
+            {
+                Text = "Dados J1939",
+                Name = "tabJ1939Data",
+                Padding = new Padding(8)
+            };
+
+            _btnJ1939DataClear = new Button
+            {
+                Text = "Limpar",
+                Width = 90,
+                Height = 28,
+                Location = new System.Drawing.Point(8, 8),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left
+            };
+            _btnJ1939DataClear.Click += BtnJ1939DataClear_Click;
+
+            _dgJ1939Data = new DataGridView
+            {
+                AllowUserToAddRows = false,
+                AllowUserToDeleteRows = false,
+                AllowUserToResizeRows = false,
+                AutoGenerateColumns = false,
+                ReadOnly = true,
+                RowHeadersVisible = false,
+                MultiSelect = false,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                Location = new System.Drawing.Point(8, 44),
+                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+            };
+
+            EnableDoubleBuffered(_dgJ1939Data);
+            ConfigureJ1939DataGridColumns();
+            _tabJ1939Data.Controls.Add(_btnJ1939DataClear);
+            _tabJ1939Data.Controls.Add(_dgJ1939Data);
+            _tabJ1939Data.Resize += (sender, args) => LayoutJ1939DataControls();
+            tabUCE.Controls.Add(_tabJ1939Data);
+            LayoutJ1939DataControls();
+        }
+
         private void ConfigureJ1939DiagnosticsGridColumns()
         {
             _dgJ1939Diagnostics.Columns.Add("TYPE", "Tipo");
@@ -572,6 +633,15 @@ namespace SimulDIESEL.UI
             _dgJ1939Diagnostics.Columns.Add("STATUS", "Status");
         }
 
+        private void ConfigureJ1939DataGridColumns()
+        {
+            _dgJ1939Data.Columns.Add("ORIGIN", "Origem");
+            _dgJ1939Data.Columns.Add("DESTINATION", "Destino");
+            _dgJ1939Data.Columns.Add("PGN", "PGN");
+            _dgJ1939Data.Columns.Add("DATA", "Dados");
+            _dgJ1939Data.Columns[3].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+        }
+
         private void LayoutJ1939DiagnosticsControls()
         {
             if (_tabJ1939Diagnostics == null || _dgJ1939Diagnostics == null)
@@ -581,6 +651,16 @@ namespace SimulDIESEL.UI
             _dgJ1939Diagnostics.Size = new System.Drawing.Size(
                 Math.Max(80, _tabJ1939Diagnostics.ClientSize.Width - 16),
                 Math.Max(80, _tabJ1939Diagnostics.ClientSize.Height - _dgJ1939Diagnostics.Top - 8));
+        }
+
+        private void LayoutJ1939DataControls()
+        {
+            if (_tabJ1939Data == null || _dgJ1939Data == null)
+                return;
+
+            _dgJ1939Data.Size = new System.Drawing.Size(
+                Math.Max(80, _tabJ1939Data.ClientSize.Width - 16),
+                Math.Max(80, _tabJ1939Data.ClientSize.Height - _dgJ1939Data.Top - 8));
         }
 
         private void RefreshCanRxGrid()
@@ -637,6 +717,13 @@ namespace SimulDIESEL.UI
             dgCanRx.Rows.Clear();
         }
 
+        private void BtnJ1939DataClear_Click(object sender, EventArgs e)
+        {
+            _j1939DataRowsByKey.Clear();
+            _j1939DataRows.Clear();
+            _dgJ1939Data.Rows.Clear();
+        }
+
         private async void BtnReadJ1939FaultCodes_Click(object sender, EventArgs e)
         {
             _btnReadJ1939FaultCodes.Enabled = false;
@@ -675,22 +762,29 @@ namespace SimulDIESEL.UI
             while (_logic.TryReadRxFrame(out frame))
             {
                 UpdateCanMonitorRow(frame);
-                ProcessJ1939DiagnosticFrame(frame);
+                ProcessJ1939Frame(frame);
                 changed = true;
             }
 
             return changed;
         }
 
-        private void ProcessJ1939DiagnosticFrame(CanFrameDto frame)
+        private void ProcessJ1939Frame(CanFrameDto frame)
         {
             J1939DiagnosticMessageDto diagnostic;
-            if (!_logic.TryDecodeJ1939DiagnosticFrame(frame, out diagnostic) || diagnostic == null)
+            J1939DataMonitorMessageDto dataMessage;
+            if (!_logic.TryDecodeJ1939Frame(frame, out diagnostic, out dataMessage))
                 return;
 
-            _j1939DiagnosticMessages.Add(diagnostic);
-            if (_j1939DiagnosticMessages.Count > 200)
-                _j1939DiagnosticMessages.RemoveAt(0);
+            if (diagnostic != null)
+            {
+                _j1939DiagnosticMessages.Add(diagnostic);
+                if (_j1939DiagnosticMessages.Count > 200)
+                    _j1939DiagnosticMessages.RemoveAt(0);
+            }
+
+            if (dataMessage != null)
+                UpdateJ1939DataRow(dataMessage);
         }
 
         private void RefreshJ1939DiagnosticsGrid()
@@ -732,6 +826,57 @@ namespace SimulDIESEL.UI
             row.Cells[11].Value = lamps != null ? lamps.Protect : "-";
             row.Cells[12].Value = message.Timestamp.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture);
             row.Cells[13].Value = dtc != null ? dtc.Status : message.Status;
+        }
+
+        private void UpdateJ1939DataRow(J1939DataMonitorMessageDto message)
+        {
+            if (message == null)
+                return;
+
+            UiJ1939DataKey key = new UiJ1939DataKey(
+                message.SourceAddress,
+                message.IsGlobalDestination ? (byte)0xFF : message.DestinationAddress.GetValueOrDefault(0xFF),
+                message.Pgn);
+
+            UiJ1939DataRow row;
+            if (!_j1939DataRowsByKey.TryGetValue(key, out row))
+            {
+                row = new UiJ1939DataRow(key);
+                _j1939DataRowsByKey.Add(key, row);
+                _j1939DataRows.Add(row);
+            }
+
+            row.DestinationDisplay = message.IsGlobalDestination
+                ? "GLOBAL"
+                : "0x" + message.DestinationAddress.GetValueOrDefault().ToString("X2", CultureInfo.InvariantCulture);
+            row.FormattedPgn = string.IsNullOrWhiteSpace(message.FormattedPgn)
+                ? message.Pgn.ToString("X6", CultureInfo.InvariantCulture)
+                : message.FormattedPgn;
+            row.Data = message.Data != null ? (byte[])message.Data.Clone() : new byte[0];
+            row.LastUpdate = message.Timestamp == default(DateTime) ? DateTime.Now : message.Timestamp;
+        }
+
+        private void RefreshJ1939DataGrid()
+        {
+            if (_dgJ1939Data == null)
+                return;
+
+            while (_dgJ1939Data.Rows.Count < _j1939DataRows.Count)
+                _dgJ1939Data.Rows.Add();
+
+            while (_dgJ1939Data.Rows.Count > _j1939DataRows.Count)
+                _dgJ1939Data.Rows.RemoveAt(_dgJ1939Data.Rows.Count - 1);
+
+            for (int index = 0; index < _j1939DataRows.Count; ++index)
+                PopulateJ1939DataGridRow(_dgJ1939Data.Rows[index], _j1939DataRows[index]);
+        }
+
+        private static void PopulateJ1939DataGridRow(DataGridViewRow gridRow, UiJ1939DataRow row)
+        {
+            gridRow.Cells[0].Value = "0x" + row.Key.SourceAddress.ToString("X2", CultureInfo.InvariantCulture);
+            gridRow.Cells[1].Value = row.DestinationDisplay;
+            gridRow.Cells[2].Value = "0x" + row.FormattedPgn;
+            gridRow.Cells[3].Value = FormatPayload(row.Data);
         }
 
         private void UpdateCanMonitorRow(CanFrameDto frame)
@@ -1027,6 +1172,58 @@ namespace SimulDIESEL.UI
             public DateTime LastUpdate { get; set; }
         }
 
+        private struct UiJ1939DataKey : IEquatable<UiJ1939DataKey>
+        {
+            public readonly byte SourceAddress;
+            public readonly byte DestinationAddress;
+            public readonly uint Pgn;
+
+            public UiJ1939DataKey(byte sourceAddress, byte destinationAddress, uint pgn)
+            {
+                SourceAddress = sourceAddress;
+                DestinationAddress = destinationAddress;
+                Pgn = pgn;
+            }
+
+            public bool Equals(UiJ1939DataKey other)
+            {
+                return SourceAddress == other.SourceAddress &&
+                    DestinationAddress == other.DestinationAddress &&
+                    Pgn == other.Pgn;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is UiJ1939DataKey && Equals((UiJ1939DataKey)obj);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    int hash = SourceAddress.GetHashCode();
+                    hash = (hash * 397) ^ DestinationAddress.GetHashCode();
+                    hash = (hash * 397) ^ (int)Pgn;
+                    return hash;
+                }
+            }
+        }
+
+        private sealed class UiJ1939DataRow
+        {
+            public UiJ1939DataRow(UiJ1939DataKey key)
+            {
+                Key = key;
+                Data = new byte[0];
+            }
+
+            public UiJ1939DataKey Key { get; private set; }
+            public string DestinationDisplay { get; set; }
+            public string FormattedPgn { get; set; }
+            public byte[] Data { get; set; }
+            public DateTime LastUpdate { get; set; }
+        }
+
         private async Task StopCanTxAsync()
         {
             UceOperationResult<UceCanTxStopResponse> result = await _logic
@@ -1208,6 +1405,39 @@ namespace SimulDIESEL.UI
             }
 
             return builder.ToString();
+        }
+
+        private static string FormatPayload(byte[] data)
+        {
+            if (data == null || data.Length == 0)
+                return string.Empty;
+
+            StringBuilder builder = new StringBuilder(data.Length * 3);
+            for (int index = 0; index < data.Length; ++index)
+            {
+                if (index > 0)
+                    builder.Append(' ');
+
+                builder.Append(data[index].ToString("X2", CultureInfo.InvariantCulture));
+            }
+
+            return builder.ToString();
+        }
+
+        private static void EnableDoubleBuffered(DataGridView grid)
+        {
+            if (grid == null)
+                return;
+
+            typeof(DataGridView).InvokeMember(
+                "DoubleBuffered",
+                System.Reflection.BindingFlags.NonPublic |
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.SetProperty,
+                null,
+                grid,
+                new object[] { true },
+                CultureInfo.InvariantCulture);
         }
 
         private static string FormatDriverLogEntry(UceCanController controller, UceCanDriverLogEntry entry)

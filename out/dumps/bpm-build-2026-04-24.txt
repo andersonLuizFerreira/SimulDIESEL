@@ -1,7 +1,0 @@
-Command: py -3 -m platformio run
-Workdir: G:\PROJETOS\SIMULADORES\SimulDIESEL\hardware\firmware\BPM - BACKPLANE MANAGER MODULE
-Result: SUCCESS
-Environment: esp32dev
-Board: Espressif ESP32 Dev Module
-RAM: 12.8% (41908 / 327680 bytes)
-Flash: 86.6% (1134689 / 1310720 bytes)

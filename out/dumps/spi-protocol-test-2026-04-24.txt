@@ -1,1 +1,0 @@
-[COMMISSIONING_SPI_V1] protocol checks passed

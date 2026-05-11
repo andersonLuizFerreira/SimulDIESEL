@@ -27,6 +27,17 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
         public uint RxOutputBufferOverflowCount { get; set; }
     }
 
+    public sealed class J1939DataMonitorMessageDto
+    {
+        public byte SourceAddress { get; set; }
+        public byte? DestinationAddress { get; set; }
+        public bool IsGlobalDestination { get; set; }
+        public uint Pgn { get; set; }
+        public string FormattedPgn { get; set; }
+        public byte[] Data { get; set; }
+        public DateTime Timestamp { get; set; }
+    }
+
     public sealed class FrmUceLogic : IDisposable
     {
         private const string DefaultCanController = "can0";
@@ -225,6 +236,22 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             return _j1939Diagnostics.TryDecode(result, out diagnosticMessage);
         }
 
+        public bool TryDecodeJ1939Frame(
+            CanFrameDto frame,
+            out J1939DiagnosticMessageDto diagnosticMessage,
+            out J1939DataMonitorMessageDto dataMessage)
+        {
+            diagnosticMessage = null;
+            dataMessage = null;
+            if (frame == null)
+                return false;
+
+            J1939DataLinkProcessingResultDto result = _j1939Protocol.ProcessCanFrame(frame);
+            _j1939Diagnostics.TryDecode(result, out diagnosticMessage);
+            dataMessage = BuildJ1939DataMonitorMessage(result);
+            return diagnosticMessage != null || dataMessage != null;
+        }
+
         public CanDiagnosticStatusDto GetCanDiagnosticStatus(UceCanStatusResponse canStatus)
         {
             bool hasFifoOverflow = _sdctp.HasDispatcherFifoOverflow;
@@ -303,6 +330,46 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
                 Array.Copy(data, normalized, Math.Min(8, data.Length));
 
             return normalized;
+        }
+
+        private static J1939DataMonitorMessageDto BuildJ1939DataMonitorMessage(J1939DataLinkProcessingResultDto result)
+        {
+            if (result == null || !result.IsJ1939)
+                return null;
+
+            if (result.IsTransportSessionComplete && result.ReassembledMessage != null)
+            {
+                return new J1939DataMonitorMessageDto
+                {
+                    SourceAddress = result.ReassembledMessage.SourceAddress,
+                    DestinationAddress = result.ReassembledMessage.DestinationAddress,
+                    IsGlobalDestination = !result.ReassembledMessage.DestinationAddress.HasValue ||
+                        result.ReassembledMessage.DestinationAddress.Value == 0xFF,
+                    Pgn = result.ReassembledMessage.TransportedPgn,
+                    FormattedPgn = result.ReassembledMessage.FormattedTransportedPgn,
+                    Data = result.ReassembledMessage.Data != null ? (byte[])result.ReassembledMessage.Data.Clone() : new byte[0],
+                    Timestamp = DateTime.Now
+                };
+            }
+
+            if (!result.IsSingleFrame || result.SingleFrameMessage == null || result.IdFields == null)
+                return null;
+
+            byte dlc = result.SingleFrameMessage.Dlc > 8 ? (byte)8 : result.SingleFrameMessage.Dlc;
+            byte[] data = new byte[dlc];
+            if (result.SingleFrameMessage.Data != null)
+                Array.Copy(result.SingleFrameMessage.Data, data, Math.Min(dlc, result.SingleFrameMessage.Data.Length));
+
+            return new J1939DataMonitorMessageDto
+            {
+                SourceAddress = result.IdFields.SourceAddress,
+                DestinationAddress = result.IdFields.DestinationAddress,
+                IsGlobalDestination = !result.IdFields.DestinationAddress.HasValue || result.IdFields.IsGlobalDestination,
+                Pgn = result.Pgn,
+                FormattedPgn = result.FormattedPgn,
+                Data = data,
+                Timestamp = result.SingleFrameMessage.Timestamp == default(DateTime) ? DateTime.Now : result.SingleFrameMessage.Timestamp
+            };
         }
 
         private static string GetCanStatusText(UceCanStatusResponse canStatus)

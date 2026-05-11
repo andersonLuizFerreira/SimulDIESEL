@@ -138,6 +138,8 @@
     <Compile Include="BLL\FormsLogic\GSA\FrmGsaLogic.cs" />
     <Compile Include="BLL\FormsLogic\UCE\FrmUceLogic.cs" />
     <Compile Include="DAL\Protocols\SDGW\SdhClient.cs" />
+    <Compile Include="DAL\Protocols\SDGW\SdhJsonParser.cs" />
+    <Compile Include="DAL\Protocols\SDGW\SdhJsonSerializer.cs" />
     <Compile Include="DAL\Protocols\SDGW\SdhTextParser.cs" />
     <Compile Include="DAL\Protocols\SDGW\SdhTextSerializer.cs" />
     <Compile Include="DAL\Protocols\SDGW\SdhToSdgwMapper.cs" />
