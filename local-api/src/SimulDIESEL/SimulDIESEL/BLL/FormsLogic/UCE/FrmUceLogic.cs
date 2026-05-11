@@ -4,12 +4,14 @@ using SimulDIESEL.BLL.Boards.BPM.Comm.Serial;
 using SimulDIESEL.BLL.Boards.UCE;
 using SimulDIESEL.BLL.Protocols.J1939;
 using SimulDIESEL.BLL.Protocols.J1939.Diagnostics;
+using SimulDIESEL.BLL.Protocols.J1939.NetworkManagement;
 using SimulDIESEL.BLL.Services.CAN;
 using SimulDIESEL.BLL.Services.CAN.SDCTP;
 using SimulDIESEL.DTL.Boards.UCE;
 using SimulDIESEL.DTL.Boards.UCE.Can;
 using SimulDIESEL.DTL.Protocols.J1939.DataLink;
 using SimulDIESEL.DTL.Protocols.J1939.Diagnostics;
+using SimulDIESEL.DTL.Protocols.J1939.NetworkManagement;
 
 namespace SimulDIESEL.BLL.FormsLogic.UCE
 {
@@ -44,40 +46,48 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
 
         private readonly IUceDispatcher _uceDispatcher;
         private readonly Func<bool> _isLinked;
+        private readonly CanControlApiService _canControl;
         private readonly SdctpApiService _sdctp;
         private readonly J1939ProtocolService _j1939Protocol;
         private readonly J1939DiagnosticsService _j1939Diagnostics;
         private readonly J1939DiagnosticRequestService _j1939DiagnosticRequests;
+        private readonly J1939NetworkManagementService _j1939NetworkManagement;
         private readonly bool _ownsSdctp;
         private bool _disposed;
 
         public FrmUceLogic(IUceDispatcher uceDispatcher, Func<bool> isLinked)
-            : this(uceDispatcher, isLinked, new SdctpApiService(uceDispatcher), true)
+            : this(uceDispatcher, isLinked, new CanControlApiService(uceDispatcher), new SdctpApiService(uceDispatcher), true)
         {
         }
 
         public FrmUceLogic(IUceDispatcher uceDispatcher, Func<bool> isLinked, SdctpApiService sdctp)
-            : this(uceDispatcher, isLinked, sdctp, false)
+            : this(uceDispatcher, isLinked, new CanControlApiService(uceDispatcher), sdctp, false)
+        {
+        }
+
+        public FrmUceLogic(IUceDispatcher uceDispatcher, Func<bool> isLinked, CanControlApiService canControl, SdctpApiService sdctp)
+            : this(uceDispatcher, isLinked, canControl, sdctp, false)
         {
         }
 
         [Obsolete("Use the constructor that receives SdctpApiService.")]
         public FrmUceLogic(IUceDispatcher uceDispatcher, Func<bool> isLinked, ApiCanService apiCanService)
-            : this(uceDispatcher, isLinked, new SdctpApiService(apiCanService, false), false)
+            : this(uceDispatcher, isLinked, new CanControlApiService(uceDispatcher), new SdctpApiService(apiCanService, false), false)
         {
         }
 
-        private FrmUceLogic(IUceDispatcher uceDispatcher, Func<bool> isLinked, SdctpApiService sdctp, bool ownsSdctp)
+        private FrmUceLogic(IUceDispatcher uceDispatcher, Func<bool> isLinked, CanControlApiService canControl, SdctpApiService sdctp, bool ownsSdctp)
         {
             _uceDispatcher = uceDispatcher ?? throw new ArgumentNullException(nameof(uceDispatcher));
             _isLinked = isLinked ?? throw new ArgumentNullException(nameof(isLinked));
+            _canControl = canControl ?? throw new ArgumentNullException(nameof(canControl));
             _sdctp = sdctp ?? throw new ArgumentNullException(nameof(sdctp));
             _j1939Protocol = new J1939ProtocolService();
             _j1939Diagnostics = new J1939DiagnosticsService();
             _j1939DiagnosticRequests = new J1939DiagnosticRequestService();
+            _j1939NetworkManagement = new J1939NetworkManagementService();
             _ownsSdctp = ownsSdctp;
             _uceDispatcher.LedEventReceived += OnLedEventReceived;
-            _uceDispatcher.CanRxEventReceived += OnCanRxEventReceived;
             _uceDispatcher.DispatcherOverflowDiagnosticReceived += OnDispatcherOverflowDiagnosticReceived;
             _sdctp.CanRxFrameAvailable += OnCanRxFrameAvailable;
             _sdctp.CanRxTableChanged += OnCanRxTableChanged;
@@ -85,7 +95,6 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
         }
 
         public event Action<UceLedEvent> LedEventReceived;
-        public event Action<UceCanRxEvent> CanRxEventReceived;
         public event Action<UceDispatcherOverflowDiagnostic> DispatcherOverflowDiagnosticReceived;
         public event EventHandler CanRxFrameAvailable;
         public event EventHandler CanRxTableChanged;
@@ -99,7 +108,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
         public static FrmUceLogic CreateDefault()
         {
             BpmSerialService service = BpmSerialService.Shared;
-            return new FrmUceLogic(service.BoardDispatcher.Uce, () => service.IsLinked, service.Sdctp);
+            return new FrmUceLogic(service.BoardDispatcher.Uce, () => service.IsLinked, service.CanControl, service.Sdctp);
         }
 
         public Task<UceCommandResult> SetBuiltinLedAsync(bool ligado)
@@ -115,7 +124,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             if (!_isLinked())
                 return FailWhenNotLinked<UceCanConfigResponse>();
 
-            return _sdctp.SetCanConfigAsync(DefaultCanController, bitrateKbps, mode);
+            return _canControl.SetCanConfigAsync(DefaultCanController, bitrateKbps, mode);
         }
 
         public Task<UceOperationResult<UceCanEnableResponse>> SetCanEnabledAsync(bool enabled)
@@ -123,7 +132,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             if (!_isLinked())
                 return FailWhenNotLinked<UceCanEnableResponse>();
 
-            return _sdctp.SetCanEnabledAsync(DefaultCanController, enabled);
+            return _canControl.SetCanEnabledAsync(DefaultCanController, enabled);
         }
 
         public Task<UceOperationResult<UceCanStatusResponse>> GetCanStatusAsync()
@@ -131,7 +140,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             if (!_isLinked())
                 return FailWhenNotLinked<UceCanStatusResponse>();
 
-            return _sdctp.GetCanStatusAsync(DefaultCanController);
+            return _canControl.GetCanStatusAsync(DefaultCanController);
         }
 
         public Task<UceOperationResult<UceCanResetResponse>> ResetCanAsync()
@@ -139,14 +148,16 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             if (!_isLinked())
                 return FailWhenNotLinked<UceCanResetResponse>();
 
-            return _sdctp.ResetCanAsync(DefaultCanController);
+            return _canControl.ResetCanAsync(DefaultCanController);
         }
 
+        [Obsolete("CAN_READ_ALL e legado. Use GetCanRxMirrorRows/TryReadRxFrame.")]
         public Task<UceOperationResult<UceCanReadAllResponse>> RequestCanReadAllAsync()
         {
             if (!_isLinked())
                 return FailWhenNotLinked<UceCanReadAllResponse>();
 
+            // TODO ETAPA 04: legado mantido temporariamente. UI/BLL deve consumir GetCanRxMirrorRows/TryReadRxFrame.
             return _sdctp.RequestReadAllAsync(DefaultCanController);
         }
 
@@ -155,7 +166,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             if (!_isLinked())
                 return FailWhenNotLinked<UceCanDriverLogPollResponse>();
 
-            return _sdctp.PollCanDriverLogAsync(DefaultCanController);
+            return _canControl.PollCanDriverLogAsync(DefaultCanController);
         }
 
         public Task<UceOperationResult<UceCanTxResponse>> SendCanAsync(bool extended, uint id, byte dlc, byte[] data, ushort periodMs)
@@ -252,6 +263,21 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             return diagnosticMessage != null || dataMessage != null;
         }
 
+        public bool TryProcessJ1939NetworkFrame(CanFrameDto frame, out J1939NetworkEventDto networkEvent)
+        {
+            networkEvent = null;
+            if (frame == null)
+                return false;
+
+            J1939DataLinkProcessingResultDto result = _j1939Protocol.ProcessCanFrame(frame);
+            return _j1939NetworkManagement.TryProcess(result, out networkEvent);
+        }
+
+        public System.Collections.Generic.IReadOnlyList<J1939AddressRegistryEntryDto> GetJ1939AddressRegistrySnapshot()
+        {
+            return _j1939NetworkManagement.AddressRegistry.GetSnapshot();
+        }
+
         public CanDiagnosticStatusDto GetCanDiagnosticStatus(UceCanStatusResponse canStatus)
         {
             bool hasFifoOverflow = _sdctp.HasDispatcherFifoOverflow;
@@ -259,7 +285,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             return new CanDiagnosticStatusDto
             {
                 MirrorStatusText = _sdctp.IsMirrorOutOfSync ? "OUT_OF_SYNC" : "OK",
-                SyncStatusText = _sdctp.IsSyncingReadAll ? "SYNCING_READ_ALL" : "Estável",
+                SyncStatusText = _sdctp.IsSyncingReadAll ? "SYNCING_SDCTP" : "Estável",
                 DispatcherStatusText = hasFifoOverflow ? "FIFO_OVERFLOW (count=" + fifoCount.ToString(System.Globalization.CultureInfo.InvariantCulture) + ")" : "OK",
                 DispatcherOverflowCount = fifoCount,
                 TableStatusText = "Não informado",
@@ -280,11 +306,6 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
         private void OnLedEventReceived(UceLedEvent ledEvent)
         {
             LedEventReceived?.Invoke(ledEvent);
-        }
-
-        private void OnCanRxEventReceived(UceCanRxEvent canRxEvent)
-        {
-            CanRxEventReceived?.Invoke(canRxEvent);
         }
 
         private void OnCanRxFrameAvailable(object sender, EventArgs e)
@@ -313,7 +334,6 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
                 return;
 
             _uceDispatcher.LedEventReceived -= OnLedEventReceived;
-            _uceDispatcher.CanRxEventReceived -= OnCanRxEventReceived;
             _uceDispatcher.DispatcherOverflowDiagnosticReceived -= OnDispatcherOverflowDiagnosticReceived;
             _sdctp.CanRxFrameAvailable -= OnCanRxFrameAvailable;
             _sdctp.CanRxTableChanged -= OnCanRxTableChanged;

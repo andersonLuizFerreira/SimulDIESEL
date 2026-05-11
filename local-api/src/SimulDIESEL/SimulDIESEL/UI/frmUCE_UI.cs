@@ -9,6 +9,7 @@ using SimulDIESEL.BLL.FormsLogic.UCE;
 using SimulDIESEL.DTL.Boards.UCE;
 using SimulDIESEL.DTL.Boards.UCE.Can;
 using SimulDIESEL.DTL.Protocols.J1939.Diagnostics;
+using SimulDIESEL.DTL.Protocols.J1939.NetworkManagement;
 using SimulDIESEL.DTL.Protocols.SDGW;
 
 namespace SimulDIESEL.UI
@@ -38,6 +39,9 @@ namespace SimulDIESEL.UI
         private TabPage _tabJ1939Data;
         private Button _btnJ1939DataClear;
         private DataGridView _dgJ1939Data;
+        private TabPage _tabJ1939Identification;
+        private Button _btnJ1939IdentificationClear;
+        private DataGridView _dgJ1939Identification;
         private readonly Dictionary<UiCanMonitorKey, UiCanMonitorRow> _canMonitorRowsByKey =
             new Dictionary<UiCanMonitorKey, UiCanMonitorRow>();
         private readonly List<UiCanMonitorRow> _canMonitorRows = new List<UiCanMonitorRow>();
@@ -46,6 +50,8 @@ namespace SimulDIESEL.UI
         private readonly List<UiJ1939DataRow> _j1939DataRows = new List<UiJ1939DataRow>();
         private readonly List<J1939DiagnosticMessageDto> _j1939DiagnosticMessages =
             new List<J1939DiagnosticMessageDto>();
+        private readonly List<UiJ1939IdentificationRow> _j1939IdentificationRows =
+            new List<UiJ1939IdentificationRow>();
 
         public frmUCE_UI()
         {
@@ -82,8 +88,10 @@ namespace SimulDIESEL.UI
             ConfigureCanRxGrid();
             ConfigureJ1939DiagnosticsTab();
             ConfigureJ1939DataTab();
+            ConfigureJ1939IdentificationTab();
             RefreshCanRxGrid();
             RefreshJ1939DataGrid();
+            RefreshJ1939IdentificationGrid();
             UpdateCanDiagnosticIndicators();
         }
 
@@ -118,6 +126,8 @@ namespace SimulDIESEL.UI
                 _btnReadJ1939FaultCodes.Click -= BtnReadJ1939FaultCodes_Click;
             if (_btnJ1939DataClear != null)
                 _btnJ1939DataClear.Click -= BtnJ1939DataClear_Click;
+            if (_btnJ1939IdentificationClear != null)
+                _btnJ1939IdentificationClear.Click -= BtnJ1939IdentificationClear_Click;
             _canDriverLogTimer.Stop();
             _canDriverLogTimer.Tick -= CanDriverLogTimer_Tick;
             _canDriverLogTimer.Dispose();
@@ -177,6 +187,10 @@ namespace SimulDIESEL.UI
             {
                 RefreshJ1939DataGrid();
             }
+            else if (ReferenceEquals(tabUCE.SelectedTab, _tabJ1939Identification))
+            {
+                RefreshJ1939IdentificationGrid();
+            }
         }
 
         private async void ChkLed_CheckedChanged(object sender, EventArgs e)
@@ -211,6 +225,7 @@ namespace SimulDIESEL.UI
                 RefreshCanRxGrid();
                 RefreshJ1939DiagnosticsGrid();
                 RefreshJ1939DataGrid();
+                RefreshJ1939IdentificationGrid();
             }
         }
 
@@ -225,6 +240,7 @@ namespace SimulDIESEL.UI
                 RefreshCanRxGrid();
                 RefreshJ1939DiagnosticsGrid();
                 RefreshJ1939DataGrid();
+                RefreshJ1939IdentificationGrid();
             }
 
             if (_j1939DiagnosticReadActive && DateTime.Now >= _j1939DiagnosticReadDeadline)
@@ -615,6 +631,51 @@ namespace SimulDIESEL.UI
             LayoutJ1939DataControls();
         }
 
+        private void ConfigureJ1939IdentificationTab()
+        {
+            if (_tabJ1939Identification != null)
+                return;
+
+            _tabJ1939Identification = new TabPage
+            {
+                Text = "Identificação J1939",
+                Name = "tabJ1939Identification",
+                Padding = new Padding(8)
+            };
+
+            _btnJ1939IdentificationClear = new Button
+            {
+                Text = "Limpar Identificação",
+                Width = 150,
+                Height = 28,
+                Location = new System.Drawing.Point(8, 8),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left
+            };
+            _btnJ1939IdentificationClear.Click += BtnJ1939IdentificationClear_Click;
+
+            _dgJ1939Identification = new DataGridView
+            {
+                AllowUserToAddRows = false,
+                AllowUserToDeleteRows = false,
+                AllowUserToResizeRows = false,
+                AutoGenerateColumns = false,
+                ReadOnly = true,
+                RowHeadersVisible = false,
+                MultiSelect = false,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                Location = new System.Drawing.Point(8, 44),
+                Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+            };
+
+            EnableDoubleBuffered(_dgJ1939Identification);
+            ConfigureJ1939IdentificationGridColumns();
+            _tabJ1939Identification.Controls.Add(_btnJ1939IdentificationClear);
+            _tabJ1939Identification.Controls.Add(_dgJ1939Identification);
+            _tabJ1939Identification.Resize += (sender, args) => LayoutJ1939IdentificationControls();
+            tabUCE.Controls.Add(_tabJ1939Identification);
+            LayoutJ1939IdentificationControls();
+        }
+
         private void ConfigureJ1939DiagnosticsGridColumns()
         {
             _dgJ1939Diagnostics.Columns.Add("TYPE", "Tipo");
@@ -642,6 +703,16 @@ namespace SimulDIESEL.UI
             _dgJ1939Data.Columns[3].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
         }
 
+        private void ConfigureJ1939IdentificationGridColumns()
+        {
+            _dgJ1939Identification.Columns.Add("ORIGIN", "Origem");
+            _dgJ1939Identification.Columns.Add("FIELD", "Campo");
+            _dgJ1939Identification.Columns.Add("HEX", "Valor Hex");
+            _dgJ1939Identification.Columns.Add("DEC", "Valor Dec");
+            _dgJ1939Identification.Columns.Add("DESCRIPTION", "Descrição");
+            _dgJ1939Identification.Columns[4].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+        }
+
         private void LayoutJ1939DiagnosticsControls()
         {
             if (_tabJ1939Diagnostics == null || _dgJ1939Diagnostics == null)
@@ -661,6 +732,16 @@ namespace SimulDIESEL.UI
             _dgJ1939Data.Size = new System.Drawing.Size(
                 Math.Max(80, _tabJ1939Data.ClientSize.Width - 16),
                 Math.Max(80, _tabJ1939Data.ClientSize.Height - _dgJ1939Data.Top - 8));
+        }
+
+        private void LayoutJ1939IdentificationControls()
+        {
+            if (_tabJ1939Identification == null || _dgJ1939Identification == null)
+                return;
+
+            _dgJ1939Identification.Size = new System.Drawing.Size(
+                Math.Max(80, _tabJ1939Identification.ClientSize.Width - 16),
+                Math.Max(80, _tabJ1939Identification.ClientSize.Height - _dgJ1939Identification.Top - 8));
         }
 
         private void RefreshCanRxGrid()
@@ -724,6 +805,13 @@ namespace SimulDIESEL.UI
             _dgJ1939Data.Rows.Clear();
         }
 
+        private void BtnJ1939IdentificationClear_Click(object sender, EventArgs e)
+        {
+            _j1939IdentificationRows.Clear();
+            if (_dgJ1939Identification != null)
+                _dgJ1939Identification.Rows.Clear();
+        }
+
         private async void BtnReadJ1939FaultCodes_Click(object sender, EventArgs e)
         {
             _btnReadJ1939FaultCodes.Enabled = false;
@@ -773,8 +861,9 @@ namespace SimulDIESEL.UI
         {
             J1939DiagnosticMessageDto diagnostic;
             J1939DataMonitorMessageDto dataMessage;
+            J1939NetworkEventDto networkEvent;
             if (!_logic.TryDecodeJ1939Frame(frame, out diagnostic, out dataMessage))
-                return;
+                diagnostic = null;
 
             if (diagnostic != null)
             {
@@ -785,6 +874,9 @@ namespace SimulDIESEL.UI
 
             if (dataMessage != null)
                 UpdateJ1939DataRow(dataMessage);
+
+            if (_logic.TryProcessJ1939NetworkFrame(frame, out networkEvent) && networkEvent != null && networkEvent.AddressClaim != null)
+                RebuildJ1939IdentificationRows();
         }
 
         private void RefreshJ1939DiagnosticsGrid()
@@ -871,12 +963,64 @@ namespace SimulDIESEL.UI
                 PopulateJ1939DataGridRow(_dgJ1939Data.Rows[index], _j1939DataRows[index]);
         }
 
+        private void RebuildJ1939IdentificationRows()
+        {
+            _j1939IdentificationRows.Clear();
+
+            foreach (J1939AddressRegistryEntryDto entry in _logic.GetJ1939AddressRegistrySnapshot())
+                AddJ1939IdentificationRows(entry);
+        }
+
+        private void AddJ1939IdentificationRows(J1939AddressRegistryEntryDto entry)
+        {
+            if (entry == null || entry.ParsedName == null)
+                return;
+
+            string origin = "0x" + entry.SourceAddress.ToString("X2", CultureInfo.InvariantCulture);
+            J1939NameDto name = entry.ParsedName;
+
+            _j1939IdentificationRows.Add(CreateJ1939IdentificationRow(origin, "NAME", "0x" + name.NameHex, "-", "Address Claimed Name"));
+            _j1939IdentificationRows.Add(CreateJ1939IdentificationRow(origin, "Identity Number", FormatHex(name.IdentityNumber), name.IdentityNumber.ToString(CultureInfo.InvariantCulture), string.Empty));
+            _j1939IdentificationRows.Add(CreateJ1939IdentificationRow(origin, "Manufacturer Code", FormatHex(name.ManufacturerCode), name.ManufacturerCode.ToString(CultureInfo.InvariantCulture), "Desconhecido"));
+            _j1939IdentificationRows.Add(CreateJ1939IdentificationRow(origin, "ECU Instance", FormatHex(name.EcuInstance), name.EcuInstance.ToString(CultureInfo.InvariantCulture), string.Empty));
+            _j1939IdentificationRows.Add(CreateJ1939IdentificationRow(origin, "Function Instance", FormatHex(name.FunctionInstance), name.FunctionInstance.ToString(CultureInfo.InvariantCulture), string.Empty));
+            _j1939IdentificationRows.Add(CreateJ1939IdentificationRow(origin, "Function", FormatHex(name.Function), name.Function.ToString(CultureInfo.InvariantCulture), "Desconhecido"));
+            _j1939IdentificationRows.Add(CreateJ1939IdentificationRow(origin, "Vehicle System", FormatHex(name.VehicleSystem), name.VehicleSystem.ToString(CultureInfo.InvariantCulture), "Desconhecido"));
+            _j1939IdentificationRows.Add(CreateJ1939IdentificationRow(origin, "Vehicle System Instance", FormatHex(name.VehicleSystemInstance), name.VehicleSystemInstance.ToString(CultureInfo.InvariantCulture), string.Empty));
+            _j1939IdentificationRows.Add(CreateJ1939IdentificationRow(origin, "Industry Group", FormatHex(name.IndustryGroup), name.IndustryGroup.ToString(CultureInfo.InvariantCulture), "Desconhecido"));
+            _j1939IdentificationRows.Add(CreateJ1939IdentificationRow(origin, "Arbitrary Address Capable", FormatHex((byte)(name.IsArbitraryAddressCapable ? 1 : 0)), name.IsArbitraryAddressCapable ? "1" : "0", name.IsArbitraryAddressCapable ? "Sim" : "Nao"));
+        }
+
+        private void RefreshJ1939IdentificationGrid()
+        {
+            if (_dgJ1939Identification == null)
+                return;
+
+            while (_dgJ1939Identification.Rows.Count < _j1939IdentificationRows.Count)
+                _dgJ1939Identification.Rows.Add();
+
+            while (_dgJ1939Identification.Rows.Count > _j1939IdentificationRows.Count)
+                _dgJ1939Identification.Rows.RemoveAt(_dgJ1939Identification.Rows.Count - 1);
+
+            for (int index = 0; index < _j1939IdentificationRows.Count; ++index)
+                PopulateJ1939IdentificationGridRow(_dgJ1939Identification.Rows[index], _j1939IdentificationRows[index]);
+        }
+
         private static void PopulateJ1939DataGridRow(DataGridViewRow gridRow, UiJ1939DataRow row)
         {
             gridRow.Cells[0].Value = "0x" + row.Key.SourceAddress.ToString("X2", CultureInfo.InvariantCulture);
             gridRow.Cells[1].Value = row.DestinationDisplay;
             gridRow.Cells[2].Value = "0x" + row.FormattedPgn;
             gridRow.Cells[3].Value = FormatPayload(row.Data);
+        }
+
+        private static void PopulateJ1939IdentificationGridRow(DataGridViewRow gridRow, UiJ1939IdentificationRow row)
+        {
+            gridRow.Cells[0].Value = row.Origin;
+            gridRow.Cells[1].Value = row.Field;
+            gridRow.Cells[2].Value = row.HexValue;
+            gridRow.Cells[3].Value = row.DecimalValue;
+            gridRow.Cells[4].Value = row.Description;
         }
 
         private void UpdateCanMonitorRow(CanFrameDto frame)
@@ -1224,6 +1368,15 @@ namespace SimulDIESEL.UI
             public DateTime LastUpdate { get; set; }
         }
 
+        private sealed class UiJ1939IdentificationRow
+        {
+            public string Origin { get; set; }
+            public string Field { get; set; }
+            public string HexValue { get; set; }
+            public string DecimalValue { get; set; }
+            public string Description { get; set; }
+        }
+
         private async Task StopCanTxAsync()
         {
             UceOperationResult<UceCanTxStopResponse> result = await _logic
@@ -1405,6 +1558,38 @@ namespace SimulDIESEL.UI
             }
 
             return builder.ToString();
+        }
+
+        private static UiJ1939IdentificationRow CreateJ1939IdentificationRow(
+            string origin,
+            string field,
+            string hexValue,
+            string decimalValue,
+            string description)
+        {
+            return new UiJ1939IdentificationRow
+            {
+                Origin = origin,
+                Field = field,
+                HexValue = hexValue,
+                DecimalValue = string.IsNullOrWhiteSpace(decimalValue) ? "-" : decimalValue,
+                Description = string.IsNullOrWhiteSpace(description) ? string.Empty : description
+            };
+        }
+
+        private static string FormatHex(uint value)
+        {
+            return "0x" + value.ToString("X", CultureInfo.InvariantCulture);
+        }
+
+        private static string FormatHex(ushort value)
+        {
+            return "0x" + value.ToString("X", CultureInfo.InvariantCulture);
+        }
+
+        private static string FormatHex(byte value)
+        {
+            return "0x" + value.ToString("X", CultureInfo.InvariantCulture);
         }
 
         private static string FormatPayload(byte[] data)

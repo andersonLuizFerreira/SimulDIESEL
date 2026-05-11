@@ -182,10 +182,7 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
                 }
                 else if (string.Equals(command.Op, "readAll", StringComparison.OrdinalIgnoreCase))
                 {
-                    // O contrato atual da UCE para CAN_READ_ALL (0x43) transporta apenas o TLV
-                    // sem value payload. O argumento SDH controller permanece obrigatório no
-                    // validator para manter a intenção semântica alinhada ao client.
-                    payload = BuildTlvPayload(GwProtocol.UceCanReadAllType);
+                    throw new NotSupportedException("Mapeamento SDH->SDGW nao suporta CAN_READ_ALL legado. Use snapshot/buffer SDCTP.");
                 }
                 else
                 {

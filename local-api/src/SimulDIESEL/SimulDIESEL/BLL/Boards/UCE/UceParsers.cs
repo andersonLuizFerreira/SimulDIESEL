@@ -349,112 +349,6 @@ namespace SimulDIESEL.BLL.Boards.UCE
             return true;
         }
 
-        public static bool TryReadCanRxEvent(SdgwFrame frame, out UceCanRxEvent rxEvent, out string error)
-        {
-            rxEvent = null;
-
-            byte[] data;
-            if (!TryReadVariableTlv(frame, GwProtocol.UceCanRxEventType, "evento CAN_RX da UCE", out data, out error))
-                return false;
-
-            if (data.Length < GwProtocol.UceCanRxEventHeaderLength)
-            {
-                error = "Evento CAN_RX da UCE sem controller/count.";
-                return false;
-            }
-
-            UceCanController controller;
-            if (!UceCanProtocol.TryDecodeController(data[0], out controller))
-            {
-                error = "Evento CAN_RX da UCE com controller CAN inválido.";
-                return false;
-            }
-
-            byte count = data[1];
-            if (count > GwProtocol.UceCanRxEventMaxFrames)
-            {
-                error = "Evento CAN_RX da UCE excedeu o limite de frames.";
-                return false;
-            }
-
-            int expectedLength = GwProtocol.UceCanRxEventHeaderLength + (count * GwProtocol.UceCanRxFrameLength);
-            if (data.Length != expectedLength)
-            {
-                error = "Evento CAN_RX da UCE com tamanho incompatível com a quantidade de frames.";
-                return false;
-            }
-
-            var frames = new List<UceCanFrame>(count);
-            int offset = GwProtocol.UceCanRxEventHeaderLength;
-            for (int i = 0; i < count; ++i)
-            {
-                uint rawId = data[offset] |
-                             ((uint)data[offset + 1] << 8) |
-                             ((uint)data[offset + 2] << 16) |
-                             ((uint)data[offset + 3] << 24);
-                byte flags = data[offset + 4];
-                byte dlc = data[offset + 5];
-                if ((flags & 0xFC) != 0)
-                {
-                    error = "Evento CAN_RX da UCE com flags reservados preenchidos.";
-                    return false;
-                }
-
-                if (dlc > 8)
-                {
-                    error = "Evento CAN_RX da UCE com DLC inválido.";
-                    return false;
-                }
-
-                bool extended = (flags & 0x01) != 0;
-                uint id = rawId & (extended ? 0x1FFFFFFFU : 0x7FFU);
-                byte[] payload = new byte[8];
-                Buffer.BlockCopy(data, offset + 6, payload, 0, 8);
-                frames.Add(new UceCanFrame
-                {
-                    Id = id,
-                    Extended = extended,
-                    RemoteRequest = (flags & 0x02) != 0,
-                    Dlc = dlc,
-                    Data = payload
-                });
-
-                offset += GwProtocol.UceCanRxFrameLength;
-            }
-
-            rxEvent = new UceCanRxEvent
-            {
-                Controller = controller,
-                Frames = frames
-            };
-
-            return true;
-        }
-
-        public static bool TryReadCanCrudEvent(SdgwFrame frame, out byte eventType, out byte[] payload, out string error)
-        {
-            eventType = 0;
-            payload = null;
-            error = null;
-
-            if (frame?.Payload == null || frame.Payload.Length < 2)
-                return false;
-
-            switch (frame.Payload[0])
-            {
-                case GwProtocol.UceCanCreateType:
-                case GwProtocol.UceCanEditType:
-                case GwProtocol.UceCanDeleteType:
-                case GwProtocol.UceCanRowType:
-                case GwProtocol.UceCanReadAllDoneType:
-                case GwProtocol.UceCanTicType:
-                    eventType = frame.Payload[0];
-                    return TryReadVariableTlv(frame, eventType, "evento CAN CRUD da UCE", out payload, out error);
-                default:
-                    return false;
-            }
-        }
-
         public static bool TryReadTransportDiagnosticEvent(SdgwFrame frame, out UceDispatcherOverflowDiagnostic diagnostic, out string error)
         {
             diagnostic = null;
@@ -612,22 +506,6 @@ namespace SimulDIESEL.BLL.Boards.UCE
             {
                 Controller = controller,
                 TxStatus = data[1]
-            };
-
-            return true;
-        }
-
-        public static bool TryReadCanReadAllResponse(SdgwFrame frame, out UceCanReadAllResponse response, out string error)
-        {
-            response = null;
-
-            byte[] data;
-            if (!TryReadTlv(frame, GwProtocol.UceCanReadAllType, GwProtocol.UceCanReadAllPayloadLength, "solicitação CAN_READ_ALL da UCE", out data, out error))
-                return false;
-
-            response = new UceCanReadAllResponse
-            {
-                Accepted = true
             };
 
             return true;

@@ -11,7 +11,6 @@ namespace SimulDIESEL.BLL.Services.CAN.SDCTP
         public const byte CanCreate = GwProtocol.UceCanCreateType;
         public const byte CanEdit = GwProtocol.UceCanEditType;
         public const byte CanDelete = GwProtocol.UceCanDeleteType;
-        public const byte CanReadAll = GwProtocol.UceCanReadAllType;
         public const byte CanRow = GwProtocol.UceCanRowType;
         public const byte CanReadAllDone = GwProtocol.UceCanReadAllDoneType;
         public const byte CanTic = GwProtocol.UceCanTicType;

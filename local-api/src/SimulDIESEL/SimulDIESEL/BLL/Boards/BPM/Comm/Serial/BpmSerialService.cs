@@ -69,6 +69,7 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
         public IGsaDispatcher GsaDispatcher { get; private set; }
         public UceClient Uce { get; private set; }
         public IUceDispatcher UceDispatcher { get; private set; }
+        public CanControlApiService CanControl { get; private set; }
         public SdctpApiService Sdctp { get; private set; }
         [Obsolete("Use Sdctp, the official SDCTP API service.")]
         public ApiCanService ApiCan { get { return Sdctp != null ? Sdctp.InnerApiCanService : null; } }
@@ -107,6 +108,7 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
             Uce = new UceClient(Sdh, Sdgw);
             GsaDispatcher = new GsaDispatcher(Gsa);
             UceDispatcher = new UceDispatcher(Uce);
+            CanControl = new CanControlApiService(UceDispatcher);
             Sdctp = new SdctpApiService(UceDispatcher);
             BoardDispatcher = new BoardDispatcher(UceDispatcher, GsaDispatcher);
             Bpm = new BpmClient(Sdh, this, Backplane, XConn);
@@ -200,6 +202,7 @@ namespace SimulDIESEL.BLL.Boards.BPM.Comm.Serial
             GsaDispatcher = null;
             Uce = null;
             UceDispatcher = null;
+            CanControl = null;
             Sdctp = null;
             BoardDispatcher = null;
             Bpm = null;

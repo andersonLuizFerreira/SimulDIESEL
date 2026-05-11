@@ -1,8 +1,10 @@
 using System;
 using System.Threading.Tasks;
 using SimulDIESEL.BLL.Boards;
+using SimulDIESEL.BLL.Services.CAN.SDCTP;
 using SimulDIESEL.DAL.Protocols.SDGW;
 using SimulDIESEL.DTL.Boards.UCE;
+using SimulDIESEL.DTL.Protocols.SDCTP;
 using SimulDIESEL.DTL.Protocols.SDGW;
 
 namespace SimulDIESEL.BLL.Boards.UCE
@@ -29,8 +31,7 @@ namespace SimulDIESEL.BLL.Boards.UCE
         }
 
         public event Action<UceLedEvent> LedEventReceived;
-        public event Action<UceCanRxEvent> CanRxEventReceived;
-        public event Action<byte, byte[]> CanCrudEventReceived;
+        public event Action<SdctpRawEventDto> SdctpRawEventReceived;
         public event Action<UceDispatcherOverflowDiagnostic> DispatcherOverflowDiagnosticReceived;
 
         public async Task<UceCommandResult> SetBuiltinLedAsync(bool on)
@@ -111,14 +112,12 @@ namespace SimulDIESEL.BLL.Boards.UCE
                 UceParsers.TryReadCanRxPollResponse);
         }
 
+        [Obsolete("CAN_READ_ALL e legado. Use fluxo SDCTP por GetRxSnapshot/TryReadRxFrame.")]
         public Task<UceOperationResult<UceCanReadAllResponse>> RequestCanReadAllAsync(string controller)
         {
-            return ExecuteOperationAsync<UceCanReadAllResponse>(
-                CreateCanReadAllCommand(controller),
-                GwProtocol.UceCanReadAllType,
-                GwProtocol.UceCanReadAllPayloadLength,
-                "snapshot CAN_READ_ALL da UCE",
-                UceParsers.TryReadCanReadAllResponse);
+            // TODO ETAPA 04: legado mantido temporariamente apenas para compatibilidade binaria. Nao enviar CAN_READ_ALL.
+            return Task.FromResult(UceOperationResult<UceCanReadAllResponse>.Fail(
+                "CAN_READ_ALL e legado. Use snapshot/buffer SDCTP."));
         }
 
         public Task<UceOperationResult<UceCanDriverLogPollResponse>> PollCanDriverLogAsync(string controller)
@@ -299,20 +298,11 @@ namespace SimulDIESEL.BLL.Boards.UCE
                 return;
             }
 
-            UceCanRxEvent canRxEvent;
-            string canRxError;
-            if (UceParsers.TryReadCanRxEvent(frame, out canRxEvent, out canRxError))
+            SdctpRawEventDto sdctpRawEvent;
+            string sdctpRawError;
+            if (SdctpEventParser.TryReadRawEvent(frame, out sdctpRawEvent, out sdctpRawError))
             {
-                CanRxEventReceived?.Invoke(canRxEvent);
-                return;
-            }
-
-            byte eventType;
-            byte[] payload;
-            string canCrudError;
-            if (UceParsers.TryReadCanCrudEvent(frame, out eventType, out payload, out canCrudError))
-            {
-                CanCrudEventReceived?.Invoke(eventType, payload);
+                SdctpRawEventReceived?.Invoke(sdctpRawEvent);
                 return;
             }
 
@@ -466,18 +456,6 @@ namespace SimulDIESEL.BLL.Boards.UCE
             {
                 Target = "UCE.can.rx",
                 Op = "poll"
-            };
-
-            command.Args["controller"] = controller;
-            return command;
-        }
-
-        private static SdhCommand CreateCanReadAllCommand(string controller)
-        {
-            var command = new SdhCommand
-            {
-                Target = "UCE.can.rx",
-                Op = "readAll"
             };
 
             command.Args["controller"] = controller;

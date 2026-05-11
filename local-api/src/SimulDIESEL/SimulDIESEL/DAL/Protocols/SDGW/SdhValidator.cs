@@ -217,13 +217,6 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
                     return;
                 }
 
-                if (string.Equals(command.Op, "readAll", StringComparison.OrdinalIgnoreCase))
-                {
-                    RequireArgCount(command, 1);
-                    RequireControllerArg(command);
-                    return;
-                }
-
                 throw new NotSupportedException("Op SDH não suportada para " + command.Target + ": " + command.Op + ".");
             }
 

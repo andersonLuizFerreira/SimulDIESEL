@@ -90,12 +90,14 @@
     <Compile Include="BLL\Boards\UCE\UceOperationResult.cs" />
     <Compile Include="BLL\Boards\UCE\UceParsers.cs" />
     <Compile Include="BLL\Services\CAN\ApiCanService.cs" />
+    <Compile Include="BLL\Services\CAN\CanControlApiService.cs" />
     <Compile Include="BLL\Services\CAN\CanEventProcessor.cs" />
     <Compile Include="BLL\Services\CAN\CanRxOutputBuffer.cs" />
     <Compile Include="BLL\Services\CAN\CanRxMirrorManager.cs" />
     <Compile Include="BLL\Services\CAN\CanTxManager.cs" />
     <Compile Include="BLL\Services\CAN\SDCTP\SdctpApiService.cs" />
     <Compile Include="BLL\Services\CAN\SDCTP\SdctpDiagnostics.cs" />
+    <Compile Include="BLL\Services\CAN\SDCTP\SdctpEventParser.cs" />
     <Compile Include="BLL\Services\CAN\SDCTP\SdctpEventProcessor.cs" />
     <Compile Include="BLL\Services\CAN\SDCTP\SdctpProtocol.cs" />
     <Compile Include="BLL\Services\CAN\SDCTP\SdctpRxMirrorManager.cs" />
@@ -171,7 +173,6 @@
     <Compile Include="DTL\Boards\UCE\Can\CanDeleteDto.cs" />
     <Compile Include="DTL\Boards\UCE\Can\CanEditDto.cs" />
     <Compile Include="DTL\Boards\UCE\Can\CanFrameDto.cs" />
-    <Compile Include="DTL\Boards\UCE\Can\CanReadAllResponseDto.cs" />
     <Compile Include="DTL\Boards\UCE\Can\CanRowDto.cs" />
     <Compile Include="DTL\Boards\UCE\Can\CanTicDto.cs" />
     <Compile Include="DTL\Boards\UCE\Can\CanTxRowDto.cs" />
@@ -206,6 +207,7 @@
     <Compile Include="DTL\Protocols\J1939\NetworkManagement\J1939NetworkEventDto.cs" />
     <Compile Include="DTL\Protocols\J1939\NetworkManagement\J1939WorkingSetDto.cs" />
     <Compile Include="DTL\Protocols\J1939\NetworkManagement\J1939WorkingSetMemberDto.cs" />
+    <Compile Include="DTL\Protocols\SDCTP\SdctpRawEventDto.cs" />
     <Compile Include="DTL\Protocols\SDGW\GwProtocol.cs" />
     <Compile Include="DTL\Protocols\SDGW\SdhCommand.cs" />
     <Compile Include="DTL\Protocols\SDGW\SdhResponse.cs" />
