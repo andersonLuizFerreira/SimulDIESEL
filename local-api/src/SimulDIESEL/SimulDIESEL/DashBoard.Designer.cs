@@ -46,6 +46,8 @@
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripConectar = new System.Windows.Forms.ToolStripButton();
             this.toolStripBluetooth = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparatorRedeCan = new System.Windows.Forms.ToolStripSeparator();
+            this.btnRedeCan = new System.Windows.Forms.ToolStripButton();
             this.statusStrip1.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -166,7 +168,9 @@
             this.toolStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripConectar,
-            this.toolStripBluetooth});
+            this.toolStripBluetooth,
+            this.toolStripSeparatorRedeCan,
+            this.btnRedeCan});
             this.toolStrip1.Location = new System.Drawing.Point(0, 28);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(857, 47);
@@ -194,7 +198,26 @@
             this.toolStripBluetooth.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.toolStripBluetooth.ToolTipText = "Conectar via Bluetooth";
             this.toolStripBluetooth.Click += new System.EventHandler(this.toolStripBluetooth_Click);
-            // 
+            //
+            // toolStripSeparatorRedeCan
+            //
+            this.toolStripSeparatorRedeCan.Name = "toolStripSeparatorRedeCan";
+            this.toolStripSeparatorRedeCan.Size = new System.Drawing.Size(6, 47);
+            //
+            // btnRedeCan
+            //
+            this.btnRedeCan.AutoSize = false;
+            this.btnRedeCan.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.ImageAndText;
+            this.btnRedeCan.Image = ((System.Drawing.Image)(global::SimulDIESEL.Properties.Resources.ResourceManager.GetObject("Rede_can_toolbar_ico")));
+            this.btnRedeCan.ImageTransparentColor = System.Drawing.Color.White;
+            this.btnRedeCan.Name = "btnRedeCan";
+            this.btnRedeCan.Size = new System.Drawing.Size(69, 44);
+            this.btnRedeCan.Text = "Rede CAN";
+            this.btnRedeCan.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.btnRedeCan.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.btnRedeCan.ToolTipText = "Rede CAN";
+            this.btnRedeCan.Click += new System.EventHandler(this.btnRedeCan_Click);
+            //
             // DashBoard
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -229,6 +252,8 @@
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripButton toolStripConectar;
         private System.Windows.Forms.ToolStripButton toolStripBluetooth;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparatorRedeCan;
+        private System.Windows.Forms.ToolStripButton btnRedeCan;
         private System.Windows.Forms.ToolStripStatusLabel tsLabelSerial;
         private System.Windows.Forms.ToolStripStatusLabel tsLedSerial;
         private System.Windows.Forms.ToolStripStatusLabel tsSeparador1;

@@ -100,6 +100,10 @@ namespace SimulDIESEL
             }
         }
 
+        private void btnRedeCan_Click(object sender, EventArgs e)
+        {
+        }
+
         private void AtualizarBotoesConexao()
         {
             BpmStatusDto status = _bpmLogic.GetStatus();

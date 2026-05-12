@@ -327,6 +327,8 @@
     <None Include="RESOURCES\LedGreenDark_18x18.png" />
     <None Include="RESOURCES\LedGreenBright_18x18.png" />
     <None Include="RESOURCES\LedGrayOff_18x18.png" />
+    <None Include="RESOURCES\Rede_can_ico.png" />
+    <None Include="RESOURCES\Rede_can_toolbar_ico.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="RESOURCES\VERDE OFF.png" />

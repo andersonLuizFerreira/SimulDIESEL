@@ -1,10 +1,10 @@
-# Levantamento Arquitetural SDH / SDTPC / SDGW / UCE Dispatcher / CanService
+# Levantamento Arquitetural SDH / SDCTP / SDGW / UCE Dispatcher / CanService
 
 Data do levantamento: 2026-05-11
 
-Escopo: API C# em `local-api/src/SimulDIESEL/SimulDIESEL`, firmware UCE e firmware BPM relacionados a SDH, SDGW, Dispatcher UCE, CAN, SDCTP/SDTPC e J1939.
+Escopo: API C# em `local-api/src/SimulDIESEL/SimulDIESEL`, firmware UCE e firmware BPM relacionados a SDH, SDGW, Dispatcher UCE, CAN, SDCTP e J1939.
 
-Observacao de nomenclatura: no codigo atual o nome formal encontrado e majoritariamente `SDCTP` (SimulDIESEL CAN Transport Protocol). O termo `SDTPC` aparece no enunciado arquitetural, mas nao foi encontrado como contrato formal no codigo analisado.
+Terminologia oficial: `SDCTP` = SimulDIESEL CAN Transport Protocol.
 
 ## 1. Resumo Executivo
 
@@ -309,12 +309,12 @@ J1939:
 - Existem comandos de controle fora do SDH?
   - No caminho API analisado, comandos UCE passam por `UceClient`/SDH. A ambiguidade e de nomenclatura: chamadas de controle passam por `SdctpApiService` antes de chegar ao dispatcher.
 
-## 8. Diagnostico SDTPC
+## 8. Diagnostico SDCTP
 
 - Existe protocolo formal para massa CAN?
-  - Sim. O nome formal encontrado e `SDCTP`, nao `SDTPC`.
+  - Sim. O nome oficial e `SDCTP` = SimulDIESEL CAN Transport Protocol.
 
-- O nome usado no codigo e SDTPC, SDCTP, CanCrudProtocol ou outro?
+- O nome usado no codigo e SDCTP, CanCrudProtocol ou outro?
   - API: `BLL/Services/CAN/SDCTP/*`, `SdctpApiService`, `SdctpProtocol`, `SdctpEventProcessor`, `SdctpRxMirrorManager`.
   - Firmware UCE: `services/can/sdctp/*`, `SdctpService`, `SdctpCodec`, `SdctpProtocol`.
   - Implementacao historica/subjacente: `ApiCanService`, `CanEventProcessor`, `CanRxMirrorManager`, `CanRxOutputBuffer`, `CanTxManager`, `CanCrudProtocol`, `CanService`.
@@ -369,7 +369,7 @@ Nao implementar nesta etapa.
 
 ETAPA 01 - Congelar contratos atuais e documentar nomes oficiais
 
-- Decidir oficialmente entre `SDCTP` e `SDTPC`.
+- Documentar oficialmente `SDCTP` como SimulDIESEL CAN Transport Protocol.
 - Documentar que `CanCrudProtocol` e codec interno do protocolo oficial, se essa for a decisao.
 - Documentar quais codigos TLV pertencem a SDH/controle, SDCTP/massa, SDGW/erro.
 
@@ -507,12 +507,11 @@ O que esta ambiguo:
 
 - Se `CAN_TX_DIRECT`, `CAN_TX_CREATE`, `CAN_TX_EDIT`, `CAN_TX_DELETE` devem ser SDH/controle operacional ou SDCTP/TX table. O codigo atual trata como comando SDH que passa por CanService.
 - Se `CAN_READ_ALL` deve ser considerado comando SDH de solicitacao ou parte integral do protocolo SDCTP. Atualmente e um comando SDH que dispara eventos SDCTP.
-- Se o nome oficial deve ser `SDCTP` ou `SDTPC`.
 - Se a UI logic deve continuar sendo dona da decodificacao J1939 ou se deve existir uma camada de consumidores de protocolo acima do buffer CAN.
 
 O que precisa ser decidido antes de alterar codigo:
 
-- Nome oficial do protocolo de massa CAN: `SDCTP` versus `SDTPC`.
+- Nome oficial do protocolo de massa CAN: `SDCTP` = SimulDIESEL CAN Transport Protocol.
 - Lista oficial de TLVs pertencentes a SDH, SDCTP e SDGW.
 - Fronteira de TX CAN: comando de operacao SDH ou parte de SDCTP.
 - Fronteira do dispatcher: parser detalhado de eventos CAN ou roteador por dominio.
