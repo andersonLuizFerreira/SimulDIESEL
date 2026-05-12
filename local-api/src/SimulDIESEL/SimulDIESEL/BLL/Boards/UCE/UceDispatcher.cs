@@ -1,14 +1,14 @@
 using System;
 using System.Threading.Tasks;
 using SimulDIESEL.DTL.Boards.UCE;
+using SimulDIESEL.DTL.Protocols.SDCTP;
 
 namespace SimulDIESEL.BLL.Boards.UCE
 {
     public interface IUceDispatcher
     {
         event Action<UceLedEvent> LedEventReceived;
-        event Action<UceCanRxEvent> CanRxEventReceived;
-        event Action<byte, byte[]> CanCrudEventReceived;
+        event Action<SdctpRawEventDto> SdctpRawEventReceived;
         event Action<UceDispatcherOverflowDiagnostic> DispatcherOverflowDiagnosticReceived;
 
         Task<UceCommandResult> SetBuiltinLedAsync(bool on);
@@ -18,6 +18,7 @@ namespace SimulDIESEL.BLL.Boards.UCE
         Task<UceOperationResult<UceCanStatusResponse>> GetCanStatusAsync(string controller);
         Task<UceOperationResult<UceCanResetResponse>> ResetCanAsync(string controller);
         Task<UceOperationResult<UceCanRxPollResponse>> PollCanRxAsync(string controller);
+        [Obsolete("CAN_READ_ALL e legado. Use fluxo SDCTP por GetRxSnapshot/TryReadRxFrame.")]
         Task<UceOperationResult<UceCanReadAllResponse>> RequestCanReadAllAsync(string controller);
         Task<UceOperationResult<UceCanDriverLogPollResponse>> PollCanDriverLogAsync(string controller);
         [Obsolete("Use SdctpApiService.SendDirectAsync / CAN_TX_DIRECT 0x50, or SDCTP TX table methods.")]
@@ -37,14 +38,12 @@ namespace SimulDIESEL.BLL.Boards.UCE
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _client.LedEventReceived += OnLedEventReceived;
-            _client.CanRxEventReceived += OnCanRxEventReceived;
-            _client.CanCrudEventReceived += OnCanCrudEventReceived;
+            _client.SdctpRawEventReceived += OnSdctpRawEventReceived;
             _client.DispatcherOverflowDiagnosticReceived += OnDispatcherOverflowDiagnosticReceived;
         }
 
         public event Action<UceLedEvent> LedEventReceived;
-        public event Action<UceCanRxEvent> CanRxEventReceived;
-        public event Action<byte, byte[]> CanCrudEventReceived;
+        public event Action<SdctpRawEventDto> SdctpRawEventReceived;
         public event Action<UceDispatcherOverflowDiagnostic> DispatcherOverflowDiagnosticReceived;
 
         public Task<UceCommandResult> SetBuiltinLedAsync(bool on)
@@ -82,6 +81,7 @@ namespace SimulDIESEL.BLL.Boards.UCE
             return _client.PollCanRxAsync(controller);
         }
 
+        [Obsolete("CAN_READ_ALL e legado. Use fluxo SDCTP por GetRxSnapshot/TryReadRxFrame.")]
         public Task<UceOperationResult<UceCanReadAllResponse>> RequestCanReadAllAsync(string controller)
         {
             return _client.RequestCanReadAllAsync(controller);
@@ -128,14 +128,9 @@ namespace SimulDIESEL.BLL.Boards.UCE
             LedEventReceived?.Invoke(ledEvent);
         }
 
-        private void OnCanRxEventReceived(UceCanRxEvent canRxEvent)
+        private void OnSdctpRawEventReceived(SdctpRawEventDto rawEvent)
         {
-            CanRxEventReceived?.Invoke(canRxEvent);
-        }
-
-        private void OnCanCrudEventReceived(byte type, byte[] payload)
-        {
-            CanCrudEventReceived?.Invoke(type, payload);
+            SdctpRawEventReceived?.Invoke(rawEvent);
         }
 
         private void OnDispatcherOverflowDiagnosticReceived(UceDispatcherOverflowDiagnostic diagnostic)

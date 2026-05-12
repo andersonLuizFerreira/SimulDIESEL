@@ -1,9 +1,20 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using SimulDIESEL.DTL.Protocols.SDGW;
 
 namespace SimulDIESEL.DAL.Protocols.SDGW
 {
+    public sealed class SdhCommandValidationResult
+    {
+        public bool IsValid { get; set; }
+        public string ErrorCode { get; set; }
+        public string Message { get; set; }
+        public string Target { get; set; }
+        public string Op { get; set; }
+        public List<string> InvalidArgs { get; set; } = new List<string>();
+    }
+
     public sealed class SdhValidator
     {
         private const string SupportedVersion = "sdh/1";
@@ -53,6 +64,53 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
             }
 
             throw new NotSupportedException("Target SDH não suportado nesta fase: " + command.Target + ".");
+        }
+
+        public SdhCommandValidationResult ValidateOnly(SdhCommand command)
+        {
+            var result = new SdhCommandValidationResult
+            {
+                Target = command != null ? command.Target : null,
+                Op = command != null ? command.Op : null
+            };
+
+            try
+            {
+                Validate(command);
+                result.IsValid = true;
+                result.ErrorCode = "OK";
+                result.Message = "Comando SDH válido.";
+                return result;
+            }
+            catch (ArgumentNullException ex)
+            {
+                result.IsValid = false;
+                result.ErrorCode = "MISSING_COMMAND";
+                result.Message = ex.Message;
+                return result;
+            }
+            catch (NotSupportedException ex)
+            {
+                result.IsValid = false;
+                result.ErrorCode = "UNSUPPORTED";
+                result.Message = ex.Message;
+                return result;
+            }
+            catch (InvalidOperationException ex)
+            {
+                result.IsValid = false;
+                result.ErrorCode = "INVALID_ARG";
+                result.Message = ex.Message;
+                AddInvalidArgIfMentioned(result.InvalidArgs, ex.Message);
+                return result;
+            }
+            catch (ArgumentException ex)
+            {
+                result.IsValid = false;
+                result.ErrorCode = "INVALID_TARGET";
+                result.Message = ex.Message;
+                return result;
+            }
         }
 
         private static void ValidateUceCommand(SdhTarget target, SdhCommand command)
@@ -124,10 +182,12 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
             if (string.Equals(target.Subresource, "config", StringComparison.OrdinalIgnoreCase))
             {
                 RequireOp(command, "set");
-                RequireArgCount(command, 3);
+                RequireArgCount(command, command.Args.ContainsKey("rxMode") ? 4 : 3);
                 RequireControllerArg(command);
                 RequireCanBitrateArg(command);
                 RequireCanModeArg(command);
+                if (command.Args.ContainsKey("rxMode"))
+                    RequireCanRxModeArg(command);
                 return;
             }
 
@@ -150,10 +210,14 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
 
             if (string.Equals(target.Subresource, "rx", StringComparison.OrdinalIgnoreCase))
             {
-                RequireOp(command, "poll");
-                RequireArgCount(command, 1);
-                RequireControllerArg(command);
-                return;
+                if (string.Equals(command.Op, "poll", StringComparison.OrdinalIgnoreCase))
+                {
+                    RequireArgCount(command, 1);
+                    RequireControllerArg(command);
+                    return;
+                }
+
+                throw new NotSupportedException("Op SDH não suportada para " + command.Target + ": " + command.Op + ".");
             }
 
             if (string.Equals(target.Subresource, "driverLog", StringComparison.OrdinalIgnoreCase))
@@ -613,6 +677,43 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
             }
 
             return mode;
+        }
+
+        private static string RequireCanRxModeArg(SdhCommand command)
+        {
+            string rxMode;
+            if (!command.Args.TryGetValue("rxMode", out rxMode) || string.IsNullOrWhiteSpace(rxMode))
+                throw new InvalidOperationException("Argumento obrigatório ausente para " + command.Target + ": rxMode.");
+
+            if (!string.Equals(rxMode, "auto", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(rxMode, "directOnly", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("RxMode inválido para " + command.Target + ". Valores aceitos: auto, directOnly.");
+            }
+
+            return rxMode;
+        }
+
+        private static void AddInvalidArgIfMentioned(List<string> invalidArgs, string message)
+        {
+            if (invalidArgs == null || string.IsNullOrWhiteSpace(message))
+                return;
+
+            string[] knownArgs =
+            {
+                "controller", "bitrate", "mode", "rxMode", "state", "channel", "value", "kind",
+                "extended", "rtr", "id", "dlc", "period", "index", "mask", "flags", "dataMask",
+                "enabled", "reason", "slot", "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7"
+            };
+
+            foreach (string arg in knownArgs)
+            {
+                if (message.IndexOf(arg, StringComparison.OrdinalIgnoreCase) >= 0 &&
+                    !invalidArgs.Contains(arg))
+                {
+                    invalidArgs.Add(arg);
+                }
+            }
         }
     }
 }

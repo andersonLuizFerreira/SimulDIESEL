@@ -306,27 +306,6 @@ namespace SimulDIESEL.BLL.Services.CAN
             Debug.WriteLine("CanRxMirrorManager.ClearAll: tabela espelho limpa.");
         }
 
-        public bool ReplaceAll(CanReadAllResponseDto response)
-        {
-            if (response == null)
-                return false;
-
-            lock (_sync)
-            {
-                ClearRows();
-
-                foreach (CanRowDto row in response.Rows)
-                {
-                    if (row == null || !IsValidIndex(row.Index))
-                        continue;
-
-                    _rows[row.Index] = row.Clone();
-                }
-            }
-
-            return true;
-        }
-
         private void ClearRows()
         {
             for (int index = 0; index < _rows.Length; ++index)

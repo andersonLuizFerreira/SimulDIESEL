@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using SimulDIESEL.BLL.Boards.UCE;
+using SimulDIESEL.BLL.Services.CAN.SDCTP;
 using SimulDIESEL.DTL.Boards.UCE;
 using SimulDIESEL.DTL.Boards.UCE.Can;
+using SimulDIESEL.DTL.Protocols.SDCTP;
 using SimulDIESEL.DTL.Protocols.SDGW;
 
 namespace SimulDIESEL.BLL.Services.CAN
@@ -22,7 +24,7 @@ namespace SimulDIESEL.BLL.Services.CAN
         private readonly CanRxMirrorManager _rxMirrorManager;
         private readonly CanRxOutputBuffer _rxOutputBuffer;
         private readonly CanTxManager _txManager;
-        private readonly CanEventProcessor _eventProcessor;
+        private readonly SdctpEventProcessor _eventProcessor;
         private bool _isMirrorOutOfSync;
         private bool _isSyncingReadAll;
         private bool _hasDispatcherFifoOverflow;
@@ -46,10 +48,9 @@ namespace SimulDIESEL.BLL.Services.CAN
             _rxMirrorManager = rxMirrorManager;
             _rxOutputBuffer = new CanRxOutputBuffer();
             _txManager = new CanTxManager(uceDispatcher);
-            _eventProcessor = new CanEventProcessor(rxMirrorManager);
+            _eventProcessor = new SdctpEventProcessor(new CanEventProcessor(rxMirrorManager));
 
-            _uceDispatcher.CanRxEventReceived += OnCanRxEventReceived;
-            _uceDispatcher.CanCrudEventReceived += OnCanCrudEventReceived;
+            _uceDispatcher.SdctpRawEventReceived += OnSdctpRawEventReceived;
             _uceDispatcher.DispatcherOverflowDiagnosticReceived += OnDispatcherOverflowDiagnosticReceived;
             _rxMirrorManager.MirrorOutOfSyncDetected += OnMirrorOutOfSyncDetected;
         }
@@ -216,31 +217,35 @@ namespace SimulDIESEL.BLL.Services.CAN
             return _txManager.GetTxSnapshot();
         }
 
+        [Obsolete("CAN_READ_ALL e legado. Use GetSnapshot/TryReadRxFrame.")]
         public async Task<UceOperationResult<UceCanReadAllResponse>> RequestReadAllAsync(string controller)
         {
-            Debug.WriteLine("ApiCanService: API enviou CAN_READ_ALL (0x43) para controller " + controller + ".");
-            _rxMirrorManager.StartReadAll();
-            SetSyncingReadAll(true);
-
-            UceOperationResult<UceCanReadAllResponse> result = await _uceDispatcher
-                .RequestCanReadAllAsync(controller)
-                .ConfigureAwait(false);
-
-            if (!result.Success)
-            {
-                Debug.WriteLine("ApiCanService: CAN_READ_ALL falhou antes da conclusão do snapshot. " + result.Message);
-                _rxMirrorManager.CancelReadAll();
-                SetSyncingReadAll(false);
-            }
-            else
-            {
-                Debug.WriteLine("ApiCanService: UCE confirmou a solicitação síncrona de CAN_READ_ALL.");
-            }
-
-            return result;
+            // TODO ETAPA 04: legado mantido temporariamente. Fluxo principal deve consumir snapshot/buffer SDCTP sem solicitar CAN_READ_ALL.
+            await Task.CompletedTask.ConfigureAwait(false);
+            Debug.WriteLine("ApiCanService: RequestReadAllAsync legado ignorado; snapshot atual ja esta em memoria SDCTP.");
+            return UceOperationResult<UceCanReadAllResponse>.Succeeded(
+                new UceCanReadAllResponse { Accepted = true },
+                SimulDIESEL.DAL.Protocols.SDGW.SdGwLinkEngine.SendOutcome.Acked,
+                "CAN_READ_ALL legado substituido por snapshot SDCTP local.");
         }
 
-        private void OnCanRxEventReceived(UceCanRxEvent canRxEvent)
+        private void OnSdctpRawEventReceived(SdctpRawEventDto rawEvent)
+        {
+            if (rawEvent == null)
+                return;
+
+            UceCanRxEvent canRxEvent;
+            string canRxError;
+            if (_eventProcessor.TryReadCanRxEvent(rawEvent, out canRxEvent, out canRxError))
+            {
+                ProcessCanRxEvent(canRxEvent);
+                return;
+            }
+
+            ProcessCanCrudEvent(rawEvent);
+        }
+
+        private void ProcessCanRxEvent(UceCanRxEvent canRxEvent)
         {
             _eventProcessor.ProcessCanRxEvent(canRxEvent);
             if (canRxEvent == null || canRxEvent.Frames == null)
@@ -250,27 +255,14 @@ namespace SimulDIESEL.BLL.Services.CAN
                 EnqueueDirectFrame(frame);
         }
 
-        private void OnCanCrudEventReceived(byte type, byte[] payload)
+        private void ProcessCanCrudEvent(SdctpRawEventDto rawEvent)
         {
-            if (type == GwProtocol.UceCanCreateType)
-                Debug.WriteLine("ApiCanService: API recebeu CAN_CREATE (0x40).");
-            else if (type == GwProtocol.UceCanEditType)
-                Debug.WriteLine("ApiCanService: API recebeu CAN_EDIT (0x41).");
-            else if (type == GwProtocol.UceCanDeleteType)
-                Debug.WriteLine("ApiCanService: API recebeu CAN_DELETE (0x42).");
-            else if (type == GwProtocol.UceCanTicType)
-                Debug.WriteLine("ApiCanService: API recebeu CAN_TIC (0x46).");
-            else if (type == GwProtocol.UceCanRowType)
-                Debug.WriteLine("ApiCanService: API recebeu CAN_ROW (0x44).");
-            else if (type == GwProtocol.UceCanReadAllDoneType)
-                Debug.WriteLine("ApiCanService: API recebeu CAN_READ_ALL_DONE (0x45).");
-
-            if (_eventProcessor.ProcessEvent(type, payload))
+            if (_eventProcessor.ProcessEvent(rawEvent))
             {
-                if (type == GwProtocol.UceCanReadAllDoneType)
+                if (rawEvent.Type == GwProtocol.UceCanReadAllDoneType)
                     FinishReadAllSync();
-                else if (type == GwProtocol.UceCanCreateType || type == GwProtocol.UceCanEditType || type == GwProtocol.UceCanTicType)
-                    EnqueueReconstructedFrame(GetIndexFromPayload(payload));
+                else if (rawEvent.Type == GwProtocol.UceCanCreateType || rawEvent.Type == GwProtocol.UceCanEditType || rawEvent.Type == GwProtocol.UceCanTicType)
+                    EnqueueReconstructedFrame(GetIndexFromPayload(rawEvent.Payload));
 
                 CanRxTableChanged?.Invoke(this, EventArgs.Empty);
             }
@@ -300,29 +292,8 @@ namespace SimulDIESEL.BLL.Services.CAN
             _rxMirrorManager.ClearAll();
             CanRxTableChanged?.Invoke(this, EventArgs.Empty);
 
-            SetSyncingReadAll(true);
-            _rxMirrorManager.StartReadAll(false);
-
-            try
-            {
-                Debug.WriteLine("ApiCanService: solicitando CAN_READ_ALL automático para recuperar MIRROR_OUT_OF_SYNC.");
-                UceOperationResult<UceCanReadAllResponse> result = await _uceDispatcher
-                    .RequestCanReadAllAsync(DefaultCanController)
-                    .ConfigureAwait(false);
-
-                if (!result.Success)
-                {
-                    Debug.WriteLine("ApiCanService: CAN_READ_ALL automático falhou. " + result.Message);
-                    _rxMirrorManager.CancelReadAll();
-                    SetSyncingReadAll(false);
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("ApiCanService: exceção ao solicitar CAN_READ_ALL automático. " + ex.Message);
-                _rxMirrorManager.CancelReadAll();
-                SetSyncingReadAll(false);
-            }
+            await Task.CompletedTask.ConfigureAwait(false);
+            Debug.WriteLine("ApiCanService: CAN_READ_ALL automatico legado removido; aguardando eventos SDCTP para reconstruir a mirror table.");
         }
 
         private void FinishReadAllSync()
@@ -451,8 +422,7 @@ namespace SimulDIESEL.BLL.Services.CAN
             if (_disposed)
                 return;
 
-            _uceDispatcher.CanRxEventReceived -= OnCanRxEventReceived;
-            _uceDispatcher.CanCrudEventReceived -= OnCanCrudEventReceived;
+            _uceDispatcher.SdctpRawEventReceived -= OnSdctpRawEventReceived;
             _uceDispatcher.DispatcherOverflowDiagnosticReceived -= OnDispatcherOverflowDiagnosticReceived;
             _rxMirrorManager.MirrorOutOfSyncDetected -= OnMirrorOutOfSyncDetected;
             _disposed = true;

@@ -93,31 +93,38 @@ namespace SimulDIESEL.BLL.Services.CAN.SDCTP
 
         public Task<UceOperationResult<UceCanConfigResponse>> SetCanConfigAsync(string controller, int bitrateKbps, string mode)
         {
+            // TODO ETAPA 02: metodo mantido apenas para compatibilidade temporaria. Preferir CanControlApiService.
             return RequireDispatcher().SetCanConfigAsync(controller, bitrateKbps, mode);
         }
 
         public Task<UceOperationResult<UceCanEnableResponse>> SetCanEnabledAsync(string controller, bool enabled)
         {
+            // TODO ETAPA 02: metodo mantido apenas para compatibilidade temporaria. Preferir CanControlApiService.
             return RequireDispatcher().SetCanEnabledAsync(controller, enabled);
         }
 
         public Task<UceOperationResult<UceCanStatusResponse>> GetCanStatusAsync(string controller)
         {
+            // TODO ETAPA 02: metodo mantido apenas para compatibilidade temporaria. Preferir CanControlApiService.
             return RequireDispatcher().GetCanStatusAsync(controller);
         }
 
         public Task<UceOperationResult<UceCanResetResponse>> ResetCanAsync(string controller)
         {
+            // TODO ETAPA 02: metodo mantido apenas para compatibilidade temporaria. Preferir CanControlApiService.
             return RequireDispatcher().ResetCanAsync(controller);
         }
 
         public Task<UceOperationResult<UceCanDriverLogPollResponse>> PollCanDriverLogAsync(string controller)
         {
+            // TODO ETAPA 02: metodo mantido apenas para compatibilidade temporaria. Preferir CanControlApiService.
             return RequireDispatcher().PollCanDriverLogAsync(controller);
         }
 
+        [Obsolete("CAN_READ_ALL e legado. Use GetRxSnapshot/TryReadRxFrame.")]
         public Task<UceOperationResult<UceCanReadAllResponse>> RequestReadAllAsync(string controller)
         {
+            // TODO ETAPA 04: legado mantido temporariamente. Preferir GetRxSnapshot/TryReadRxFrame.
             return _inner.RequestReadAllAsync(controller);
         }
 

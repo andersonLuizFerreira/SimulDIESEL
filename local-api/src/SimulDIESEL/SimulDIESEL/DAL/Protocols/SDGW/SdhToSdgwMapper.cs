@@ -182,7 +182,7 @@ namespace SimulDIESEL.DAL.Protocols.SDGW
                 }
                 else if (string.Equals(command.Op, "readAll", StringComparison.OrdinalIgnoreCase))
                 {
-                    payload = BuildTlvPayload(GwProtocol.UceCanReadAllType);
+                    throw new NotSupportedException("Mapeamento SDH->SDGW nao suporta CAN_READ_ALL legado. Use snapshot/buffer SDCTP.");
                 }
                 else
                 {

@@ -2,10 +2,16 @@ using System;
 using System.Threading.Tasks;
 using SimulDIESEL.BLL.Boards.BPM.Comm.Serial;
 using SimulDIESEL.BLL.Boards.UCE;
+using SimulDIESEL.BLL.Protocols.J1939;
+using SimulDIESEL.BLL.Protocols.J1939.Diagnostics;
+using SimulDIESEL.BLL.Protocols.J1939.NetworkManagement;
 using SimulDIESEL.BLL.Services.CAN;
 using SimulDIESEL.BLL.Services.CAN.SDCTP;
 using SimulDIESEL.DTL.Boards.UCE;
 using SimulDIESEL.DTL.Boards.UCE.Can;
+using SimulDIESEL.DTL.Protocols.J1939.DataLink;
+using SimulDIESEL.DTL.Protocols.J1939.Diagnostics;
+using SimulDIESEL.DTL.Protocols.J1939.NetworkManagement;
 
 namespace SimulDIESEL.BLL.FormsLogic.UCE
 {
@@ -23,40 +29,65 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
         public uint RxOutputBufferOverflowCount { get; set; }
     }
 
+    public sealed class J1939DataMonitorMessageDto
+    {
+        public byte SourceAddress { get; set; }
+        public byte? DestinationAddress { get; set; }
+        public bool IsGlobalDestination { get; set; }
+        public uint Pgn { get; set; }
+        public string FormattedPgn { get; set; }
+        public byte[] Data { get; set; }
+        public DateTime Timestamp { get; set; }
+    }
+
     public sealed class FrmUceLogic : IDisposable
     {
         private const string DefaultCanController = "can0";
 
         private readonly IUceDispatcher _uceDispatcher;
         private readonly Func<bool> _isLinked;
+        private readonly CanControlApiService _canControl;
         private readonly SdctpApiService _sdctp;
+        private readonly J1939ProtocolService _j1939Protocol;
+        private readonly J1939DiagnosticsService _j1939Diagnostics;
+        private readonly J1939DiagnosticRequestService _j1939DiagnosticRequests;
+        private readonly J1939NetworkManagementService _j1939NetworkManagement;
         private readonly bool _ownsSdctp;
         private bool _disposed;
 
         public FrmUceLogic(IUceDispatcher uceDispatcher, Func<bool> isLinked)
-            : this(uceDispatcher, isLinked, new SdctpApiService(uceDispatcher), true)
+            : this(uceDispatcher, isLinked, new CanControlApiService(uceDispatcher), new SdctpApiService(uceDispatcher), true)
         {
         }
 
         public FrmUceLogic(IUceDispatcher uceDispatcher, Func<bool> isLinked, SdctpApiService sdctp)
-            : this(uceDispatcher, isLinked, sdctp, false)
+            : this(uceDispatcher, isLinked, new CanControlApiService(uceDispatcher), sdctp, false)
+        {
+        }
+
+        public FrmUceLogic(IUceDispatcher uceDispatcher, Func<bool> isLinked, CanControlApiService canControl, SdctpApiService sdctp)
+            : this(uceDispatcher, isLinked, canControl, sdctp, false)
         {
         }
 
         [Obsolete("Use the constructor that receives SdctpApiService.")]
         public FrmUceLogic(IUceDispatcher uceDispatcher, Func<bool> isLinked, ApiCanService apiCanService)
-            : this(uceDispatcher, isLinked, new SdctpApiService(apiCanService, false), false)
+            : this(uceDispatcher, isLinked, new CanControlApiService(uceDispatcher), new SdctpApiService(apiCanService, false), false)
         {
         }
 
-        private FrmUceLogic(IUceDispatcher uceDispatcher, Func<bool> isLinked, SdctpApiService sdctp, bool ownsSdctp)
+        private FrmUceLogic(IUceDispatcher uceDispatcher, Func<bool> isLinked, CanControlApiService canControl, SdctpApiService sdctp, bool ownsSdctp)
         {
             _uceDispatcher = uceDispatcher ?? throw new ArgumentNullException(nameof(uceDispatcher));
             _isLinked = isLinked ?? throw new ArgumentNullException(nameof(isLinked));
+            _canControl = canControl ?? throw new ArgumentNullException(nameof(canControl));
             _sdctp = sdctp ?? throw new ArgumentNullException(nameof(sdctp));
+            _j1939Protocol = new J1939ProtocolService();
+            _j1939Diagnostics = new J1939DiagnosticsService();
+            _j1939DiagnosticRequests = new J1939DiagnosticRequestService();
+            _j1939NetworkManagement = new J1939NetworkManagementService();
             _ownsSdctp = ownsSdctp;
             _uceDispatcher.LedEventReceived += OnLedEventReceived;
-            _uceDispatcher.CanRxEventReceived += OnCanRxEventReceived;
             _uceDispatcher.DispatcherOverflowDiagnosticReceived += OnDispatcherOverflowDiagnosticReceived;
             _sdctp.CanRxFrameAvailable += OnCanRxFrameAvailable;
             _sdctp.CanRxTableChanged += OnCanRxTableChanged;
@@ -64,7 +95,6 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
         }
 
         public event Action<UceLedEvent> LedEventReceived;
-        public event Action<UceCanRxEvent> CanRxEventReceived;
         public event Action<UceDispatcherOverflowDiagnostic> DispatcherOverflowDiagnosticReceived;
         public event EventHandler CanRxFrameAvailable;
         public event EventHandler CanRxTableChanged;
@@ -78,7 +108,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
         public static FrmUceLogic CreateDefault()
         {
             BpmSerialService service = BpmSerialService.Shared;
-            return new FrmUceLogic(service.BoardDispatcher.Uce, () => service.IsLinked, service.Sdctp);
+            return new FrmUceLogic(service.BoardDispatcher.Uce, () => service.IsLinked, service.CanControl, service.Sdctp);
         }
 
         public Task<UceCommandResult> SetBuiltinLedAsync(bool ligado)
@@ -94,7 +124,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             if (!_isLinked())
                 return FailWhenNotLinked<UceCanConfigResponse>();
 
-            return _sdctp.SetCanConfigAsync(DefaultCanController, bitrateKbps, mode);
+            return _canControl.SetCanConfigAsync(DefaultCanController, bitrateKbps, mode);
         }
 
         public Task<UceOperationResult<UceCanEnableResponse>> SetCanEnabledAsync(bool enabled)
@@ -102,7 +132,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             if (!_isLinked())
                 return FailWhenNotLinked<UceCanEnableResponse>();
 
-            return _sdctp.SetCanEnabledAsync(DefaultCanController, enabled);
+            return _canControl.SetCanEnabledAsync(DefaultCanController, enabled);
         }
 
         public Task<UceOperationResult<UceCanStatusResponse>> GetCanStatusAsync()
@@ -110,7 +140,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             if (!_isLinked())
                 return FailWhenNotLinked<UceCanStatusResponse>();
 
-            return _sdctp.GetCanStatusAsync(DefaultCanController);
+            return _canControl.GetCanStatusAsync(DefaultCanController);
         }
 
         public Task<UceOperationResult<UceCanResetResponse>> ResetCanAsync()
@@ -118,14 +148,16 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             if (!_isLinked())
                 return FailWhenNotLinked<UceCanResetResponse>();
 
-            return _sdctp.ResetCanAsync(DefaultCanController);
+            return _canControl.ResetCanAsync(DefaultCanController);
         }
 
+        [Obsolete("CAN_READ_ALL e legado. Use GetCanRxMirrorRows/TryReadRxFrame.")]
         public Task<UceOperationResult<UceCanReadAllResponse>> RequestCanReadAllAsync()
         {
             if (!_isLinked())
                 return FailWhenNotLinked<UceCanReadAllResponse>();
 
+            // TODO ETAPA 04: legado mantido temporariamente. UI/BLL deve consumir GetCanRxMirrorRows/TryReadRxFrame.
             return _sdctp.RequestReadAllAsync(DefaultCanController);
         }
 
@@ -134,7 +166,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             if (!_isLinked())
                 return FailWhenNotLinked<UceCanDriverLogPollResponse>();
 
-            return _sdctp.PollCanDriverLogAsync(DefaultCanController);
+            return _canControl.PollCanDriverLogAsync(DefaultCanController);
         }
 
         public Task<UceOperationResult<UceCanTxResponse>> SendCanAsync(bool extended, uint id, byte dlc, byte[] data, ushort periodMs)
@@ -177,6 +209,75 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             return _sdctp.TryReadRxFrame(out frame);
         }
 
+        public async Task<UceOperationResult<J1939DiagnosticReadResultDto>> RequestJ1939DiagnosticCodesAsync()
+        {
+            if (!_isLinked())
+                return UceOperationResult<J1939DiagnosticReadResultDto>.Fail("Link serial não está em estado Linked.");
+
+            UceOperationResult<UceCanTxResponse> dm1 = await _sdctp
+                .SendDirectAsync(DefaultCanController, _j1939DiagnosticRequests.BuildDm1Request())
+                .ConfigureAwait(false);
+            if (!dm1.Success)
+                return UceOperationResult<J1939DiagnosticReadResultDto>.Fail("Falha ao solicitar DM1: " + dm1.Message, dm1.SendOutcome);
+
+            UceOperationResult<UceCanTxResponse> dm2 = await _sdctp
+                .SendDirectAsync(DefaultCanController, _j1939DiagnosticRequests.BuildDm2Request())
+                .ConfigureAwait(false);
+            if (!dm2.Success)
+                return UceOperationResult<J1939DiagnosticReadResultDto>.Fail("Falha ao solicitar DM2: " + dm2.Message, dm2.SendOutcome);
+
+            return UceOperationResult<J1939DiagnosticReadResultDto>.Succeeded(
+                new J1939DiagnosticReadResultDto
+                {
+                    Dm1RequestSent = true,
+                    Dm2RequestSent = true,
+                    Status = "Requests DM1/DM2 enviados via Request PGN 59904."
+                },
+                dm2.SendOutcome.GetValueOrDefault(),
+                "Requests DM1/DM2 enviados.");
+        }
+
+        public bool TryDecodeJ1939DiagnosticFrame(CanFrameDto frame, out J1939DiagnosticMessageDto diagnosticMessage)
+        {
+            diagnosticMessage = null;
+            if (frame == null)
+                return false;
+
+            J1939DataLinkProcessingResultDto result = _j1939Protocol.ProcessCanFrame(frame);
+            return _j1939Diagnostics.TryDecode(result, out diagnosticMessage);
+        }
+
+        public bool TryDecodeJ1939Frame(
+            CanFrameDto frame,
+            out J1939DiagnosticMessageDto diagnosticMessage,
+            out J1939DataMonitorMessageDto dataMessage)
+        {
+            diagnosticMessage = null;
+            dataMessage = null;
+            if (frame == null)
+                return false;
+
+            J1939DataLinkProcessingResultDto result = _j1939Protocol.ProcessCanFrame(frame);
+            _j1939Diagnostics.TryDecode(result, out diagnosticMessage);
+            dataMessage = BuildJ1939DataMonitorMessage(result);
+            return diagnosticMessage != null || dataMessage != null;
+        }
+
+        public bool TryProcessJ1939NetworkFrame(CanFrameDto frame, out J1939NetworkEventDto networkEvent)
+        {
+            networkEvent = null;
+            if (frame == null)
+                return false;
+
+            J1939DataLinkProcessingResultDto result = _j1939Protocol.ProcessCanFrame(frame);
+            return _j1939NetworkManagement.TryProcess(result, out networkEvent);
+        }
+
+        public System.Collections.Generic.IReadOnlyList<J1939AddressRegistryEntryDto> GetJ1939AddressRegistrySnapshot()
+        {
+            return _j1939NetworkManagement.AddressRegistry.GetSnapshot();
+        }
+
         public CanDiagnosticStatusDto GetCanDiagnosticStatus(UceCanStatusResponse canStatus)
         {
             bool hasFifoOverflow = _sdctp.HasDispatcherFifoOverflow;
@@ -184,7 +285,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             return new CanDiagnosticStatusDto
             {
                 MirrorStatusText = _sdctp.IsMirrorOutOfSync ? "OUT_OF_SYNC" : "OK",
-                SyncStatusText = _sdctp.IsSyncingReadAll ? "SYNCING_READ_ALL" : "Estável",
+                SyncStatusText = _sdctp.IsSyncingReadAll ? "SYNCING_SDCTP" : "Estável",
                 DispatcherStatusText = hasFifoOverflow ? "FIFO_OVERFLOW (count=" + fifoCount.ToString(System.Globalization.CultureInfo.InvariantCulture) + ")" : "OK",
                 DispatcherOverflowCount = fifoCount,
                 TableStatusText = "Não informado",
@@ -205,11 +306,6 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
         private void OnLedEventReceived(UceLedEvent ledEvent)
         {
             LedEventReceived?.Invoke(ledEvent);
-        }
-
-        private void OnCanRxEventReceived(UceCanRxEvent canRxEvent)
-        {
-            CanRxEventReceived?.Invoke(canRxEvent);
         }
 
         private void OnCanRxFrameAvailable(object sender, EventArgs e)
@@ -238,7 +334,6 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
                 return;
 
             _uceDispatcher.LedEventReceived -= OnLedEventReceived;
-            _uceDispatcher.CanRxEventReceived -= OnCanRxEventReceived;
             _uceDispatcher.DispatcherOverflowDiagnosticReceived -= OnDispatcherOverflowDiagnosticReceived;
             _sdctp.CanRxFrameAvailable -= OnCanRxFrameAvailable;
             _sdctp.CanRxTableChanged -= OnCanRxTableChanged;
@@ -255,6 +350,46 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
                 Array.Copy(data, normalized, Math.Min(8, data.Length));
 
             return normalized;
+        }
+
+        private static J1939DataMonitorMessageDto BuildJ1939DataMonitorMessage(J1939DataLinkProcessingResultDto result)
+        {
+            if (result == null || !result.IsJ1939)
+                return null;
+
+            if (result.IsTransportSessionComplete && result.ReassembledMessage != null)
+            {
+                return new J1939DataMonitorMessageDto
+                {
+                    SourceAddress = result.ReassembledMessage.SourceAddress,
+                    DestinationAddress = result.ReassembledMessage.DestinationAddress,
+                    IsGlobalDestination = !result.ReassembledMessage.DestinationAddress.HasValue ||
+                        result.ReassembledMessage.DestinationAddress.Value == 0xFF,
+                    Pgn = result.ReassembledMessage.TransportedPgn,
+                    FormattedPgn = result.ReassembledMessage.FormattedTransportedPgn,
+                    Data = result.ReassembledMessage.Data != null ? (byte[])result.ReassembledMessage.Data.Clone() : new byte[0],
+                    Timestamp = DateTime.Now
+                };
+            }
+
+            if (!result.IsSingleFrame || result.SingleFrameMessage == null || result.IdFields == null)
+                return null;
+
+            byte dlc = result.SingleFrameMessage.Dlc > 8 ? (byte)8 : result.SingleFrameMessage.Dlc;
+            byte[] data = new byte[dlc];
+            if (result.SingleFrameMessage.Data != null)
+                Array.Copy(result.SingleFrameMessage.Data, data, Math.Min(dlc, result.SingleFrameMessage.Data.Length));
+
+            return new J1939DataMonitorMessageDto
+            {
+                SourceAddress = result.IdFields.SourceAddress,
+                DestinationAddress = result.IdFields.DestinationAddress,
+                IsGlobalDestination = !result.IdFields.DestinationAddress.HasValue || result.IdFields.IsGlobalDestination,
+                Pgn = result.Pgn,
+                FormattedPgn = result.FormattedPgn,
+                Data = data,
+                Timestamp = result.SingleFrameMessage.Timestamp == default(DateTime) ? DateTime.Now : result.SingleFrameMessage.Timestamp
+            };
         }
 
         private static string GetCanStatusText(UceCanStatusResponse canStatus)
