@@ -64,6 +64,16 @@ Se a divergencia nao puder ser resolvida com leitura, registre como `pendente de
 - Nao invente comportamento inexistente; marque como `PLANEJADO`, `LEGADO`, `PARCIALMENTE IMPLEMENTADO` ou `pendente de confirmacao`.
 - Nao use mocks/fakes sem deixar explicito.
 - Nao esconda warnings, erros, falhas de build ou validacoes incompletas.
+- Nunca declare uma implementacao como concluida sem validacao compativel com o escopo.
+
+## Regras de consistencia
+
+- Nao invente arquivos inexistentes.
+- Nao invente APIs inexistentes.
+- Nao invente endpoints.
+- Nao invente suporte de protocolo.
+- Nao assuma comportamento nao validado.
+- Se houver duvida, registre como `pendente de confirmacao`.
 
 ## Regras de nomenclatura
 
@@ -103,6 +113,21 @@ Valide apenas o que se aplica ao escopo. Exemplos:
 
 Para ETAPA exclusivamente documental, nao execute build funcional se nao houver alteracao de codigo; registre que nao se aplica.
 
+Nunca promova automaticamente algo de `PLANEJADO` para `IMPLEMENTADO` sem evidencia concreta no codigo, teste, build ou validacao aplicavel.
+
+## Sincronizacao do ambiente de desenvolvimento
+
+Sempre que codigo C# for criado, removido ou movido:
+
+- mantenha `.sln` e `.csproj` sincronizados;
+- garanta que os arquivos aparecam corretamente no ambiente Visual Studio;
+- evite codigo orfao fora da solucao;
+- evite arquivos nao incluidos no projeto;
+- preserve a organizacao da Solution Explorer;
+- preserve a coerencia entre filesystem e projeto carregado.
+
+Implementacao incompleta no ambiente de desenvolvimento nao e considerada entrega valida. Criar arquivo fisico sem integra-lo ao projeto e erro de ETAPA. Mudancas C# devem ser visiveis e rastreaveis pelo desenvolvedor no ambiente de desenvolvimento.
+
 ## Entrega
 
 Toda entrega deve conter:
@@ -131,9 +156,33 @@ Toda entrega deve conter:
 - Ao documentar estado real, use `IMPLEMENTADO`, `PARCIALMENTE IMPLEMENTADO`, `PLANEJADO` e `LEGADO`.
 - Se faltar informacao, escreva `pendente de confirmacao`.
 
+## Atualizacao obrigatoria de documentacao
+
+Sempre que uma ETAPA for concluida, o agente deve:
+
+- identificar a documentacao impactada;
+- atualizar os arquivos relevantes em `/docs/`;
+- preservar a coerencia da estrutura documental oficial;
+- refletir o estado real da implementacao;
+- registrar mudancas arquiteturais, contratos, fluxos ou limitacoes;
+- evitar documentacao desatualizada apos a conclusao da ETAPA.
+
+A documentacao faz parte da entrega. Dumps registram historico e auditoria, mas nao substituem a documentacao oficial. `/docs/` deve refletir o estado consolidado do projeto.
+
 ## Skills do projeto
 
 Skills reutilizaveis para agentes ficam em `docs/agents/skills/`. Antes de atuar em uma area, leia a skill correspondente e mantenha a ETAPA dentro do escopo permitido.
+
+## Bootstrap CODEX
+
+Fluxo oficial para agentes CODEX:
+
+1. `AGENTS.md`;
+2. `.codex/instructions.md`;
+3. `.codex/skills/`;
+4. `docs/agents/`.
+
+`.codex/instructions.md` e o unico arquivo oficial de bootstrap CODEX no diretorio `.codex/`.
 
 ## Referencias rapidas
 

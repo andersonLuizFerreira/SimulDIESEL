@@ -7,6 +7,7 @@ Esta pasta cria uma base reutilizavel para agentes de IA trabalharem no SimulDIE
 ## Estrutura criada
 
 - `AGENTS.md`: orientacao principal na raiz do repositorio.
+- `.codex/instructions.md`: bootstrap oficial CODEX e ordem de leitura.
 - `docs/agents/project_conventions.md`: convencoes de escopo, nomes, ETAPAS e entrega.
 - `docs/agents/etapa_prompt_template.md`: templates padronizados para ETAPAS.
 - `docs/agents/validation_checklist.md`: checklists de validacao por area.
@@ -16,10 +17,12 @@ Esta pasta cria uma base reutilizavel para agentes de IA trabalharem no SimulDIE
 ## Como usar
 
 1. Leia `AGENTS.md` na raiz.
-2. Identifique a area da ETAPA.
-3. Leia a skill correspondente em `docs/agents/skills/`.
-4. Use o template de ETAPA adequado.
-5. Registre validacao, arquivos alterados e dump quando solicitado.
+2. Leia `.codex/instructions.md`.
+3. Identifique a area da ETAPA.
+4. Leia a skill correspondente em `.codex/skills/`.
+5. Consulte `docs/agents/` e `docs/agents/skills/` quando precisar da documentacao humana equivalente.
+6. Use o template de ETAPA adequado.
+7. Registre validacao, arquivos alterados e dump quando solicitado.
 
 ## Mapa de skills
 

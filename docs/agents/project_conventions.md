@@ -30,6 +30,21 @@ Use estes estados quando houver risco de ambiguidade:
 - `LEGADO`: preservado por compatibilidade ou historico.
 - `pendente de confirmacao`: nao ha evidencia suficiente.
 
+## Documentacao viva
+
+- `/docs/` representa o estado consolidado do projeto.
+- Dumps registram historico e auditoria, mas nao substituem a documentacao oficial.
+- Documentacao oficial deve ser revisada e atualizada apos ETAPAS concluidas.
+- Nao deixe documentacao contradizendo o codigo consolidado.
+- Nao dependa apenas de dumps para explicar a arquitetura atual.
+
+## Ambiente de desenvolvimento C#
+
+- Arquivos C# criados, removidos ou movidos devem manter `.sln` e `.csproj` sincronizados.
+- O Solution Explorer deve refletir o estado real do filesystem.
+- Arquivo C# fisico fora do projeto carregado e erro de ETAPA.
+- Build valido deve compilar os arquivos corretos, nao apenas o subconjunto incluido no projeto.
+
 ## Regras para contratos
 
 - SDH e contrato semantico de comandos.

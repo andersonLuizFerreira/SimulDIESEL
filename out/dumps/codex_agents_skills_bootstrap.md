@@ -6,10 +6,10 @@ Escopo: atualizar a estrutura `.codex` do projeto SimulDIESEL para usar `AGENTS.
 
 ## Arquivos alterados
 
-- `.codex/instructions`
+- Arquivo sem extensao no diretorio `.codex`
 - `.codex/instructions.md`
 
-Observacao: a pasta `.codex` possuia `instructions.md`, mas nao possuia `.codex/instructions`. Para cumprir o pedido literalmente e manter compatibilidade com a estrutura existente, foram mantidos os dois arquivos com o mesmo bootstrap curto.
+Observacao supersedida em 2026-05-12 pela ETAPA de consolidacao definitiva do bootstrap CODEX usando apenas `.codex/instructions.md`. O registro anterior nao e mais valido.
 
 ## Arquivos criados
 
@@ -45,8 +45,8 @@ Observacao: a pasta `.codex` possuia `instructions.md`, mas nao possuia `.codex/
 
 ## Resumo da nova estrutura
 
-- `.codex/instructions` agora e um bootstrap curto que aponta para `AGENTS.md`, `docs/agents/`, `docs/agents/skills/` e `.codex/skills/`.
-- `.codex/instructions.md` foi alinhado ao mesmo conteudo por compatibilidade, pois era o arquivo existente antes desta ETAPA.
+- Registro historico supersedido: o arquivo sem extensao no diretorio `.codex` foi removido posteriormente.
+- `.codex/instructions.md` e o unico bootstrap CODEX oficial.
 - `.codex/skills/README.md` lista as 13 skills disponiveis, a documentacao humana equivalente e quando usar cada uma.
 - Cada skill em `.codex/skills/<nome>/SKILL.md` preserva o conteudo tecnico da documentacao humana em `docs/agents/skills/*.md`, com cabecalho estruturado para uso do CODEX.
 - `local-api/AGENTS.md`, `hardware/AGENTS.md` e `Data/AGENTS.md` foram criados como ponte curta para as regras principais e skills relevantes, sem duplicar conteudo extenso.
@@ -63,18 +63,18 @@ Observacao: a pasta `.codex` possuia `instructions.md`, mas nao possuia `.codex/
 
 ## Divergencias ou incertezas encontradas
 
-- O pedido citou `.codex/instructions`, mas a estrutura existente continha `.codex/instructions.md`. Foram mantidos ambos, com conteudo equivalente, para atender o caminho solicitado e preservar a convencao ja presente.
+- Divergencia supersedida: a duplicidade entre o arquivo sem extensao no diretorio `.codex` e `.codex/instructions.md` foi encerrada posteriormente; o bootstrap oficial usa apenas `.codex/instructions.md`.
 - As skills estruturadas foram criadas manualmente a partir das skills humanas existentes; a fonte humana oficial continua em `docs/agents/skills/`.
 
 ## Validacao executada
 
-- Confirmado que `.codex/instructions` existe.
+- Validacao historica supersedida: a existencia do arquivo sem extensao no diretorio `.codex` nao e mais criterio valido.
 - Confirmado que `.codex/skills/README.md` existe.
 - Confirmado que existem 13 pastas de skills em `.codex/skills/`.
 - Confirmado que cada pasta possui `SKILL.md`.
 - Confirmado que os 13 `SKILL.md` possuem os cabecalhos obrigatorios: Nome, Objetivo, Quando usar, Quando nao usar, Escopo permitido, Escopo proibido, Arquivos/pastas provaveis, Checklist de validacao, Checklist de entrega, Riscos comuns e Regras de nao regressao.
 - Confirmado que nao houve alteracao intencional em codigo funcional, firmware, banco, UI ou contratos.
-- `git status --short` mostra `.codex/instructions.md` modificado e novos arquivos documentais desta ETAPA (`.codex/instructions`, `.codex/skills/`, `Data/AGENTS.md`, `hardware/AGENTS.md`, `local-api/AGENTS.md`, este dump), alem das alteracoes funcionais preexistentes no worktree.
+- `git status --short` mostrado nesta ETAPA era um registro historico e nao representa o estado atual do bootstrap.
 
 ## Validacoes nao executadas
 

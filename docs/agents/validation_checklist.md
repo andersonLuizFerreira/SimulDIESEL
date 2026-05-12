@@ -10,12 +10,16 @@
 - [ ] Warnings, erros e limitacoes foram relatados.
 - [ ] Lista de arquivos alterados foi gerada.
 - [ ] Resultado de build/teste foi registrado ou marcado como nao aplicavel.
+- [ ] Documentacao oficial impactada foi revisada/atualizada ao concluir a ETAPA.
 - [ ] Dump foi gerado quando a ETAPA pediu.
 - [ ] Rollback foi preservado.
 
 ## API C# WinForms
 
 - [ ] Build da solucao `local-api/src/SimulDIESEL/SimulDIESEL.sln`, quando aplicavel.
+- [ ] Arquivos C# criados, removidos ou movidos estao sincronizados com `.csproj`.
+- [ ] Nao ha arquivos C# orfaos fora do carregamento da solucao.
+- [ ] Solution Explorer/projeto Visual Studio reflete o filesystem.
 - [ ] Nenhuma dependencia direta indevida da UI para TLV/SDGW bruto foi introduzida.
 - [ ] BLL nao recebeu framing/COBS/CRC.
 - [ ] DAL nao recebeu regra de apresentacao.
@@ -48,5 +52,6 @@
 
 - [ ] Arquivos Markdown criados no local previsto.
 - [ ] Links e caminhos estao coerentes.
+- [ ] `/docs/` reflete o estado consolidado quando a ETAPA muda para concluida.
 - [ ] Divergencias foram registradas.
 - [ ] Informacoes ausentes foram marcadas como `pendente de confirmacao`.

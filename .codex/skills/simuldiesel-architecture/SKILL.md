@@ -37,6 +37,9 @@ Nao use para implementar detalhe visual, alterar firmware isolado, mudar schema 
 - Arquitetura base: `UI -> BLL -> DAL -> DTL -> SDGW -> BPM -> SPI/BT/SERIAL -> UCE/GSA`.
 - SDH e semantica; SDGW e transporte; SDCTP e massa CAN; J1939 e decoder sobre `CanFrameDto`.
 - Estados documentais: `IMPLEMENTADO`, `PARCIALMENTE IMPLEMENTADO`, `PLANEJADO`, `LEGADO`, `pendente de confirmacao`.
+- Nao inferir implementacao apenas pela existencia de documentacao, nomes de arquivos, classes, namespaces ou estruturas de pasta.
+- Diferenciar claramente codigo existente, codigo compilavel, codigo validado e codigo operacional em bancada.
+- Nao promover implementacoes experimentais, fake, mock ou bench-only para estado oficial sem validacao explicita.
 
 ## Checklist de validacao
 
@@ -44,12 +47,14 @@ Nao use para implementar detalhe visual, alterar firmware isolado, mudar schema 
 - [ ] Registrar divergencias.
 - [ ] Nao inventar comportamento.
 - [ ] Confirmar que camadas nao foram misturadas.
+- [ ] Limitacoes e incertezas registradas como `pendente de confirmacao` quando nao houver evidencia suficiente.
 
 ## Checklist de entrega
 
 - [ ] Arquivos criados/alterados.
 - [ ] Decisoes e pendencias.
 - [ ] Validacao documental.
+- [ ] `/docs/official/` e documentos de arquitetura relacionados revisados/atualizados quando a ETAPA arquitetural ou funcional for concluida.
 - [ ] Dump quando exigido.
 
 ## Riscos comuns
@@ -57,12 +62,15 @@ Nao use para implementar detalhe visual, alterar firmware isolado, mudar schema 
 - Tratar documentacao antiga como verdade atual sem conferir codigo.
 - Declarar planejado como implementado.
 - Usar nomenclatura diferente de `SDCTP` para o SimulDIESEL CAN Transport Protocol.
+- Declarar componente como operacional apenas porque compila ou porque existe documentado.
 
 ## Regras de nao regressao
 
 - Nao enfraquecer fronteiras entre camadas.
 - Nao remover compatibilidade legada por inferencia.
 - Nao transformar decisao pendente em decisao oficial.
+- Ao concluir ETAPAS arquiteturais ou funcionais, revisar `/docs/official/` e documentos de arquitetura relacionados, atualizando fluxos, contratos, estados e responsabilidades impactadas.
+- Ao analisar arquitetura, separar fato observado de inferencia e registrar evidencia ou `pendente de confirmacao`.
 
 ## Documentacao humana equivalente
 
