@@ -3,12 +3,14 @@ using System.Threading.Tasks;
 using SimulDIESEL.BLL.Boards.BPM.Comm.Serial;
 using SimulDIESEL.BLL.Boards.UCE;
 using SimulDIESEL.BLL.Protocols.J1939;
+using SimulDIESEL.BLL.Protocols.J1939.Capture;
 using SimulDIESEL.BLL.Protocols.J1939.Diagnostics;
 using SimulDIESEL.BLL.Protocols.J1939.NetworkManagement;
 using SimulDIESEL.BLL.Services.CAN;
 using SimulDIESEL.BLL.Services.CAN.SDCTP;
 using SimulDIESEL.DTL.Boards.UCE;
 using SimulDIESEL.DTL.Boards.UCE.Can;
+using SimulDIESEL.DTL.Protocols.J1939.Capture;
 using SimulDIESEL.DTL.Protocols.J1939.DataLink;
 using SimulDIESEL.DTL.Protocols.J1939.Diagnostics;
 using SimulDIESEL.DTL.Protocols.J1939.NetworkManagement;
@@ -31,6 +33,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
 
     public sealed class J1939DataMonitorMessageDto
     {
+        public uint? RawCanId { get; set; }
         public byte SourceAddress { get; set; }
         public byte? DestinationAddress { get; set; }
         public bool IsGlobalDestination { get; set; }
@@ -52,6 +55,8 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
         private readonly J1939DiagnosticsService _j1939Diagnostics;
         private readonly J1939DiagnosticRequestService _j1939DiagnosticRequests;
         private readonly J1939NetworkManagementService _j1939NetworkManagement;
+        private readonly J1939TemporalCaptureService _j1939TemporalCapture;
+        private readonly J1939CaptureExportService _j1939CaptureExport;
         private readonly bool _ownsSdctp;
         private bool _disposed;
 
@@ -86,6 +91,8 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             _j1939Diagnostics = new J1939DiagnosticsService();
             _j1939DiagnosticRequests = new J1939DiagnosticRequestService();
             _j1939NetworkManagement = new J1939NetworkManagementService();
+            _j1939TemporalCapture = new J1939TemporalCaptureService();
+            _j1939CaptureExport = new J1939CaptureExportService();
             _ownsSdctp = ownsSdctp;
             _uceDispatcher.LedEventReceived += OnLedEventReceived;
             _uceDispatcher.DispatcherOverflowDiagnosticReceived += OnDispatcherOverflowDiagnosticReceived;
@@ -278,6 +285,53 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             return _j1939NetworkManagement.AddressRegistry.GetSnapshot();
         }
 
+        public bool IsJ1939TemporalCaptureActive
+        {
+            get { return _j1939TemporalCapture.IsCapturing; }
+        }
+
+        public J1939CaptureSessionDto StartJ1939TemporalCapture()
+        {
+            return _j1939TemporalCapture.Start();
+        }
+
+        public J1939CaptureSessionDto StopJ1939TemporalCapture()
+        {
+            return _j1939TemporalCapture.Stop();
+        }
+
+        public void ClearJ1939TemporalCapture()
+        {
+            _j1939TemporalCapture.Clear();
+        }
+
+        public J1939CaptureSessionDto GetJ1939TemporalCaptureSnapshot()
+        {
+            return _j1939TemporalCapture.GetSnapshot();
+        }
+
+        public void RegisterJ1939TemporalCaptureMessage(J1939DataMonitorMessageDto message, string notes)
+        {
+            if (message == null)
+                return;
+
+            _j1939TemporalCapture.RegisterFrame(
+                message.Timestamp,
+                message.SourceAddress,
+                message.DestinationAddress,
+                message.IsGlobalDestination,
+                message.RawCanId,
+                message.Pgn,
+                message.FormattedPgn,
+                message.Data,
+                notes);
+        }
+
+        public void ExportJ1939TemporalCapture(J1939CaptureSessionDto session, string path)
+        {
+            _j1939CaptureExport.ExportToFile(session, path);
+        }
+
         public CanDiagnosticStatusDto GetCanDiagnosticStatus(UceCanStatusResponse canStatus)
         {
             bool hasFifoOverflow = _sdctp.HasDispatcherFifoOverflow;
@@ -361,6 +415,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
             {
                 return new J1939DataMonitorMessageDto
                 {
+                    RawCanId = result.RawCanId == 0 ? (uint?)null : result.RawCanId,
                     SourceAddress = result.ReassembledMessage.SourceAddress,
                     DestinationAddress = result.ReassembledMessage.DestinationAddress,
                     IsGlobalDestination = !result.ReassembledMessage.DestinationAddress.HasValue ||
@@ -382,6 +437,7 @@ namespace SimulDIESEL.BLL.FormsLogic.UCE
 
             return new J1939DataMonitorMessageDto
             {
+                RawCanId = result.IdFields.CanId,
                 SourceAddress = result.IdFields.SourceAddress,
                 DestinationAddress = result.IdFields.DestinationAddress,
                 IsGlobalDestination = !result.IdFields.DestinationAddress.HasValue || result.IdFields.IsGlobalDestination,

@@ -8,6 +8,7 @@ using SimulDIESEL.BLL.Boards.UCE;
 using SimulDIESEL.BLL.FormsLogic.UCE;
 using SimulDIESEL.DTL.Boards.UCE;
 using SimulDIESEL.DTL.Boards.UCE.Can;
+using SimulDIESEL.DTL.Protocols.J1939.Capture;
 using SimulDIESEL.DTL.Protocols.J1939.Diagnostics;
 using SimulDIESEL.DTL.Protocols.J1939.NetworkManagement;
 using SimulDIESEL.DTL.Protocols.SDGW;
@@ -38,6 +39,9 @@ namespace SimulDIESEL.UI
         private Label _lblJ1939DiagnosticsStatus;
         private TabPage _tabJ1939Data;
         private Button _btnJ1939DataClear;
+        private Button _btnJ1939CaptureStart;
+        private Button _btnJ1939CaptureStop;
+        private Label _lblJ1939CaptureStatus;
         private DataGridView _dgJ1939Data;
         private TabPage _tabJ1939Identification;
         private Button _btnJ1939IdentificationClear;
@@ -48,10 +52,14 @@ namespace SimulDIESEL.UI
         private readonly Dictionary<UiJ1939DataKey, UiJ1939DataRow> _j1939DataRowsByKey =
             new Dictionary<UiJ1939DataKey, UiJ1939DataRow>();
         private readonly List<UiJ1939DataRow> _j1939DataRows = new List<UiJ1939DataRow>();
-        private readonly List<J1939DiagnosticMessageDto> _j1939DiagnosticMessages =
-            new List<J1939DiagnosticMessageDto>();
+        private readonly Dictionary<UiJ1939DiagnosticKey, UiJ1939DiagnosticRow> _j1939DiagnosticRowsByKey =
+            new Dictionary<UiJ1939DiagnosticKey, UiJ1939DiagnosticRow>();
+        private readonly List<UiJ1939DiagnosticRow> _j1939DiagnosticRows =
+            new List<UiJ1939DiagnosticRow>();
         private readonly List<UiJ1939IdentificationRow> _j1939IdentificationRows =
             new List<UiJ1939IdentificationRow>();
+
+        public event EventHandler J1939AddressRegistrySnapshotChanged;
 
         public frmUCE_UI()
         {
@@ -106,6 +114,11 @@ namespace SimulDIESEL.UI
             }
         }
 
+        public IReadOnlyList<J1939AddressRegistryEntryDto> GetJ1939AddressRegistrySnapshotForRedeCan()
+        {
+            return _logic.GetJ1939AddressRegistrySnapshot();
+        }
+
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             chkLed.CheckedChanged -= ChkLed_CheckedChanged;
@@ -126,6 +139,10 @@ namespace SimulDIESEL.UI
                 _btnReadJ1939FaultCodes.Click -= BtnReadJ1939FaultCodes_Click;
             if (_btnJ1939DataClear != null)
                 _btnJ1939DataClear.Click -= BtnJ1939DataClear_Click;
+            if (_btnJ1939CaptureStart != null)
+                _btnJ1939CaptureStart.Click -= BtnJ1939CaptureStart_Click;
+            if (_btnJ1939CaptureStop != null)
+                _btnJ1939CaptureStop.Click -= BtnJ1939CaptureStop_Click;
             if (_btnJ1939IdentificationClear != null)
                 _btnJ1939IdentificationClear.Click -= BtnJ1939IdentificationClear_Click;
             _canDriverLogTimer.Stop();
@@ -247,9 +264,9 @@ namespace SimulDIESEL.UI
             {
                 _j1939DiagnosticReadActive = false;
                 _j1939DiagnosticReadTimer.Stop();
-                _lblJ1939DiagnosticsStatus.Text = _j1939DiagnosticMessages.Count == 0
+                _lblJ1939DiagnosticsStatus.Text = _j1939DiagnosticRows.Count == 0
                     ? "Sem resposta ou nenhum código recebido."
-                    : "Leitura concluída. Mensagens diagnósticas: " + _j1939DiagnosticMessages.Count.ToString(CultureInfo.InvariantCulture) + ".";
+                    : "Leitura concluída. Falhas únicas: " + _j1939DiagnosticRows.Count.ToString(CultureInfo.InvariantCulture) + ".";
             }
         }
 
@@ -608,6 +625,36 @@ namespace SimulDIESEL.UI
             };
             _btnJ1939DataClear.Click += BtnJ1939DataClear_Click;
 
+            _btnJ1939CaptureStart = new Button
+            {
+                Text = "Iniciar Captura",
+                Width = 120,
+                Height = 28,
+                Location = new System.Drawing.Point(106, 8),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left
+            };
+            _btnJ1939CaptureStart.Click += BtnJ1939CaptureStart_Click;
+
+            _btnJ1939CaptureStop = new Button
+            {
+                Text = "Finalizar Captura",
+                Width = 130,
+                Height = 28,
+                Location = new System.Drawing.Point(234, 8),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left,
+                Enabled = false
+            };
+            _btnJ1939CaptureStop.Click += BtnJ1939CaptureStop_Click;
+
+            _lblJ1939CaptureStatus = new Label
+            {
+                Text = "Captura: Parado",
+                AutoSize = false,
+                Height = 20,
+                Location = new System.Drawing.Point(372, 13),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+            };
+
             _dgJ1939Data = new DataGridView
             {
                 AllowUserToAddRows = false,
@@ -625,6 +672,9 @@ namespace SimulDIESEL.UI
             EnableDoubleBuffered(_dgJ1939Data);
             ConfigureJ1939DataGridColumns();
             _tabJ1939Data.Controls.Add(_btnJ1939DataClear);
+            _tabJ1939Data.Controls.Add(_btnJ1939CaptureStart);
+            _tabJ1939Data.Controls.Add(_btnJ1939CaptureStop);
+            _tabJ1939Data.Controls.Add(_lblJ1939CaptureStatus);
             _tabJ1939Data.Controls.Add(_dgJ1939Data);
             _tabJ1939Data.Resize += (sender, args) => LayoutJ1939DataControls();
             tabUCE.Controls.Add(_tabJ1939Data);
@@ -729,6 +779,9 @@ namespace SimulDIESEL.UI
             if (_tabJ1939Data == null || _dgJ1939Data == null)
                 return;
 
+            if (_lblJ1939CaptureStatus != null)
+                _lblJ1939CaptureStatus.Width = Math.Max(80, _tabJ1939Data.ClientSize.Width - _lblJ1939CaptureStatus.Left - 8);
+
             _dgJ1939Data.Size = new System.Drawing.Size(
                 Math.Max(80, _tabJ1939Data.ClientSize.Width - 16),
                 Math.Max(80, _tabJ1939Data.ClientSize.Height - _dgJ1939Data.Top - 8));
@@ -805,6 +858,52 @@ namespace SimulDIESEL.UI
             _dgJ1939Data.Rows.Clear();
         }
 
+        private void BtnJ1939CaptureStart_Click(object sender, EventArgs e)
+        {
+            _logic.ClearJ1939TemporalCapture();
+            J1939CaptureSessionDto session = _logic.StartJ1939TemporalCapture();
+            SetJ1939CaptureUiState(true, session);
+            lstMensagens.Items.Add("Captura temporal J1939 iniciada.");
+        }
+
+        private async void BtnJ1939CaptureStop_Click(object sender, EventArgs e)
+        {
+            _btnJ1939CaptureStop.Enabled = false;
+            J1939CaptureSessionDto session = _logic.StopJ1939TemporalCapture();
+            SetJ1939CaptureUiState(false, session);
+
+            if (session == null)
+                return;
+
+            using (SaveFileDialog dialog = new SaveFileDialog())
+            {
+                dialog.Title = "Salvar captura temporal J1939";
+                dialog.Filter = "Markdown (*.md)|*.md|Texto (*.txt)|*.txt";
+                dialog.DefaultExt = "md";
+                dialog.AddExtension = true;
+                dialog.OverwritePrompt = true;
+                dialog.FileName = "captura-j1939-" + DateTime.Now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture) + ".md";
+
+                if (dialog.ShowDialog(this) != DialogResult.OK)
+                {
+                    lstMensagens.Items.Add("Captura temporal J1939 finalizada sem exportacao.");
+                    return;
+                }
+
+                try
+                {
+                    string path = dialog.FileName;
+                    await Task.Run(() => _logic.ExportJ1939TemporalCapture(session, path)).ConfigureAwait(true);
+                    lstMensagens.Items.Add("Captura temporal J1939 exportada: " + path);
+                    SetJ1939CaptureStatusText("Captura: Parado - arquivo salvo (" + session.Events.Count.ToString(CultureInfo.InvariantCulture) + " eventos)");
+                }
+                catch (Exception ex)
+                {
+                    ShowOperationError("Falha ao exportar captura temporal J1939: " + ex.Message);
+                }
+            }
+        }
+
         private void BtnJ1939IdentificationClear_Click(object sender, EventArgs e)
         {
             _j1939IdentificationRows.Clear();
@@ -812,10 +911,35 @@ namespace SimulDIESEL.UI
                 _dgJ1939Identification.Rows.Clear();
         }
 
+        private void SetJ1939CaptureUiState(bool capturing, J1939CaptureSessionDto session)
+        {
+            if (_btnJ1939CaptureStart != null)
+                _btnJ1939CaptureStart.Enabled = !capturing;
+            if (_btnJ1939CaptureStop != null)
+                _btnJ1939CaptureStop.Enabled = capturing;
+
+            if (capturing)
+            {
+                SetJ1939CaptureStatusText("Captura: Capturando desde " +
+                    (session != null ? session.StartedAt.ToString("HH:mm:ss", CultureInfo.InvariantCulture) : DateTime.Now.ToString("HH:mm:ss", CultureInfo.InvariantCulture)));
+                return;
+            }
+
+            int eventCount = session != null && session.Events != null ? session.Events.Count : 0;
+            SetJ1939CaptureStatusText("Captura: Parado - " + eventCount.ToString(CultureInfo.InvariantCulture) + " eventos");
+        }
+
+        private void SetJ1939CaptureStatusText(string text)
+        {
+            if (_lblJ1939CaptureStatus != null)
+                _lblJ1939CaptureStatus.Text = text;
+        }
+
         private async void BtnReadJ1939FaultCodes_Click(object sender, EventArgs e)
         {
             _btnReadJ1939FaultCodes.Enabled = false;
-            _j1939DiagnosticMessages.Clear();
+            _j1939DiagnosticRowsByKey.Clear();
+            _j1939DiagnosticRows.Clear();
             RefreshJ1939DiagnosticsGrid();
             _lblJ1939DiagnosticsStatus.Text = "Solicitando códigos de falha...";
 
@@ -866,17 +990,19 @@ namespace SimulDIESEL.UI
                 diagnostic = null;
 
             if (diagnostic != null)
-            {
-                _j1939DiagnosticMessages.Add(diagnostic);
-                if (_j1939DiagnosticMessages.Count > 200)
-                    _j1939DiagnosticMessages.RemoveAt(0);
-            }
+                UpdateJ1939DiagnosticRows(diagnostic);
 
             if (dataMessage != null)
+            {
                 UpdateJ1939DataRow(dataMessage);
+                _logic.RegisterJ1939TemporalCaptureMessage(dataMessage, "Pipeline Dados J1939");
+            }
 
             if (_logic.TryProcessJ1939NetworkFrame(frame, out networkEvent) && networkEvent != null && networkEvent.AddressClaim != null)
+            {
                 RebuildJ1939IdentificationRows();
+                OnJ1939AddressRegistrySnapshotChanged();
+            }
         }
 
         private void RefreshJ1939DiagnosticsGrid()
@@ -884,40 +1010,83 @@ namespace SimulDIESEL.UI
             if (_dgJ1939Diagnostics == null)
                 return;
 
-            _dgJ1939Diagnostics.Rows.Clear();
-            foreach (J1939DiagnosticMessageDto message in _j1939DiagnosticMessages)
-            {
-                if (message.Dtcs == null || message.Dtcs.Count == 0)
-                {
-                    AddJ1939DiagnosticGridRow(message, null);
-                    continue;
-                }
+            while (_dgJ1939Diagnostics.Rows.Count < _j1939DiagnosticRows.Count)
+                _dgJ1939Diagnostics.Rows.Add();
 
-                foreach (J1939DtcDto dtc in message.Dtcs)
-                    AddJ1939DiagnosticGridRow(message, dtc);
-            }
+            while (_dgJ1939Diagnostics.Rows.Count > _j1939DiagnosticRows.Count)
+                _dgJ1939Diagnostics.Rows.RemoveAt(_dgJ1939Diagnostics.Rows.Count - 1);
+
+            for (int index = 0; index < _j1939DiagnosticRows.Count; ++index)
+                PopulateJ1939DiagnosticGridRow(_dgJ1939Diagnostics.Rows[index], _j1939DiagnosticRows[index]);
         }
 
-        private void AddJ1939DiagnosticGridRow(J1939DiagnosticMessageDto message, J1939DtcDto dtc)
+        private void UpdateJ1939DiagnosticRows(J1939DiagnosticMessageDto message)
         {
-            int rowIndex = _dgJ1939Diagnostics.Rows.Add();
-            DataGridViewRow row = _dgJ1939Diagnostics.Rows[rowIndex];
+            if (message == null)
+                return;
+
+            if (message.Dtcs == null || message.Dtcs.Count == 0)
+            {
+                UpdateJ1939DiagnosticRow(message, null);
+                return;
+            }
+
+            foreach (J1939DtcDto dtc in message.Dtcs)
+                UpdateJ1939DiagnosticRow(message, dtc);
+        }
+
+        private void UpdateJ1939DiagnosticRow(J1939DiagnosticMessageDto message, J1939DtcDto dtc)
+        {
+            UiJ1939DiagnosticKey key = new UiJ1939DiagnosticKey(
+                message.Type,
+                message.SourceAddress,
+                dtc != null ? dtc.Spn : 0,
+                dtc != null ? dtc.Fmi : (byte)0,
+                dtc != null ? dtc.ConversionMethod : (byte)0,
+                dtc != null);
+
+            UiJ1939DiagnosticRow row;
+            if (!_j1939DiagnosticRowsByKey.TryGetValue(key, out row))
+            {
+                row = new UiJ1939DiagnosticRow(key);
+                _j1939DiagnosticRowsByKey.Add(key, row);
+                _j1939DiagnosticRows.Add(row);
+            }
+
             J1939LampStatusDto lamps = message.LampStatus;
 
-            row.Cells[0].Value = message.Type;
-            row.Cells[1].Value = "0x" + message.SourceAddress.ToString("X2", CultureInfo.InvariantCulture);
-            row.Cells[2].Value = dtc != null ? dtc.Spn.ToString(CultureInfo.InvariantCulture) : "-";
-            row.Cells[3].Value = dtc != null ? dtc.SpnName : "-";
-            row.Cells[4].Value = dtc != null ? dtc.Fmi.ToString(CultureInfo.InvariantCulture) : "-";
-            row.Cells[5].Value = dtc != null ? dtc.FmiDescription : "-";
-            row.Cells[6].Value = dtc != null ? dtc.OccurrenceCount.ToString(CultureInfo.InvariantCulture) : "-";
-            row.Cells[7].Value = dtc != null ? dtc.ConversionMethod.ToString(CultureInfo.InvariantCulture) : "-";
-            row.Cells[8].Value = lamps != null ? lamps.Mil : "-";
-            row.Cells[9].Value = lamps != null ? lamps.RedStop : "-";
-            row.Cells[10].Value = lamps != null ? lamps.AmberWarning : "-";
-            row.Cells[11].Value = lamps != null ? lamps.Protect : "-";
-            row.Cells[12].Value = message.Timestamp.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture);
-            row.Cells[13].Value = dtc != null ? dtc.Status : message.Status;
+            row.Type = message.Type;
+            row.SourceAddress = message.SourceAddress;
+            row.Spn = dtc != null ? dtc.Spn.ToString(CultureInfo.InvariantCulture) : "-";
+            row.SpnName = dtc != null ? dtc.SpnName : "-";
+            row.Fmi = dtc != null ? dtc.Fmi.ToString(CultureInfo.InvariantCulture) : "-";
+            row.FmiDescription = dtc != null ? dtc.FmiDescription : "-";
+            row.OccurrenceCount = dtc != null ? dtc.OccurrenceCount.ToString(CultureInfo.InvariantCulture) : "-";
+            row.ConversionMethod = dtc != null ? dtc.ConversionMethod.ToString(CultureInfo.InvariantCulture) : "-";
+            row.Mil = lamps != null ? lamps.Mil : "-";
+            row.RedStop = lamps != null ? lamps.RedStop : "-";
+            row.AmberWarning = lamps != null ? lamps.AmberWarning : "-";
+            row.Protect = lamps != null ? lamps.Protect : "-";
+            row.Timestamp = message.Timestamp == default(DateTime) ? DateTime.Now : message.Timestamp;
+            row.Status = dtc != null ? dtc.Status : message.Status;
+        }
+
+        private static void PopulateJ1939DiagnosticGridRow(DataGridViewRow gridRow, UiJ1939DiagnosticRow row)
+        {
+            gridRow.Cells[0].Value = row.Type;
+            gridRow.Cells[1].Value = "0x" + row.SourceAddress.ToString("X2", CultureInfo.InvariantCulture);
+            gridRow.Cells[2].Value = row.Spn;
+            gridRow.Cells[3].Value = row.SpnName;
+            gridRow.Cells[4].Value = row.Fmi;
+            gridRow.Cells[5].Value = row.FmiDescription;
+            gridRow.Cells[6].Value = row.OccurrenceCount;
+            gridRow.Cells[7].Value = row.ConversionMethod;
+            gridRow.Cells[8].Value = row.Mil;
+            gridRow.Cells[9].Value = row.RedStop;
+            gridRow.Cells[10].Value = row.AmberWarning;
+            gridRow.Cells[11].Value = row.Protect;
+            gridRow.Cells[12].Value = row.Timestamp.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture);
+            gridRow.Cells[13].Value = row.Status;
         }
 
         private void UpdateJ1939DataRow(J1939DataMonitorMessageDto message)
@@ -969,6 +1138,13 @@ namespace SimulDIESEL.UI
 
             foreach (J1939AddressRegistryEntryDto entry in _logic.GetJ1939AddressRegistrySnapshot())
                 AddJ1939IdentificationRows(entry);
+        }
+
+        private void OnJ1939AddressRegistrySnapshotChanged()
+        {
+            EventHandler handler = J1939AddressRegistrySnapshotChanged;
+            if (handler != null)
+                handler(this, EventArgs.Empty);
         }
 
         private void AddJ1939IdentificationRows(J1939AddressRegistryEntryDto entry)
@@ -1366,6 +1542,79 @@ namespace SimulDIESEL.UI
             public string FormattedPgn { get; set; }
             public byte[] Data { get; set; }
             public DateTime LastUpdate { get; set; }
+        }
+
+        private struct UiJ1939DiagnosticKey : IEquatable<UiJ1939DiagnosticKey>
+        {
+            public readonly string Type;
+            public readonly byte SourceAddress;
+            public readonly uint Spn;
+            public readonly byte Fmi;
+            public readonly byte ConversionMethod;
+            public readonly bool HasDtc;
+
+            public UiJ1939DiagnosticKey(string type, byte sourceAddress, uint spn, byte fmi, byte conversionMethod, bool hasDtc)
+            {
+                Type = string.IsNullOrWhiteSpace(type) ? string.Empty : type;
+                SourceAddress = sourceAddress;
+                Spn = spn;
+                Fmi = fmi;
+                ConversionMethod = conversionMethod;
+                HasDtc = hasDtc;
+            }
+
+            public bool Equals(UiJ1939DiagnosticKey other)
+            {
+                return string.Equals(Type, other.Type, StringComparison.Ordinal) &&
+                    SourceAddress == other.SourceAddress &&
+                    Spn == other.Spn &&
+                    Fmi == other.Fmi &&
+                    ConversionMethod == other.ConversionMethod &&
+                    HasDtc == other.HasDtc;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is UiJ1939DiagnosticKey && Equals((UiJ1939DiagnosticKey)obj);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    int hash = Type.GetHashCode();
+                    hash = (hash * 397) ^ SourceAddress.GetHashCode();
+                    hash = (hash * 397) ^ (int)Spn;
+                    hash = (hash * 397) ^ Fmi.GetHashCode();
+                    hash = (hash * 397) ^ ConversionMethod.GetHashCode();
+                    hash = (hash * 397) ^ HasDtc.GetHashCode();
+                    return hash;
+                }
+            }
+        }
+
+        private sealed class UiJ1939DiagnosticRow
+        {
+            public UiJ1939DiagnosticRow(UiJ1939DiagnosticKey key)
+            {
+                Key = key;
+            }
+
+            public UiJ1939DiagnosticKey Key { get; private set; }
+            public string Type { get; set; }
+            public byte SourceAddress { get; set; }
+            public string Spn { get; set; }
+            public string SpnName { get; set; }
+            public string Fmi { get; set; }
+            public string FmiDescription { get; set; }
+            public string OccurrenceCount { get; set; }
+            public string ConversionMethod { get; set; }
+            public string Mil { get; set; }
+            public string RedStop { get; set; }
+            public string AmberWarning { get; set; }
+            public string Protect { get; set; }
+            public DateTime Timestamp { get; set; }
+            public string Status { get; set; }
         }
 
         private sealed class UiJ1939IdentificationRow

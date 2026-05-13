@@ -110,6 +110,7 @@
     <Compile Include="BLL\Services\CAN\SDCTP\SdctpTxManager.cs" />
     <Compile Include="BLL\Services\CAN\SDCTP\SdctpTypes.cs" />
     <Compile Include="BLL\Services\Database\LocalDatabaseService.cs" />
+    <Compile Include="BLL\Services\Database\J1939ReferenceCatalogService.cs" />
     <Compile Include="BLL\Services\Database\LocalDatabaseStatus.cs" />
     <Compile Include="BLL\Services\Database\ModuleProfileService.cs" />
     <Compile Include="BLL\Protocols\ProtocolDecoderGateway.cs" />
@@ -119,6 +120,8 @@
     <Compile Include="BLL\Protocols\J1939\Application\J1939RawValueReader.cs" />
     <Compile Include="BLL\Protocols\J1939\Application\J1939SignalRangeEvaluator.cs" />
     <Compile Include="BLL\Protocols\J1939\Application\J1939SpnDecoder.cs" />
+    <Compile Include="BLL\Protocols\J1939\Capture\J1939CaptureExportService.cs" />
+    <Compile Include="BLL\Protocols\J1939\Capture\J1939TemporalCaptureService.cs" />
     <Compile Include="BLL\Protocols\J1939\J1939ProtocolService.cs" />
     <Compile Include="BLL\Protocols\J1939\Common\J1939ByteOrder.cs" />
     <Compile Include="BLL\Protocols\J1939\Common\J1939Constants.cs" />
@@ -142,6 +145,7 @@
     <Compile Include="BLL\Protocols\J1939\NetworkManagement\J1939AddressRegistry.cs" />
     <Compile Include="BLL\Protocols\J1939\NetworkManagement\J1939CommandedAddressService.cs" />
     <Compile Include="BLL\Protocols\J1939\NetworkManagement\J1939NameParser.cs" />
+    <Compile Include="BLL\Protocols\J1939\NetworkManagement\J1939NodeIdentityService.cs" />
     <Compile Include="BLL\Protocols\J1939\NetworkManagement\J1939NetworkManagementService.cs" />
     <Compile Include="BLL\Protocols\J1939\NetworkManagement\J1939WorkingSetService.cs" />
     <Compile Include="BLL\FormsLogic\BPM\FrmBpmLogic.cs" />
@@ -167,13 +171,16 @@
     <Compile Include="DAL\Database\IDatabaseInitializer.cs" />
     <Compile Include="DAL\Database\IBdServiceProvider.cs" />
     <Compile Include="DAL\Database\IMigrationRunner.cs" />
+    <Compile Include="DAL\Database\J1939CatalogSeedImporter.cs" />
     <Compile Include="DAL\Database\ModuleDatabasePaths.cs" />
     <Compile Include="DAL\Database\ModuleDatabaseRuntimeFactory.cs" />
     <Compile Include="DAL\Database\SqliteBdServiceProvider.cs" />
     <Compile Include="DAL\Database\SqliteConnectionFactory.cs" />
     <Compile Include="DAL\Database\SqliteDatabaseInitializer.cs" />
     <Compile Include="DAL\Database\SqliteMigrationRunner.cs" />
+    <Compile Include="DAL\Repositories\IJ1939ReferenceCatalogRepository.cs" />
     <Compile Include="DAL\Repositories\IModuleProfileRepository.cs" />
+    <Compile Include="DAL\Repositories\SqliteJ1939ReferenceCatalogRepository.cs" />
     <Compile Include="DAL\Repositories\SqliteModuleProfileRepository.cs" />
     <Compile Include="DAL\Transport\Bluetooth\BluetoothDeviceCatalog.cs" />
     <Compile Include="DAL\Transport\Bluetooth\BluetoothConnectionSettings.cs" />
@@ -211,6 +218,13 @@
     <Compile Include="DTL\Protocols\J1939\Application\J1939PgnDefinitionDto.cs" />
     <Compile Include="DTL\Protocols\J1939\Application\J1939SignalStatusDto.cs" />
     <Compile Include="DTL\Protocols\J1939\Application\J1939SpnDefinitionDto.cs" />
+    <Compile Include="DTL\Protocols\J1939\Catalogs\J1939CatalogEntryDto.cs" />
+    <Compile Include="DTL\Protocols\J1939\Catalogs\J1939ManufacturerCatalogDto.cs" />
+    <Compile Include="DTL\Protocols\J1939\Catalogs\J1939NameFieldDefinitionCatalogDto.cs" />
+    <Compile Include="DTL\Protocols\J1939\Catalogs\J1939PreferredAddressCatalogDto.cs" />
+    <Compile Include="DTL\Protocols\J1939\Capture\J1939CapturedEventDto.cs" />
+    <Compile Include="DTL\Protocols\J1939\Capture\J1939CaptureSessionDto.cs" />
+    <Compile Include="DTL\Protocols\J1939\Capture\J1939TemporalTickDto.cs" />
     <Compile Include="DTL\Protocols\J1939\Common\J1939ProcessingStatusDto.cs" />
     <Compile Include="DTL\Protocols\J1939\Common\J1939PgnDefinitionDto.cs" />
     <Compile Include="DTL\Protocols\J1939\DataLink\J1939DataLinkMessageDto.cs" />
@@ -229,6 +243,7 @@
     <Compile Include="DTL\Protocols\J1939\NetworkManagement\J1939AddressClaimDto.cs" />
     <Compile Include="DTL\Protocols\J1939\NetworkManagement\J1939AddressRegistryEntryDto.cs" />
     <Compile Include="DTL\Protocols\J1939\NetworkManagement\J1939NameDto.cs" />
+    <Compile Include="DTL\Protocols\J1939\NetworkManagement\J1939NodeIdentityDto.cs" />
     <Compile Include="DTL\Protocols\J1939\NetworkManagement\J1939NetworkEventDto.cs" />
     <Compile Include="DTL\Protocols\J1939\NetworkManagement\J1939WorkingSetDto.cs" />
     <Compile Include="DTL\Protocols\J1939\NetworkManagement\J1939WorkingSetMemberDto.cs" />
@@ -268,6 +283,9 @@
     </Compile>
     <Compile Include="UI\FormGaugeDemo.Designer.cs">
       <DependentUpon>FormGaugeDemo.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\FrmRedeCan.cs">
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\frmGSA_UI.cs">
       <SubType>Form</SubType>
@@ -337,8 +355,14 @@
     <None Include="App.config" />
     <Content Include="..\..\..\..\Data\Protocols\J1939\j1939-71-mini-catalog.json" />
     <Content Include="..\..\..\..\Data\Protocols\J1939\j1939-pgn-standard-catalog.json" />
+    <Content Include="..\..\..\..\Data\Protocols\J1939\catalogs\j1939_functions.json" />
+    <Content Include="..\..\..\..\Data\Protocols\J1939\catalogs\j1939_industry_groups.json" />
+    <Content Include="..\..\..\..\Data\Protocols\J1939\catalogs\j1939_manufacturers.json" />
+    <Content Include="..\..\..\..\Data\Protocols\J1939\catalogs\j1939_name_field_definitions.json" />
+    <Content Include="..\..\..\..\Data\Protocols\J1939\catalogs\j1939_preferred_addresses.json" />
     <Content Include="..\..\..\..\Data\Modules\schema\sqlite_schema_v1.sql" />
     <Content Include="..\..\..\..\Data\Modules\schema\migrations\0002_sync_metadata.sql" />
+    <Content Include="..\..\..\..\Data\Modules\schema\migrations\0003_j1939_reference_catalogs.sql" />
     <None Include="SDH_HOST_OVERVIEW.md" />
   </ItemGroup>
   <ItemGroup>

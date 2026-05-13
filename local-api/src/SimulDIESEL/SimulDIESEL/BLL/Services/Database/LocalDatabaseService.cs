@@ -46,5 +46,15 @@ namespace SimulDIESEL.BLL.Services.Database
         {
             return new ModuleProfileService(CreateDefaultModuleProfileRepository());
         }
+
+        public static IJ1939ReferenceCatalogRepository CreateDefaultJ1939ReferenceCatalogRepository()
+        {
+            return ModuleDatabaseRuntimeFactory.CreateJ1939ReferenceCatalogRepository();
+        }
+
+        public static J1939ReferenceCatalogService CreateDefaultJ1939ReferenceCatalogService()
+        {
+            return new J1939ReferenceCatalogService(CreateDefaultJ1939ReferenceCatalogRepository());
+        }
     }
 }

@@ -89,6 +89,18 @@ Representa sessoes de captura ou aprendizado realizadas contra um modulo.
 
 Representa eventos capturados durante aprendizado ou teste, incluindo eventos de board, CAN/J1939, PGN, CAN ID, dados hexadecimais e payload JSON.
 
+### Catalogos J1939/81
+
+Status: `PARCIALMENTE IMPLEMENTADO`.
+
+As tabelas `j1939_industry_groups`, `j1939_manufacturers`, `j1939_functions`, `j1939_vehicle_systems`, `j1939_preferred_addresses` e `j1939_name_field_definitions` guardam referencias tecnicas para interpretar identidade J1939/81 observada na rede CAN.
+
+Esses catalogos sao separados dos cadastros operacionais de modulos reais. A estrutura SQLite existe e a importacao inicial usa JSONs locais versionados em `Data/Protocols/J1939/catalogs/`.
+
+Codigos desconhecidos devem continuar representaveis por fluxos futuros sem falha, por isso campos como `industry_group_code` e `function_code` nao usam FK rigida inicialmente.
+
+O seed inicial cobre subconjuntos rastreaveis de grupos industriais, fabricantes, funcoes, enderecos preferenciais e definicoes de campos do NAME. Nao ha scraping online em runtime, sincronizacao web, CRUD dedicado ou UI.
+
 ## Relacionamentos Principais
 
 - `module_profiles` 1:N `module_profile_versions`

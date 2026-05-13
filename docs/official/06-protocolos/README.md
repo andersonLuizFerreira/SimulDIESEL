@@ -11,8 +11,8 @@ Este ramo reúne os protocolos e contratos que participam da leitura lógica do 
 
 - **IMPLEMENTADO**: cadeia SDH -> SDGW -> TLV curto para a GSA.
 - **IMPLEMENTADO**: contrato funcional já exercitado para `BPM.gateway` e para o conjunto atual da GSA.
-- **PLANEJADO**: CAN.
-- **PLANEJADO**: J1939.
+- **PARCIALMENTE IMPLEMENTADO**: CAN no host/UCE, com fluxo RX/TX consolidado por SDCTP e limites de bancada documentados.
+- **PARCIALMENTE IMPLEMENTADO**: J1939 no host, sobre `CanFrameDto`, com decodificação, diagnósticos, gerenciamento de rede e captura temporal para engenharia reversa.
 
 ## Papel desta página
 

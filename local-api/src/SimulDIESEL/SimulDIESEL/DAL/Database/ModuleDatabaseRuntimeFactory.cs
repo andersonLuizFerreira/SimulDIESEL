@@ -16,5 +16,12 @@ namespace SimulDIESEL.DAL.Database
             var provider = new SqliteBdServiceProvider(connectionFactory);
             return new SqliteModuleProfileRepository(provider);
         }
+
+        public static IJ1939ReferenceCatalogRepository CreateJ1939ReferenceCatalogRepository()
+        {
+            var connectionFactory = new SqliteConnectionFactory();
+            var provider = new SqliteBdServiceProvider(connectionFactory);
+            return new SqliteJ1939ReferenceCatalogRepository(provider);
+        }
     }
 }

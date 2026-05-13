@@ -21,6 +21,8 @@ O banco local da API prepara o SimulDIESEL para persistir o Banco de Modulos em 
 
 No startup da aplicacao, `LocalDatabaseService` solicita a inicializacao ao DAL. O DAL resolve o caminho do repositorio, abre o provider SQLite, cria `Data/Modules/modules.db` quando necessario, aplica o baseline `sqlite_schema_v1.sql` e executa migrations pendentes registradas em `schema_migrations`.
 
+Apos as migrations, o DAL executa a importacao idempotente dos catalogos locais J1939/81 em `Data/Protocols/J1939/catalogs/`. A importacao usa somente JSONs versionados no repositorio e nao acessa internet em runtime.
+
 ```text
 Program -> BLL/Services/Database -> DAL/Database -> SQLite modules.db
 ```
@@ -133,6 +135,41 @@ A tabela `schema_migrations` registra migrations aplicadas. A migration `0002_sy
 - `deleted_at`;
 - `created_at` e `updated_at` em tabelas que ainda nao possuam esses campos.
 
+A migration `0003_j1939_reference_catalogs.sql` adiciona catalogos de referencia J1939/81 para identificacao de rede CAN:
+
+- `j1939_industry_groups`;
+- `j1939_manufacturers`;
+- `j1939_functions`;
+- `j1939_vehicle_systems`;
+- `j1939_preferred_addresses`;
+- `j1939_name_field_definitions`.
+
+Essas tabelas nao substituem os cadastros operacionais de modulos em `module_profiles` e nao possuem FKs rigidas para codigos J1939 que possam aparecer desconhecidos na rede.
+
+A importacao inicial dos catalogos J1939/81 e `PARCIALMENTE IMPLEMENTADO` por meio de JSONs locais:
+
+- `Data/Protocols/J1939/catalogs/j1939_industry_groups.json`;
+- `Data/Protocols/J1939/catalogs/j1939_manufacturers.json`;
+- `Data/Protocols/J1939/catalogs/j1939_functions.json`;
+- `Data/Protocols/J1939/catalogs/j1939_preferred_addresses.json`;
+- `Data/Protocols/J1939/catalogs/j1939_name_field_definitions.json`.
+
+O importador `J1939CatalogSeedImporter` executa `UPSERT` por codigo ou nome de campo, permite reexecucao segura e nao apaga dados manuais futuros.
+
+O consumo read-only dos catalogos J1939/81 e `PARCIALMENTE IMPLEMENTADO` para a janela Rede CAN. A cadeia validada e:
+
+```text
+FrmRedeCan
+  -> J1939NodeIdentityService
+  -> J1939ReferenceCatalogService
+  -> IJ1939ReferenceCatalogRepository
+  -> SqliteJ1939ReferenceCatalogRepository
+  -> IBdServiceProvider
+  -> SQLite
+```
+
+`FrmRedeCan` e uma tela MDI-child somente leitura. Ela recebe snapshots ja decodificados do `J1939AddressRegistry`, usa a BLL para enriquecer Manufacturer Code, Function, Industry Group, Vehicle System e Source Address, e nao acessa repository, provider, SQLite ou SQL diretamente.
+
 ## Compatibilidade PostgreSQL/Supabase
 
 As decisoes atuais preservam compatibilidade futura:
@@ -140,6 +177,7 @@ As decisoes atuais preservam compatibilidade futura:
 - IDs seguem como `TEXT` no SQLite e podem migrar para `UUID` no PostgreSQL.
 - JSON segue como `TEXT` validado no SQLite e `JSONB` no PostgreSQL.
 - Metadados `sync_status`, `cloud_id` e `deleted_at` preparam sincronizacao sem ativar runtime cloud.
+- Catalogos J1939/81 existem tambem no schema PostgreSQL documental, sem ativar runtime Supabase.
 - SQL fica localizado no DAL e nas migrations.
 - O contrato do provider permite futuras implementacoes PostgreSQL/Supabase sem alterar a BLL.
 
@@ -168,6 +206,7 @@ UI/API para essa entidade so entram apos validacao do BLL Service e do repositor
 - Nao ha Supabase runtime.
 - O banco nao executa comandos SDH.
 - `module_profiles` possui CRUD piloto funcional; repositorios completos das demais entidades permanecem `PLANEJADO`.
+- Catalogos J1939/81 possuem estrutura, seed inicial e consumo read-only na janela Rede CAN `PARCIALMENTE IMPLEMENTADO`; expansao de dataset, CRUD de catalogos e edicao pela UI permanecem `PLANEJADO`.
 - `SqliteModuleProfileRepository` usa o `BD_Service_Provider`; ele permanece base estrutural e nao virou repository generico gigante.
 
 ## Regras

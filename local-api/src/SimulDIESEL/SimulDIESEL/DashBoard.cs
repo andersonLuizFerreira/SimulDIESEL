@@ -102,6 +102,19 @@ namespace SimulDIESEL
 
         private void btnRedeCan_Click(object sender, EventArgs e)
         {
+            var frmRedeCan = FrmRedeCan.Instance;
+
+            if (frmRedeCan.Visible)
+            {
+                frmRedeCan.BringToFront();
+                frmRedeCan.Activate();
+                frmRedeCan.RefreshSnapshot();
+                return;
+            }
+
+            frmRedeCan.MdiParent = this;
+            frmRedeCan.StartPosition = FormStartPosition.CenterParent;
+            frmRedeCan.Show();
         }
 
         private void AtualizarBotoesConexao()
