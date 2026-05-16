@@ -325,6 +325,9 @@
     <EmbeddedResource Include="UI\frmPortaSerial_UI.resx">
       <DependentUpon>frmPortaSerial_UI.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="UI\FrmRedeCan.resx">
+      <DependentUpon>FrmRedeCan.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="DashBoard.resx">
       <DependentUpon>DashBoard.cs</DependentUpon>
     </EmbeddedResource>

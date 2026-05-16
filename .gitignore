@@ -25,6 +25,12 @@ $RECYCLE.BIN/
 *.temp
 *.swp
 *.swo
+*.blf
+*.asc
+*.trc
+*.pcap
+*.pcapng
+*.candump
 
 
 ############################################################
@@ -39,6 +45,8 @@ obj/
 *.pdb
 *.dll
 *.exe
+**/visual-studio-cache/*.sqlite
+**/visual-studio-cache/*.db
 
 
 ############################################################
@@ -136,6 +144,21 @@ hardware/**/fabrication/pickplace/
 ############################################################
 *.rar
 *.7z
+
+
+############################################################
+# Banco local / SQLite runtime mutável
+############################################################
+Data/Modules/*.db
+Data/Modules/*.sqlite
+Data/Modules/*.sqlite3
+Data/Modules/*.db-journal
+Data/Modules/*.db-wal
+Data/Modules/*.db-shm
+**/*.sqlite-wal
+**/*.sqlite-shm
+**/*.db-wal
+**/*.db-shm
 
 
 ############################################################
