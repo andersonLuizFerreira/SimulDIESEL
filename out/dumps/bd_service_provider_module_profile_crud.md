@@ -56,8 +56,8 @@ Nenhuma migration nova foi necessaria.
 - `local-api/src/SimulDIESEL/SimulDIESEL/DAL/Repositories/SqliteModuleProfileRepository.cs`
 - `local-api/src/SimulDIESEL/SimulDIESEL/BLL/Services/Database/LocalDatabaseService.cs`
 - `local-api/src/SimulDIESEL/SimulDIESEL/SimulDIESEL.csproj`
-- `.codex/skills/module-database/SKILL.md`
-- `docs/agents/skills/module-database-skill.md`
+- `.agents/skills/module-database/SKILL.md`
+- `.agents/skills/module-database/SKILL.md`
 - `docs/official/02-arquitetura/12-banco-local-api.md`
 - `Data/Modules/docs/local_api_database_runtime.md`
 
@@ -218,8 +218,8 @@ Comandos de busca confirmaram:
 
 ## Documentacao atualizada
 
-- `.codex/skills/module-database/SKILL.md`
-- `docs/agents/skills/module-database-skill.md`
+- `.agents/skills/module-database/SKILL.md`
+- `.agents/skills/module-database/SKILL.md`
 - `docs/official/02-arquitetura/12-banco-local-api.md`
 - `Data/Modules/docs/local_api_database_runtime.md`
 

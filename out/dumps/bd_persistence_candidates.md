@@ -23,11 +23,11 @@ Conclusao conservadora:
 Foram usados:
 
 - leitura das regras obrigatorias da ETAPA:
-  - `AGENTS.md`;
-  - `.codex/instructions.md`;
-  - `.codex/skills/bll-dal-dtl/SKILL.md`;
-  - `.codex/skills/build-validation/SKILL.md`;
-  - `.codex/skills/simuldiesel-architecture/SKILL.md`;
+  - `.agents/README.md`;
+  - `.agents/README.md`;
+  - `.agents/skills/bll-dal-dtl/SKILL.md`;
+  - `.agents/skills/build-validation/SKILL.md`;
+  - `.agents/skills/simuldiesel-architecture/SKILL.md`;
 - busca textual por `rg` sobre:
   - `BLL/`, `DAL/`, `DTL/`, `SDGW/`, `UI/`;
   - `Data/`, `Data/Modules/`, `Data/Protocols/`;

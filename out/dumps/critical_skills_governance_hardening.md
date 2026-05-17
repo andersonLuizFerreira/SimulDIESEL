@@ -8,12 +8,12 @@ ETAPA documental para reforcar as skills criticas do CODEX contra leitura otimis
 
 ## Escopo executado
 
-- `.codex/skills/simuldiesel-architecture/SKILL.md`
-- `.codex/skills/dump-generation/SKILL.md`
-- `.codex/skills/git-checkpoint/SKILL.md`
-- `docs/agents/skills/simuldiesel-architecture-skill.md`
-- `docs/agents/skills/dump-generation-skill.md`
-- `docs/agents/skills/git-checkpoint-skill.md`
+- `.agents/skills/simuldiesel-architecture/SKILL.md`
+- `.agents/skills/dump-generation/SKILL.md`
+- `.agents/skills/git-checkpoint/SKILL.md`
+- `.agents/skills/simuldiesel-architecture/SKILL.md`
+- `.agents/skills/dump-generation/SKILL.md`
+- `.agents/skills/git-checkpoint/SKILL.md`
 - `out/dumps/critical_skills_governance_hardening.md`
 
 ## Fora de escopo preservado
@@ -28,12 +28,12 @@ ETAPA documental para reforcar as skills criticas do CODEX contra leitura otimis
 
 ## Arquivos alterados
 
-- `.codex/skills/simuldiesel-architecture/SKILL.md`
-- `.codex/skills/dump-generation/SKILL.md`
-- `.codex/skills/git-checkpoint/SKILL.md`
-- `docs/agents/skills/simuldiesel-architecture-skill.md`
-- `docs/agents/skills/dump-generation-skill.md`
-- `docs/agents/skills/git-checkpoint-skill.md`
+- `.agents/skills/simuldiesel-architecture/SKILL.md`
+- `.agents/skills/dump-generation/SKILL.md`
+- `.agents/skills/git-checkpoint/SKILL.md`
+- `.agents/skills/simuldiesel-architecture/SKILL.md`
+- `.agents/skills/dump-generation/SKILL.md`
+- `.agents/skills/git-checkpoint/SKILL.md`
 
 ## Arquivos criados
 

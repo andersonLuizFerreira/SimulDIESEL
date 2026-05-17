@@ -7,10 +7,10 @@
 
 ## Bootstrap obrigatório lido
 
-- `AGENTS.md`: lido.
-- `.codex/instructions.md`: lido.
-- `.codex/skills/build-validation/SKILL.md`: lido.
-- `.codex/skills/simuldiesel-architecture/SKILL.md`: lido.
+- `.agents/README.md`: lido.
+- `.agents/README.md`: lido.
+- `.agents/skills/build-validation/SKILL.md`: lido.
+- `.agents/skills/simuldiesel-architecture/SKILL.md`: lido.
 
 ## Estado Git atual
 
@@ -88,8 +88,8 @@ Classificacao dos untracked:
 | Data | 17 | 422,03 KB |
 | docs | 160 | 389,54 KB |
 | tools | 17 | 85,41 KB |
-| .codex | 15 | 33,96 KB |
-| AGENTS.md | 1 | 7,69 KB |
+| .agents | 15 | 33,96 KB |
+| .agents/README.md | 1 | 7,69 KB |
 | path.bat | 1 | 5,79 KB |
 | .gitignore | 1 | 3,54 KB |
 | .github | 1 | 654 B |
@@ -112,8 +112,8 @@ Classificacao dos untracked:
 | tests | 13 | 324,16 KB |
 | out | 44 | 323,66 KB |
 | tools | 17 | 85,41 KB |
-| .codex | 15 | 33,96 KB |
-| AGENTS.md | 1 | 7,69 KB |
+| .agents | 15 | 33,96 KB |
+| .agents/README.md | 1 | 7,69 KB |
 | path.bat | 1 | 5,79 KB |
 | .gitignore | 1 | 3,54 KB |
 | .github | 1 | 654 B |
@@ -295,7 +295,7 @@ Classificacao dos untracked:
 | tests | all=14, tracked=13, ignored=0, untracked=1, size=925,53 KB | AVALIAR / RISCO DE CRESCIMENTO | Testes e capturas Markdown rastreados; novo arquivo grande untracked exige regra de retencao. |
 | docs | all=160, tracked=160, ignored=0, untracked=0, size=389,54 KB | DEVE VERSIONAR | Documentacao oficial, agentes, arquitetura e legado; baixo tamanho atual. |
 | local-api | all=294, tracked=257, ignored=35, untracked=1, size=16,43 MB | DEVE VERSIONAR + GERADO IGNORADO | Fonte C# rastreado; `.vs`, `bin` e `obj` ignorados corretamente. |
-| .codex | all=15, tracked=15, ignored=0, untracked=0, size=33,96 KB | DEVE VERSIONAR | Bootstrap e skills do projeto rastreados; baixo risco. |
+| .agents | all=15, tracked=15, ignored=0, untracked=0, size=33,96 KB | DEVE VERSIONAR | Bootstrap e skills do projeto rastreados; baixo risco. |
 | .vs | all=0, tracked=0, ignored=0, untracked=0, size=0 B | NAO DEVE VERSIONAR | Artefato IDE; nao apareceu como raiz, mas existe ignorado em `local-api/src/SimulDIESEL/.vs`. |
 | bin | all=0, tracked=0, ignored=0, untracked=0, size=0 B | NAO DEVE VERSIONAR | Padrao ignorado; ocorrencias estao dentro de `local-api` e `out`. |
 | obj | all=0, tracked=0, ignored=0, untracked=0, size=0 B | NAO DEVE VERSIONAR | Padrao ignorado; ocorrencias estao dentro de `local-api`. |
@@ -463,28 +463,28 @@ Estas sugestoes nao foram implementadas nesta ETAPA.
 
 ## Apêndice A - Inventario completo dos arquivos rastreados
 ```text
-.codex/instructions.md
-.codex/skills/README.md
-.codex/skills/bll-dal-dtl/SKILL.md
-.codex/skills/build-validation/SKILL.md
-.codex/skills/dump-generation/SKILL.md
-.codex/skills/firmware-bpm/SKILL.md
-.codex/skills/firmware-uce/SKILL.md
-.codex/skills/git-checkpoint/SKILL.md
-.codex/skills/j1939-decode/SKILL.md
-.codex/skills/module-database/SKILL.md
-.codex/skills/sdctp-contract/SKILL.md
-.codex/skills/sdgw-transport/SKILL.md
-.codex/skills/sdh-contract/SKILL.md
-.codex/skills/simuldiesel-architecture/SKILL.md
-.codex/skills/winforms-ui/SKILL.md
+.agents/README.md
+.agents/skills/README.md
+.agents/skills/bll-dal-dtl/SKILL.md
+.agents/skills/build-validation/SKILL.md
+.agents/skills/dump-generation/SKILL.md
+.agents/skills/firmware-bpm/SKILL.md
+.agents/skills/firmware-uce/SKILL.md
+.agents/skills/git-checkpoint/SKILL.md
+.agents/skills/j1939-decode/SKILL.md
+.agents/skills/module-database/SKILL.md
+.agents/skills/sdctp-contract/SKILL.md
+.agents/skills/sdgw-transport/SKILL.md
+.agents/skills/sdh-contract/SKILL.md
+.agents/skills/simuldiesel-architecture/SKILL.md
+.agents/skills/winforms-ui/SKILL.md
 .editorconfig
 .gitattributes
 .github/workflows/ci.yml
 .gitignore
 .gitlab-ci.yml
-AGENTS.md
-Data/AGENTS.md
+.agents/README.md
+Data/.agents/README.md
 Data/Modules/docs/bancada.md
 Data/Modules/docs/local_api_database_runtime.md
 Data/Modules/docs/module_database_model_v1.md
@@ -521,24 +521,24 @@ docs/00-INDICE.md
 docs/DOCUMENTATION_RULES.md
 docs/ETAPA_10_SDCTP_CAN_TRANSPORT_PROTOCOL.md
 docs/README.md
-docs/agents/agents_overview.md
-docs/agents/etapa_prompt_template.md
-docs/agents/freeze_checkpoint_template.md
-docs/agents/project_conventions.md
-docs/agents/skills/bll-dal-dtl-skill.md
-docs/agents/skills/build-validation-skill.md
-docs/agents/skills/dump-generation-skill.md
-docs/agents/skills/firmware-bpm-skill.md
-docs/agents/skills/firmware-uce-skill.md
-docs/agents/skills/git-checkpoint-skill.md
-docs/agents/skills/j1939-decode-skill.md
-docs/agents/skills/module-database-skill.md
-docs/agents/skills/sdctp-contract-skill.md
-docs/agents/skills/sdgw-transport-skill.md
-docs/agents/skills/sdh-contract-skill.md
-docs/agents/skills/simuldiesel-architecture-skill.md
-docs/agents/skills/winforms-ui-skill.md
-docs/agents/validation_checklist.md
+.agents/README.md
+.agents/README.md
+.agents/README.md
+.agents/README.md
+.agents/skills/bll-dal-dtl/SKILL.md
+.agents/skills/build-validation/SKILL.md
+.agents/skills/dump-generation/SKILL.md
+.agents/skills/firmware-bpm/SKILL.md
+.agents/skills/firmware-uce/SKILL.md
+.agents/skills/git-checkpoint/SKILL.md
+.agents/skills/j1939-decode/SKILL.md
+.agents/skills/module-database/SKILL.md
+.agents/skills/sdctp-contract/SKILL.md
+.agents/skills/sdgw-transport/SKILL.md
+.agents/skills/sdh-contract/SKILL.md
+.agents/skills/simuldiesel-architecture/SKILL.md
+.agents/skills/winforms-ui/SKILL.md
+.agents/README.md
 docs/architecture/sdh_sdctp_sdgw_contracts.md
 docs/legacy/00-INDICE-LEGACY.md
 docs/legacy/00_visao-geral/MASTER_SPEC.md
@@ -677,7 +677,7 @@ docs/official/12-documentacao-tecnica/01-especificacoes.md
 docs/official/12-documentacao-tecnica/02-diagramas.md
 docs/official/12-documentacao-tecnica/03-contratos-software.md
 hardware/.gitkeep
-hardware/AGENTS.md
+hardware/.agents/README.md
 hardware/README.md
 "hardware/boards/GSA -gerador-sinais-analogicos/GERADOR DE N\303\215VEIS/Canal_Analogico.kicad_sch"
 "hardware/boards/GSA -gerador-sinais-analogicos/GERADOR DE N\303\215VEIS/Canal_Analogico12V.kicad_sch"
@@ -827,7 +827,7 @@ infra/local/.gitkeep
 infra/local/config-templates/.gitkeep
 infra/local/installers/.gitkeep
 local-api/.gitkeep
-local-api/AGENTS.md
+local-api/.agents/README.md
 local-api/README.md
 local-api/src/SimulDIESEL/SimulDIESEL.sln
 local-api/src/SimulDIESEL/SimulDIESEL/App.config

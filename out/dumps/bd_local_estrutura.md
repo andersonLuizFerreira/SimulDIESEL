@@ -20,7 +20,7 @@ Objetivo: criar o core do banco local da API do SimulDIESEL usando SQLite, prese
 - Nao havia DAL/BLL de banco local implementado na API.
 - Nao havia pacote SQLite referenciado no projeto C#.
 - Nao havia mecanismo de migrations na API.
-- Ja existia skill adequada para Banco de Modulos: `.codex/skills/module-database/SKILL.md`; ela foi atualizada, nao duplicada.
+- Ja existia skill adequada para Banco de Modulos: `.agents/skills/module-database/SKILL.md`; ela foi atualizada, nao duplicada.
 
 ## Arquivos criados
 
@@ -60,8 +60,8 @@ Objetivo: criar o core do banco local da API do SimulDIESEL usando SQLite, prese
 - `local-api/src/SimulDIESEL/SimulDIESEL/Program.cs`
 - `local-api/src/SimulDIESEL/SimulDIESEL/SimulDIESEL.csproj`
 - `Data/Modules/modules.db`
-- `.codex/skills/module-database/SKILL.md`
-- `docs/agents/skills/module-database-skill.md`
+- `.agents/skills/module-database/SKILL.md`
+- `.agents/skills/module-database/SKILL.md`
 
 ## Arquitetura adotada
 
@@ -125,8 +125,8 @@ Migrations aplicadas no banco real:
 ## Skills criadas/alteradas
 
 - Nenhuma skill duplicada foi criada.
-- `.codex/skills/module-database/SKILL.md` foi atualizada para cobrir DAL de banco, repositories, migrations e BLL de inicializacao.
-- `docs/agents/skills/module-database-skill.md` foi mantida coerente com a skill estruturada.
+- `.agents/skills/module-database/SKILL.md` foi atualizada para cobrir DAL de banco, repositories, migrations e BLL de inicializacao.
+- `.agents/skills/module-database/SKILL.md` foi mantida coerente com a skill estruturada.
 
 ## Documentacao criada/atualizada
 
@@ -203,7 +203,7 @@ O banco temporario foi removido apos a validacao.
 - Busca textual confirmou que `System.Data.SQLite`, `SQLiteConnection`, `PRAGMA`, `CREATE TABLE`, `ALTER TABLE` e `SELECT` aparecem apenas no DAL.
 - Busca em `BLL/Services/Database` nao encontrou SQL nem tipos SQLite.
 - `Program.cs` apenas dispara a fachada BLL.
-- Cabeçalhos obrigatorios da skill `.codex/skills/module-database/SKILL.md`: OK.
+- Cabeçalhos obrigatorios da skill `.agents/skills/module-database/SKILL.md`: OK.
 - `git status --short` executado.
 
 ## Warnings e observacoes de validacao

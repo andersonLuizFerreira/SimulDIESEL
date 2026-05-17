@@ -104,8 +104,8 @@ Campos usados:
 
 ## Skills atualizadas
 
-- `.codex/skills/module-database/SKILL.md`
-- `docs/agents/skills/module-database-skill.md`
+- `.agents/skills/module-database/SKILL.md`
+- `.agents/skills/module-database/SKILL.md`
 
 As skills registram:
 

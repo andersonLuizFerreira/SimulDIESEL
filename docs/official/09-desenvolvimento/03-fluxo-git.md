@@ -11,8 +11,8 @@ O Git do SimulDIESEL deve preservar fontes oficiais, contratos, documentação e
 
 - Código fonte da aplicação local, firmware, ferramentas e testes automatizados.
 - Arquivos de projeto necessários ao build, incluindo `.sln`, `.csproj`, `platformio.ini`, recursos reais da aplicação e arquivos WinForms associados.
-- `AGENTS.md`, `.codex/instructions.md` e `.codex/skills/**`.
-- Documentação oficial em `docs/official/`, documentação de apoio em `docs/agents/` e documentação legada preservada.
+- `.agents/README.md` e `.agents/skills/**`.
+- Documentacao consolidada em `docs/` e governanca oficial de agentes em `.agents/`.
 - Schemas SQL, migrations SQL e seeds/catalogs JSON.
 - Catálogos J1939 versionados em `Data/Protocols/J1939/catalogs/**` e JSONs oficiais de protocolo.
 - Dumps técnicos Markdown autorizados em `out/dumps/**`.

@@ -26,8 +26,8 @@ UI/API -> ModuleProfileService -> IModuleProfileRepository -> IBdServiceProvider
 
 ## Arquivos alterados
 
-- `.codex/skills/module-database/SKILL.md`
-- `docs/agents/skills/module-database-skill.md`
+- `.agents/skills/module-database/SKILL.md`
+- `.agents/skills/module-database/SKILL.md`
 - `docs/official/02-arquitetura/12-banco-local-api.md`
 - `Data/Modules/docs/local_api_database_runtime.md`
 - `out/dumps/bd_crud_consumption_rule.md`

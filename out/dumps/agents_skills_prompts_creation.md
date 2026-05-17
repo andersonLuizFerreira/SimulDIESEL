@@ -1,4 +1,4 @@
-# Dump - Criacao de AGENTS.md, Skills e Prompts ETAPA
+# Dump - Criacao de .agents/README.md, Skills e Prompts ETAPA
 
 Data: 2026-05-12
 
@@ -8,31 +8,31 @@ Escopo: ETAPA exclusivamente documental e organizacional para criar orientacoes 
 
 ### Raiz
 
-- `AGENTS.md`
+- `.agents/README.md`
 
-### Guias em `docs/agents/`
+### Guias em `.agents/`
 
-- `docs/agents/agents_overview.md`
-- `docs/agents/project_conventions.md`
-- `docs/agents/etapa_prompt_template.md`
-- `docs/agents/validation_checklist.md`
-- `docs/agents/freeze_checkpoint_template.md`
+- `.agents/README.md`
+- `.agents/README.md`
+- `.agents/README.md`
+- `.agents/README.md`
+- `.agents/README.md`
 
-### Skills em `docs/agents/skills/`
+### Skills em `.agents/skills/`
 
-- `docs/agents/skills/simuldiesel-architecture-skill.md`
-- `docs/agents/skills/winforms-ui-skill.md`
-- `docs/agents/skills/bll-dal-dtl-skill.md`
-- `docs/agents/skills/sdh-contract-skill.md`
-- `docs/agents/skills/sdctp-contract-skill.md`
-- `docs/agents/skills/sdgw-transport-skill.md`
-- `docs/agents/skills/j1939-decode-skill.md`
-- `docs/agents/skills/module-database-skill.md`
-- `docs/agents/skills/firmware-uce-skill.md`
-- `docs/agents/skills/firmware-bpm-skill.md`
-- `docs/agents/skills/git-checkpoint-skill.md`
-- `docs/agents/skills/build-validation-skill.md`
-- `docs/agents/skills/dump-generation-skill.md`
+- `.agents/skills/simuldiesel-architecture/SKILL.md`
+- `.agents/skills/winforms-ui/SKILL.md`
+- `.agents/skills/bll-dal-dtl/SKILL.md`
+- `.agents/skills/sdh-contract/SKILL.md`
+- `.agents/skills/sdctp-contract/SKILL.md`
+- `.agents/skills/sdgw-transport/SKILL.md`
+- `.agents/skills/j1939-decode/SKILL.md`
+- `.agents/skills/module-database/SKILL.md`
+- `.agents/skills/firmware-uce/SKILL.md`
+- `.agents/skills/firmware-bpm/SKILL.md`
+- `.agents/skills/git-checkpoint/SKILL.md`
+- `.agents/skills/build-validation/SKILL.md`
+- `.agents/skills/dump-generation/SKILL.md`
 
 ### Dump
 
@@ -42,12 +42,12 @@ Escopo: ETAPA exclusivamente documental e organizacional para criar orientacoes 
 
 | Arquivo | Resumo |
 | --- | --- |
-| `AGENTS.md` | Orientacao principal para agentes: visao geral, arquitetura, fontes de verdade, regras de escopo, nomenclatura, ETAPA, validacao, entrega, commits/tags, rollback e documentacao. |
-| `docs/agents/agents_overview.md` | Mapa de uso da estrutura de agentes e relacao das skills disponiveis. |
-| `docs/agents/project_conventions.md` | Convencoes de camada, estados documentais, contratos e entrega. |
-| `docs/agents/etapa_prompt_template.md` | Templates para 12 tipos de ETAPA: UI, BLL, DAL, DTO/DTL, Firmware, Protocolo, Banco, Validacao, Refatoracao controlada, Limpeza de legado, Congelamento e Consolidacao Git. |
-| `docs/agents/validation_checklist.md` | Checklists gerais e por area para API, firmware, protocolos, banco e documentacao. |
-| `docs/agents/freeze_checkpoint_template.md` | Modelo para congelamento de contrato/componente, com decisoes congeladas, pendencias e nao regressao. |
+| `.agents/README.md` | Orientacao principal para agentes: visao geral, arquitetura, fontes de verdade, regras de escopo, nomenclatura, ETAPA, validacao, entrega, commits/tags, rollback e documentacao. |
+| `.agents/README.md` | Mapa de uso da estrutura de agentes e relacao das skills disponiveis. |
+| `.agents/README.md` | Convencoes de camada, estados documentais, contratos e entrega. |
+| `.agents/README.md` | Templates para 12 tipos de ETAPA: UI, BLL, DAL, DTO/DTL, Firmware, Protocolo, Banco, Validacao, Refatoracao controlada, Limpeza de legado, Congelamento e Consolidacao Git. |
+| `.agents/README.md` | Checklists gerais e por area para API, firmware, protocolos, banco e documentacao. |
+| `.agents/README.md` | Modelo para congelamento de contrato/componente, com decisoes congeladas, pendencias e nao regressao. |
 | `simuldiesel-architecture-skill.md` | Skill para arquitetura geral, fronteiras, estados e divergencias. |
 | `winforms-ui-skill.md` | Skill para UI WinForms e limites contra acesso a TLV/SDGW bruto. |
 | `bll-dal-dtl-skill.md` | Skill para host C# em BLL, DAL e DTL. |
@@ -64,8 +64,8 @@ Escopo: ETAPA exclusivamente documental e organizacional para criar orientacoes 
 
 ## Decisoes adotadas
 
-- Criar a nova documentacao de agentes em `docs/agents/`, sem alterar a arvore oficial em `docs/official/`.
-- Manter `AGENTS.md` na raiz como ponto de entrada obrigatorio para agentes.
+- Criar a nova documentacao de agentes em `.agents/`, sem alterar a arvore oficial em `docs/official/`.
+- Manter `.agents/README.md` na raiz como ponto de entrada obrigatorio para agentes.
 - Reforcar a arquitetura solicitada: `UI -> BLL -> DAL -> DTL -> SDGW -> BPM -> SPI/BT/SERIAL -> UCE/GSA`.
 - Registrar explicitamente a separacao: SDH semantico, SDGW transporte, SDCTP massa CAN, J1939 decoder sobre `CanFrameDto`.
 - Usar regra conservadora para divergencias: registrar como pendente ou divergente, sem decidir arbitrariamente.
@@ -80,9 +80,9 @@ Escopo: ETAPA exclusivamente documental e organizacional para criar orientacoes 
 
 ## Recomendacoes para uso futuro
 
-- Para cada nova ETAPA, iniciar pelo `AGENTS.md`, escolher a skill correspondente e copiar o template de `docs/agents/etapa_prompt_template.md`.
+- Para cada nova ETAPA, iniciar pelo `.agents/README.md`, escolher a skill correspondente e copiar o template de `.agents/README.md`.
 - Quando uma ETAPA alterar contrato, gerar dump em `out/dumps/` e considerar um documento de congelamento.
-- Atualizar `docs/agents/skills/` quando a arquitetura real mudar, especialmente nas fronteiras SDH/SDCTP/SDGW/J1939.
+- Atualizar `.agents/skills/` quando a arquitetura real mudar, especialmente nas fronteiras SDH/SDCTP/SDGW/J1939.
 - Em ETAPAS de J1939, revisar a divergencia entre documentacao oficial antiga e codigo atual antes de declarar suporte implementado.
 - Formalizar politica Git em documento proprio antes de exigir branch/tag/merge como regra institucional do projeto.
 

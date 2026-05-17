@@ -16,7 +16,7 @@ Nao use para implementar detalhe visual, alterar firmware isolado, mudar schema 
 
 ## Escopo permitido
 
-- Ler `.agents/README.md`, `.agents/skills/`, `docs/`, `local-api/src/`, `hardware/firmware/` e `Data/Modules/`.
+- Ler `.agents/README.md`, `docs/`, `out/dumps/`, `local-api/src/`, `hardware/firmware/` e `Data/Modules/`.
 - Criar ou atualizar documentos arquiteturais autorizados.
 
 ## Escopo proibido
@@ -29,9 +29,7 @@ Nao use para implementar detalhe visual, alterar firmware isolado, mudar schema 
 - `.agents/README.md`
 - `.agents/skills/`
 - `docs/`
-- `local-api/src/`
-- `hardware/firmware/`
-- `Data/Modules/`
+- `out/dumps/`
 
 ## Padroes do projeto
 
@@ -44,7 +42,7 @@ Nao use para implementar detalhe visual, alterar firmware isolado, mudar schema 
 
 ## Checklist de validacao
 
-- [ ] Priorizar fonte de verdade: codigo, contratos e `docs/`.
+- [ ] Priorizar fonte de verdade: codigo, contratos, docs, dumps e legado.
 - [ ] Registrar divergencias.
 - [ ] Nao inventar comportamento.
 - [ ] Confirmar que camadas nao foram misturadas.
@@ -55,8 +53,8 @@ Nao use para implementar detalhe visual, alterar firmware isolado, mudar schema 
 - [ ] Arquivos criados/alterados.
 - [ ] Decisoes e pendencias.
 - [ ] Validacao documental.
-- [ ] `docs/` revisado/atualizado quando a ETAPA arquitetural ou funcional for concluida.
-- [ ] Dump quando exigido pela ETAPA.
+- [ ] `docs/` e documentos de arquitetura relacionados revisados/atualizados quando a ETAPA arquitetural ou funcional for concluida.
+- [ ] Dump quando exigido.
 
 ## Riscos comuns
 

@@ -19,7 +19,7 @@ Nao use para redesenhar UI, alterar firmware ou modificar Banco de Modulos sem p
 - `BLL/`
 - `DAL/`
 - `DTL/`
-- Documentos relacionados em `docs/`.
+- Documentos e dumps relacionados.
 
 ## Escopo proibido
 

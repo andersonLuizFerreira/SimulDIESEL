@@ -10,11 +10,11 @@ Objetivo: transformar `/docs/` em documentacao viva, sincronizada com o estado r
 
 ## Escopo executado
 
-- `AGENTS.md`
-- `.codex/instructions.md`
-- `.codex/skills/simuldiesel-architecture/SKILL.md`
-- `docs/agents/project_conventions.md`
-- `docs/agents/validation_checklist.md`
+- `.agents/README.md`
+- `.agents/README.md`
+- `.agents/skills/simuldiesel-architecture/SKILL.md`
+- `.agents/README.md`
+- `.agents/README.md`
 - `out/dumps/documentation_governance_auto_update.md`
 
 ## Fora de escopo preservado
@@ -29,11 +29,11 @@ Objetivo: transformar `/docs/` em documentacao viva, sincronizada com o estado r
 
 ## Arquivos alterados
 
-- `AGENTS.md`
-- `.codex/instructions.md`
-- `.codex/skills/simuldiesel-architecture/SKILL.md`
-- `docs/agents/project_conventions.md`
-- `docs/agents/validation_checklist.md`
+- `.agents/README.md`
+- `.agents/README.md`
+- `.agents/skills/simuldiesel-architecture/SKILL.md`
+- `.agents/README.md`
+- `.agents/README.md`
 
 ## Arquivos criados
 
@@ -41,11 +41,11 @@ Objetivo: transformar `/docs/` em documentacao viva, sincronizada com o estado r
 
 ## Regras adicionadas
 
-- `AGENTS.md`: criada a secao `Atualizacao obrigatoria de documentacao`, determinando que ETAPAS concluidas devem revisar documentacao impactada, atualizar `/docs/`, preservar coerencia estrutural, refletir estado real e registrar mudancas arquiteturais, contratos, fluxos ou limitacoes.
-- `.codex/instructions.md`: adicionada regra curta indicando que ETAPAS concluidas exigem atualizacao da documentacao oficial impactada em `/docs/`.
-- `.codex/skills/simuldiesel-architecture/SKILL.md`: adicionada regra para revisar `/docs/official/` e documentos de arquitetura relacionados ao concluir ETAPAS arquiteturais ou funcionais.
-- `docs/agents/project_conventions.md`: adicionada a secao `Documentacao viva`, separando `/docs/` como estado consolidado e dumps como historico/auditoria.
-- `docs/agents/validation_checklist.md`: adicionados itens para validar revisao/atualizacao da documentacao oficial impactada.
+- `.agents/README.md`: criada a secao `Atualizacao obrigatoria de documentacao`, determinando que ETAPAS concluidas devem revisar documentacao impactada, atualizar `/docs/`, preservar coerencia estrutural, refletir estado real e registrar mudancas arquiteturais, contratos, fluxos ou limitacoes.
+- `.agents/README.md`: adicionada regra curta indicando que ETAPAS concluidas exigem atualizacao da documentacao oficial impactada em `/docs/`.
+- `.agents/skills/simuldiesel-architecture/SKILL.md`: adicionada regra para revisar `/docs/official/` e documentos de arquitetura relacionados ao concluir ETAPAS arquiteturais ou funcionais.
+- `.agents/README.md`: adicionada a secao `Documentacao viva`, separando `/docs/` como estado consolidado e dumps como historico/auditoria.
+- `.agents/README.md`: adicionados itens para validar revisao/atualizacao da documentacao oficial impactada.
 
 ## Objetivo da governanca documental
 
@@ -64,18 +64,18 @@ Objetivo: transformar `/docs/` em documentacao viva, sincronizada com o estado r
 ## Validacao executada
 
 - Conferir que apenas arquivos documentais foram alterados.
-- Conferir coerencia entre `AGENTS.md`, `.codex/instructions.md`, skill de arquitetura e convencoes de projeto.
+- Conferir coerencia entre `.agents/README.md`, `.agents/README.md`, skill de arquitetura e convencoes de projeto.
 - Conferir que nao houve duplicacao excessiva nem conflito de governanca.
 - Executar `git status --short`.
 - Builds nao executados por nao se aplicarem a ETAPA exclusivamente documental.
 
 ## Resultado da validacao
 
-- Regras novas localizadas em `AGENTS.md`, `.codex/instructions.md`, `.codex/skills/simuldiesel-architecture/SKILL.md`, `docs/agents/project_conventions.md` e `docs/agents/validation_checklist.md`.
-- `AGENTS.md` centraliza a regra completa; `.codex/instructions.md` mantem apenas a regra curta de bootstrap.
+- Regras novas localizadas em `.agents/README.md`, `.agents/README.md`, `.agents/skills/simuldiesel-architecture/SKILL.md`, `.agents/README.md` e `.agents/README.md`.
+- `.agents/README.md` centraliza a regra completa; `.agents/README.md` mantem apenas a regra curta de bootstrap.
 - A skill de arquitetura reforca revisao de `/docs/official/` e documentos de arquitetura relacionados.
-- `docs/agents/project_conventions.md` diferencia `/docs/` como estado consolidado e dumps como historico/auditoria.
-- `docs/agents/validation_checklist.md` inclui item obrigatorio de revisao/atualizacao documental.
+- `.agents/README.md` diferencia `/docs/` como estado consolidado e dumps como historico/auditoria.
+- `.agents/README.md` inclui item obrigatorio de revisao/atualizacao documental.
 - `git status --short` executado.
 - Observacao de worktree: alem desta ETAPA, o status ainda mostra alteracoes documentais anteriores relacionadas a consolidacao do bootstrap CODEX e ajustes de governanca ja realizados.
 

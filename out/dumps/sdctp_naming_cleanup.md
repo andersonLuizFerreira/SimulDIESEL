@@ -12,11 +12,11 @@ Esta ETAPA nao trata grafias incorretas como alias, termo historico, divergencia
 
 ## Arquivos corrigidos
 
-- `AGENTS.md`
-- `.codex/skills/simuldiesel-architecture/SKILL.md`
-- `.codex/skills/sdh-contract/SKILL.md`
-- `docs/agents/skills/simuldiesel-architecture-skill.md`
-- `docs/agents/skills/sdh-contract-skill.md`
+- `.agents/README.md`
+- `.agents/skills/simuldiesel-architecture/SKILL.md`
+- `.agents/skills/sdh-contract/SKILL.md`
+- `.agents/skills/simuldiesel-architecture/SKILL.md`
+- `.agents/skills/sdh-contract/SKILL.md`
 - `out/dumps/agents_skills_prompts_creation.md`
 - `out/dumps/sdh_sdctp_architecture_current_state.md`
 
@@ -26,7 +26,7 @@ Esta ETAPA nao trata grafias incorretas como alias, termo historico, divergencia
 
 ## Ocorrencias removidas
 
-- Removida de `AGENTS.md` a instrucao que tratava a grafia incorreta como divergencia ou erro historico a avaliar.
+- Removida de `.agents/README.md` a instrucao que tratava a grafia incorreta como divergencia ou erro historico a avaliar.
 - Removidos de skills humanas e estruturadas os riscos que citavam a grafia incorreta diretamente.
 - Removida de `out/dumps/agents_skills_prompts_creation.md` a observacao que registrava a grafia incorreta como divergencia historica ou erro a confirmar.
 - Corrigido o titulo, escopo e diagnostico do dump arquitetural para `SDCTP`.
@@ -65,7 +65,7 @@ As demais grafias eram apenas erros de digitacao em documentacao/prompts anterio
   - padrao: grafias incorretas em qualquer combinacao de caixa.
   - resultado: sem ocorrencias.
 - Busca textual para a nomenclatura oficial:
-  - `SDCTP` encontrado de forma consistente em documentacao ativa, skills, estrutura `.codex` e dumps.
+  - `SDCTP` encontrado de forma consistente em documentacao ativa, skills, estrutura `.agents` e dumps.
 - `git status --short` executado apos as correcoes.
 
 ## Build

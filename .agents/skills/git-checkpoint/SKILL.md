@@ -1,0 +1,77 @@
+# Nome
+
+Git Checkpoint
+
+## Objetivo
+
+Orientar inspecao Git, preparacao de checkpoint e consolidacao sem commit, branch ou tag automaticos.
+
+## Quando usar
+
+Use para `git status`, `git diff`, stage/commit/tag autorizados, relatorios de consolidacao e preservacao de rollback.
+
+## Quando nao usar
+
+Nao use para criar branch, commit, tag ou reset sem pedido claro.
+
+## Escopo permitido
+
+- `git status`
+- `git diff`
+- stage/commit/tag apenas autorizados.
+- relatorios e dumps de consolidacao.
+
+## Escopo proibido
+
+- `git reset --hard`, checkout destrutivo ou limpeza de alteracoes de terceiros sem pedido explicito.
+- Incluir alteracoes preexistentes por acidente.
+- Sem autorizacao clara, nao executar `git clean -fd`, `git checkout .`, `git restore .`, `git reset --hard`, `git push --force` ou rebase destrutivo.
+- Nao incluir alteracoes funcionais preexistentes em commit documental sem autorizacao explicita.
+
+## Arquivos/pastas provaveis
+
+- Nao aplicavel; atua no repositorio.
+
+## Padroes do projeto
+
+- Nao ha politica Git formal completa documentada.
+- Cada entrega deve preservar rollback.
+- Mudancas de protocolo devem ser rastreaveis entre docs, API e firmware.
+- Nunca assumir que alteracoes existentes no worktree pertencem a ETAPA atual.
+- Separar alteracoes preexistentes das alteracoes feitas na ETAPA.
+
+## Checklist de validacao
+
+- [ ] `git status --short`.
+- [ ] Conferir arquivos staged.
+- [ ] Conferir arquivos unstaged.
+- [ ] Conferir arquivos untracked.
+- [ ] Separar alteracoes preexistentes das criadas na ETAPA.
+- [ ] Confirmar autorizacao antes de commit/tag/branch.
+- [ ] Confirmar explicitamente o branch alvo antes de merge ou push.
+
+## Checklist de entrega
+
+- [ ] Status antes/depois.
+- [ ] Arquivos incluidos.
+- [ ] Hash/branch/tag se criados.
+- [ ] Itens nao incluidos e motivo.
+
+## Riscos comuns
+
+- Commitar alteracao funcional preexistente.
+- Criar branch sem permissao.
+- Perder rollback por reset.
+- Incluir alteracoes de outra ETAPA em commit documental.
+- Fazer push ou merge para branch errado.
+
+## Regras de nao regressao
+
+- Nunca apagar trabalho de outro autor.
+- Nao fazer commit automatico.
+- Nao criar tag sem autorizacao.
+- Nao usar comandos Git destrutivos sem autorizacao clara.
+- Nao fazer force push.
+- Nao fazer rebase destrutivo.
+
+

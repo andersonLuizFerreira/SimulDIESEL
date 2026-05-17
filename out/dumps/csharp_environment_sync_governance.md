@@ -10,14 +10,14 @@ Objetivo: impedir que codigo C# exista apenas fisicamente no disco, fora do proj
 
 ## Escopo executado
 
-- `AGENTS.md`
-- `.codex/instructions.md`
-- `.codex/skills/bll-dal-dtl/SKILL.md`
-- `.codex/skills/build-validation/SKILL.md`
-- `docs/agents/project_conventions.md`
-- `docs/agents/validation_checklist.md`
-- `docs/agents/skills/bll-dal-dtl-skill.md`
-- `docs/agents/skills/build-validation-skill.md`
+- `.agents/README.md`
+- `.agents/README.md`
+- `.agents/skills/bll-dal-dtl/SKILL.md`
+- `.agents/skills/build-validation/SKILL.md`
+- `.agents/README.md`
+- `.agents/README.md`
+- `.agents/skills/bll-dal-dtl/SKILL.md`
+- `.agents/skills/build-validation/SKILL.md`
 - `out/dumps/csharp_environment_sync_governance.md`
 
 ## Fora de escopo preservado
@@ -32,14 +32,14 @@ Objetivo: impedir que codigo C# exista apenas fisicamente no disco, fora do proj
 
 ## Arquivos alterados
 
-- `AGENTS.md`
-- `.codex/instructions.md`
-- `.codex/skills/bll-dal-dtl/SKILL.md`
-- `.codex/skills/build-validation/SKILL.md`
-- `docs/agents/project_conventions.md`
-- `docs/agents/validation_checklist.md`
-- `docs/agents/skills/bll-dal-dtl-skill.md`
-- `docs/agents/skills/build-validation-skill.md`
+- `.agents/README.md`
+- `.agents/README.md`
+- `.agents/skills/bll-dal-dtl/SKILL.md`
+- `.agents/skills/build-validation/SKILL.md`
+- `.agents/README.md`
+- `.agents/README.md`
+- `.agents/skills/bll-dal-dtl/SKILL.md`
+- `.agents/skills/build-validation/SKILL.md`
 
 ## Arquivos criados
 
@@ -72,14 +72,14 @@ Objetivo: impedir que codigo C# exista apenas fisicamente no disco, fora do proj
 
 - Conferido que a ETAPA alterou apenas arquivos documentais/governanca e este dump.
 - Conferido que nao houve alteracao funcional nesta ETAPA.
-- Conferida coerencia entre `AGENTS.md`, `.codex/instructions.md`, skills estruturadas e skills humanas equivalentes.
+- Conferida coerencia entre `.agents/README.md`, `.agents/README.md`, skills estruturadas e skills humanas equivalentes.
 - Conferido que as novas regras nao conflitam com rollback nem arquitetura.
 - `git status --short` executado.
 - Build nao executado: nao aplicavel a ETAPA exclusivamente documental.
 
 ## Resultado da validacao
 
-- Busca textual confirmou as regras novas em `AGENTS.md`, `.codex/instructions.md`, skills estruturadas, skills humanas e checklists.
+- Busca textual confirmou as regras novas em `.agents/README.md`, `.agents/README.md`, skills estruturadas, skills humanas e checklists.
 - Nenhum arquivo `.sln` foi alterado nesta ETAPA.
 - Nenhum arquivo `.csproj` foi alterado nesta ETAPA; o `git status --short` ainda mostra `SimulDIESEL.csproj` modificado por ETAPA funcional anterior no mesmo worktree.
 - A governanca adicionada e complementar ao rollback: ela exige rastreabilidade, nao autoriza commit, branch, tag ou comandos destrutivos.
