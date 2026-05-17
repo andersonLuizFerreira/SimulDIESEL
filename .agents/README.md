@@ -33,6 +33,16 @@ Antes de qualquer analise, planejamento, ETAPA, alteracao de codigo ou alteracao
 
 Cada skill deve conter apenas conhecimento especializado do dominio. Regras globais, bootstrap, rollback generico, validacao generica e regras de ETAPA pertencem a este README.
 
+Skills locais complementam a governanca global. Skills locais nao podem reescrever, duplicar, substituir ou reinterpretar regras globais.
+
+## Autoridade da governanca
+
+A autoridade final sobre criacao, alteracao, remocao, consolidacao, excecao ou resolucao de conflito de governanca pertence ao humano responsavel pelo projeto.
+
+A IA pode identificar lacunas, sugerir ajustes, validar coerencia e reportar conflitos, mas nao pode aprovar sozinha mudancas permanentes de governanca.
+
+Quando houver duvida, lacuna, conflito ou ambiguidade de governanca, a IA deve interromper a ETAPA e solicitar decisao humana explicita.
+
 ## Hierarquia Global -> Local
 
 A governanca segue obrigatoriamente esta hierarquia, sem fontes paralelas:
@@ -50,6 +60,10 @@ A busca por regras deve ocorrer somente em:
 
 - `.agents/README.md`;
 - `.agents/skills/<skill>/SKILL.md` da atividade em questao.
+
+Quando uma ETAPA exigir mais de uma skill local, todas as skills aplicaveis devem ser lidas.
+
+Se houver conflito, divergencia ou sobreposicao operacional entre skills locais, a IA nao deve escolher uma por conta propria: deve interromper a ETAPA, reportar o conflito e solicitar decisao humana.
 
 ## Fonte oficial
 
@@ -150,6 +164,8 @@ Quando houver duplicidade ou divergencia:
 - Aplique a regra mais conservadora ate confirmacao.
 - Nao invente regra para preencher lacuna.
 - Registre divergencias e decisoes na entrega da ETAPA.
+
+Conflitos entre regras globais e locais, ou entre duas ou mais skills locais, nao podem ser resolvidos por escolha autonoma da IA. Nesses casos, a ETAPA deve ser interrompida e encaminhada para decisao humana.
 
 ## Rollback
 
