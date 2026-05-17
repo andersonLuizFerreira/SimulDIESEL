@@ -1,26 +1,85 @@
-# .agents - Guia comum para agentes
+# .agents - Governanca de agentes do SimulDIESEL
 
-Esta pasta contem as instrucoes comuns para agentes de IA que trabalham no SimulDIESEL.
+Esta pasta contem a governanca operacional oficial para agentes de IA no projeto SimulDIESEL.
 
-Objetivo: evitar dependencia de memoria conversacional e centralizar regras de comportamento, escopo, documentacao, arquitetura, validacao e evolucao do projeto.
+Objetivo:
 
-## Leitura obrigatoria
+- evitar dependencia de memoria conversacional;
+- centralizar bootstrap, regras e skills;
+- garantir consistencia arquitetural;
+- reduzir retrabalho;
+- impedir implementacoes fora de escopo;
+- padronizar ETAPAS, validacoes e entregas.
 
-Antes de qualquer analise, planejamento, ETAPA, alteracao de codigo ou alteracao documental, leia:
+## Fluxo obrigatorio de leitura
 
-1. `README.md` na raiz do repositorio;
-2. `.agents/instructions.md`;
-3. skills relevantes em `.agents/skills/`;
-4. documentacao aplicavel em `docs/`.
+Antes de qualquer analise, planejamento, ETAPA, alteracao de codigo ou alteracao documental:
 
-## Separacao de responsabilidades
+1. Leia `.agents/README.md`;
+2. Leia `.agents/instructions.md`;
+3. Carregue as skills relevantes em `.agents/skills/`;
+4. Consulte a documentacao aplicavel em `docs/`.
 
-- `docs/`: documentacao oficial consolidada para humanos e projeto.
-- `.agents/`: regras operacionais para agentes de IA.
-- `.codex/`: adaptador especifico para CODEX.
-- `out/dumps/`: evidencias temporarias pos-codificacao ou auditoria; nao e documentacao oficial.
-- Git: historico, legado, rollback e recuperacao de versoes antigas.
+## Estrutura da governanca
+
+```text
+.agents/
+│
+├── README.md
+├── instructions.md
+└── skills/
+```
+
+## Responsabilidades
+
+### `.agents/README.md`
+
+Ponto inicial de entrada para agentes.
+
+Responsavel por:
+
+- bootstrap;
+- onboarding;
+- roteamento;
+- organizacao da governanca.
+
+### `.agents/instructions.md`
+
+Contem:
+
+- regras operacionais;
+- arquitetura;
+- restricoes;
+- validacoes;
+- workflow;
+- nomenclatura;
+- regras de ETAPA;
+- regras de entrega;
+- sincronizacao de ambiente.
+
+### `.agents/skills/`
+
+Contem conhecimento especializado reutilizavel.
+
+Exemplos:
+
+- arquitetura;
+- WinForms;
+- firmware;
+- SDH;
+- SDGW;
+- SDCTP;
+- J1939;
+- Banco de Modulos;
+- validacao;
+- dumps;
+- Git.
 
 ## Regra principal
 
-Se houver divergencia entre memoria, conversa, dumps e arquivos do repositorio, o agente deve priorizar os arquivos versionados e registrar qualquer incerteza como `pendente de confirmacao`.
+Agentes devem trabalhar a partir dos arquivos versionados do repositorio, nunca apenas da memoria conversacional.
+
+## Fonte oficial
+
+- `docs/` = documentacao oficial do projeto.
+- `.agents/` = governanca oficial de agentes.
