@@ -10,6 +10,16 @@ Orientar a execucao de ETAPAS versionadas em `.agents/task-execution-workflow/`.
 
 Use automaticamente apos ler `.agents/README.md`, antes de executar qualquer ETAPA registrada em `.agents/task-execution-workflow/`.
 
+## Pasta oficial de tarefas
+
+A pasta oficial de tarefas versionadas e:
+
+```text
+.agents/task-execution-workflow/
+```
+
+Essa pasta contem arquivos de ETAPA a serem executados pelo agente.
+
 ## Fluxo obrigatorio
 
 1. Auditar o estado atual da branch local.
@@ -52,6 +62,66 @@ Se nao existir nenhuma ETAPA ou nenhum item `[ ]` em `.agents/task-execution-wor
 - `[-] BLOQUEADO`
 - `[~] NAO APLICAVEL`
 
+## Estados oficiais da ETAPA
+
+Cada arquivo de ETAPA deve declarar um estado geral.
+
+Estados permitidos:
+
+- `PENDENTE`: existe ao menos uma tarefa `[ ]` a executar.
+- `EM_EXECUCAO`: ETAPA em andamento.
+- `BLOQUEADA`: ETAPA interrompida por conflito, duvida, dependencia ou erro externo.
+- `FALHA`: houve erro de execucao ou validacao.
+- `VALIDACAO_PENDENTE`: execucao concluida, mas validacao final ainda nao realizada.
+- `CONCLUIDA`: todas as tarefas aplicaveis foram executadas, validadas e registradas.
+
+## Imutabilidade de historico
+
+ETAPAS concluidas sao historico operacional.
+
+Nao reutilizar, limpar, sobrescrever ou reabrir uma ETAPA `CONCLUIDA` por iniciativa propria.
+
+Correcoes, ajustes ou retrabalho sobre uma ETAPA concluida devem ser registrados em nova ETAPA, salvo solicitacao humana explicita para reabrir ou corrigir o arquivo historico.
+
+Tics, logs, validacoes, hash de commit e resumo final de uma ETAPA concluida nao devem ser removidos.
+
+## Nomenclatura de ETAPAS
+
+O nome do arquivo deve seguir o padrao:
+
+```text
+ETAPA_000_descricao_curta.md
+```
+
+Regras:
+
+- usar `ETAPA` em maiusculo;
+- usar numeracao sequencial com tres digitos;
+- usar descricao curta em `snake_case` ou `kebab-case`;
+- nao reutilizar numero de ETAPA;
+- nao renomear ETAPA concluida sem autorizacao humana explicita.
+
+## Ownership da ETAPA
+
+Cada ETAPA deve registrar, quando aplicavel:
+
+- `CRIADA_POR`;
+- `EXECUTADA_POR`;
+- `VALIDADA_POR`;
+- `DATA_CRIACAO`;
+- `DATA_EXECUCAO`;
+- `DATA_VALIDACAO`.
+
+Se algum campo nao for conhecido, registrar `pendente de confirmacao`.
+
+## Arquivamento
+
+Por padrao, ETAPAS permanecem em `.agents/task-execution-workflow/`.
+
+Quando o volume crescer, o arquivamento deve ocorrer por nova regra ou nova ETAPA autorizada.
+
+Nenhuma ETAPA concluida deve ser movida para arquivo morto, removida ou compactada sem autorizacao humana explicita.
+
 ## Regras
 
 - Nao executar tarefa fora do escopo da ETAPA.
@@ -61,6 +131,7 @@ Se nao existir nenhuma ETAPA ou nenhum item `[ ]` em `.agents/task-execution-wor
 - Se a branch local divergir da remota, interromper e reportar.
 - Se a ETAPA estiver ambigua, interromper e reportar.
 - Se uma validacao falhar, registrar `FALHA` e nao ocultar erro.
+- Regras especificas de tasks pertencem a esta skill local, nao ao README global.
 
 ## Checklist de entrega
 
