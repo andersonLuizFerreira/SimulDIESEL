@@ -26,31 +26,69 @@ Esta skill governa exclusivamente:
 /docs
 ```
 
+## Fonte unica documental
+
+- `docs/` e a unica e suficiente fonte de verdade para documentacao consolidada do projeto.
+- Nao deve haver outras fontes documentais concorrentes dentro de `docs/`, como `legacy`, `oficial`, `official`, `historico`, `old`, `archive` ou equivalentes.
+- Versionamento, historico e rollback pertencem ao Git, nao a pastas documentais legadas.
+- Documentos legados, duplicados ou historicos dentro de `docs/` podem induzir erro e devem ser saneados por ETAPA propria.
+- Dumps, chats, prompts e arquivos temporarios nao substituem documentacao oficial.
+
+## Relacao docs -> codigo
+
+- `docs/` deve ser a fonte de verdade para o codigo.
+- O codigo deve seguir a documentacao oficial consolidada.
+- Divergencias entre codigo e documentacao devem ser registradas para saneamento.
+- Nao usar codigo divergente como justificativa automatica para alterar a documentacao oficial.
+- Saneamento de codigo divergente deve ocorrer em ETAPA propria, apos consolidacao documental.
+
+## Arvore oficial de `docs/`
+
+A estrutura autorizada de `docs/` deve ser registrada nesta skill.
+
+Arvore atualmente autorizada:
+
+```text
+docs/
+|-- README.md
+|-- 00-INDICE.md
+|-- DOCUMENTATION_RULES.md
+```
+
+A arvore acima representa o alvo de governanca documental. O estado atual do repositorio pode ainda conter divergencias a serem saneadas.
+
+Qualquer alteracao na arvore autorizada de `docs/` deve:
+
+1. ser solicitada ou aprovada pelo humano;
+2. atualizar esta skill;
+3. atualizar os indices/documentos impactados;
+4. registrar divergencias encontradas;
+5. preservar conteudo util antes de consolidar ou remover documentos.
+
 ## Regras locais
 
-- `docs/` e a fonte oficial de documentacao consolidada do projeto.
-- Dumps, chats, prompts e arquivos temporarios nao substituem documentacao oficial.
-- A documentacao deve refletir o estado real do projeto.
-- Nao documentar comportamento nao validado.
+- A documentacao deve refletir a arquitetura e as decisoes oficiais consolidadas.
+- Nao documentar comportamento nao validado como implementado.
 - Nao promover automaticamente algo de `PLANEJADO` para `IMPLEMENTADO`.
 - Documentacao duplicada deve ser consolidada.
-- Antes de remover documentacao, verificar se existe outra referencia oficial equivalente.
-- Antes de sobrescrever documentacao existente, absorver conteudo util e preservar historico relevante.
+- Antes de remover documentacao, verificar se existe conteudo util a absorver.
+- Antes de sobrescrever documentacao existente, absorver conteudo util e preservar informacao valida.
 - Nao apagar secoes antigas sem verificar impacto arquitetural e documental.
 - Em caso de conflito documental, preservar a versao mais completa, atual e coerente.
 - Se houver ambiguidade documental, registrar `pendente de confirmacao`.
 - Links internos devem permanecer validos.
-- Documentacao deve evitar contradizer contratos, codigo consolidado ou governanca oficial.
+- Documentacao deve evitar contradizer governanca oficial.
 
 ## Estrutura documental
 
 A organizacao interna de `docs/` deve:
 
-- separar documentacao oficial de dumps e artefatos temporarios;
+- ser unica, direta e suficiente;
 - evitar redundancia;
 - manter nomenclatura consistente;
-- manter organizacao navegavel;
-- evitar arquivos gigantes sem necessidade.
+- manter navegacao clara;
+- evitar arquivos gigantes sem necessidade;
+- nao depender de pastas historicas para explicar o estado atual.
 
 ## Validacao documental
 
@@ -61,7 +99,8 @@ Toda ETAPA documental deve validar:
 - ausencia de contradicao relevante;
 - links internos basicos;
 - ausencia de duplicidade evidente;
-- estados documentais corretos.
+- estados documentais corretos;
+- ausencia de fontes paralelas dentro de `docs/`.
 
 ## Estados documentais
 
@@ -88,9 +127,9 @@ Esta skill nao governa:
 
 Em caso de conflito entre documentacao e codigo:
 
-- nao assumir automaticamente que a documentacao esta correta;
-- nao assumir automaticamente que o codigo representa implementacao final;
-- registrar divergencia;
+- a documentacao oficial consolidada deve orientar o codigo;
+- divergencias devem ser registradas;
+- saneamento de codigo deve ser feito em ETAPA propria;
 - solicitar decisao humana quando necessario.
 
 ## Checklist de entrega
@@ -98,7 +137,9 @@ Em caso de conflito entre documentacao e codigo:
 - [ ] Documentacao auditada.
 - [ ] Duplicidades identificadas.
 - [ ] Contradicoes registradas.
+- [ ] Fontes documentais paralelas identificadas.
 - [ ] Links revisados.
-- [ ] Estrutura documental preservada.
+- [ ] Estrutura documental preservada ou saneamento proposto.
 - [ ] Conteudo util absorvido antes de consolidacao.
 - [ ] Nenhuma documentacao oficial removida sem justificativa.
+- [ ] Skill atualizada se a arvore autorizada de `docs/` mudar.
