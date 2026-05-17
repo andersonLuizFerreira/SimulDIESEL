@@ -41,11 +41,21 @@ Antes de qualquer analise, planejamento, ETAPA, alteracao de codigo ou alteracao
 
 A pasta `.agents/task-execution-workflow/` contem ETAPAS versionadas e pendentes de execucao.
 
-Cada ETAPA deve ser executada seguindo obrigatoriamente a skill `task-execution-workflow`.
+Para regras operacionais de execucao de ETAPAS, selecao de tarefas, estados, tics, ownership, historico operacional, nomenclatura, validacao e fluxo de execucao:
 
-Cada skill deve conter apenas conhecimento especializado do dominio. Regras globais, bootstrap, rollback generico, validacao generica e regras de ETAPA pertencem a este README.
+```text
+.agents/skills/task-execution-workflow/SKILL.md
+```
 
-Skills locais complementam a governanca global. Skills locais nao podem reescrever, duplicar, substituir ou reinterpretar regras globais.
+Cada skill deve conter apenas conhecimento especializado do dominio.
+
+Regras globais, bootstrap, rollback generico, validacao generica e regras globais de ETAPA pertencem exclusivamente a este README.
+
+Detalhes operacionais, regras especificas de workflow e regras locais pertencem exclusivamente a skill correspondente.
+
+Skills locais complementam a governanca global.
+
+Skills locais nao podem reescrever, duplicar, substituir ou reinterpretar regras globais.
 
 ## Autoridade da governanca
 
@@ -126,7 +136,7 @@ UI -> BLL -> DAL -> DTL -> SDGW -> BPM -> SPI/BT/SERIAL -> UCE/GSA
 - `LEGADO`: preservado por compatibilidade ou historico.
 - `pendente de confirmacao`: nao ha evidencia suficiente.
 
-## Regras de ETAPA
+## Regras globais de ETAPA
 
 Toda ETAPA deve declarar:
 
@@ -144,6 +154,12 @@ ETAPAS de refatoracao devem preservar comportamento.
 ETAPAS de limpeza de legado devem provar ausencia de uso por busca, teste ou evidencia equivalente.
 
 ETAPAS de congelamento devem registrar decisoes congeladas, decisoes pendentes e regras de nao regressao.
+
+Detalhes operacionais de ETAPA pertencem exclusivamente a:
+
+```text
+.agents/skills/task-execution-workflow/SKILL.md
+```
 
 ## Validacao
 
@@ -208,7 +224,7 @@ Toda entrega deve conter:
 
 | Skill | Quando usar |
 | --- | --- |
-| `task-execution-workflow` | Workflow operacional obrigatorio de execucao de ETAPAS versionadas. |
+| `task-execution-workflow` | Workflow operacional de execucao de ETAPAS versionadas. |
 | `simuldiesel-architecture` | Arquitetura geral, fronteiras e congelamentos. |
 | `winforms-ui` | Telas WinForms, controles e FormsLogic. |
 | `bll-dal-dtl` | Camadas BLL, DAL e DTL do host C#. |
