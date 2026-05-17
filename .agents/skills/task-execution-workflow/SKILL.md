@@ -14,15 +14,34 @@ Use automaticamente apos ler `.agents/README.md`, antes de executar qualquer ETA
 
 1. Auditar o estado atual da branch local.
 2. Atualizar a branch local com a remota antes de ler a ETAPA.
-3. Ler a ETAPA pendente em `.agents/task-execution-workflow/`.
-4. Executar a ETAPA topico a topico.
-5. Atualizar o status de cada topico no proprio arquivo da ETAPA.
-6. Registrar `OK`, `SUCESSO`, `FALHA`, `BLOQUEADO` ou `NAO APLICAVEL` em cada item executado.
-7. Executar validacoes aplicaveis.
-8. Ao final, stagear apenas arquivos da ETAPA.
-9. Commitar com mensagem objetiva.
-10. Enviar para o remoto.
-11. Registrar no arquivo da ETAPA o resumo final, commit hash e validacoes executadas.
+3. Ler as ETAPAS em `.agents/task-execution-workflow/`.
+4. Por padrao, executar somente topicos com tic vazio `[ ]`.
+5. Se nao houver topico com tic vazio `[ ]`, nao executar nada e registrar que nao ha tarefa pendente.
+6. Executar a ETAPA topico a topico.
+7. Atualizar o status de cada topico no proprio arquivo da ETAPA.
+8. Registrar `OK`, `SUCESSO`, `FALHA`, `BLOQUEADO` ou `NAO APLICAVEL` em cada item executado.
+9. Executar validacoes aplicaveis.
+10. Ao final, stagear apenas arquivos da ETAPA.
+11. Commitar com mensagem objetiva.
+12. Enviar para o remoto.
+13. Registrar no arquivo da ETAPA o resumo final, commit hash e validacoes executadas.
+
+## Selecao de tarefas
+
+A execucao padrao deve considerar apenas itens com tic vazio `[ ]`.
+
+Itens marcados como `[x]`, `[!]`, `[-]` ou `[~]` nao devem ser executados por padrao.
+
+Itens com `[!] FALHA`, `[-] BLOQUEADO` ou outro estado diferente de `[ ]` so devem ser executados quando houver solicitacao humana explicita.
+
+A solicitacao humana pode indicar:
+
+- executar todos os itens `[!]`;
+- executar uma ETAPA especifica;
+- executar um topico especifico;
+- reexecutar um item ja marcado.
+
+Se nao existir nenhuma ETAPA ou nenhum item `[ ]` em `.agents/task-execution-workflow/`, o agente deve parar sem alterar arquivos e informar que nao ha tarefa pendente para executar.
 
 ## Estados permitidos por item
 
