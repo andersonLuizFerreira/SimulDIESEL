@@ -1,29 +1,20 @@
 # SimulDIESEL
 
-SimulDIESEL e uma plataforma de bancada para simulacao, diagnostico e validacao de modulos diesel, com aplicacao local em C# WinForms, protocolos SDH/SDGW/SDCTP, comunicacao com hardware embarcado e suporte a analise CAN/J1939.
+O SimulDIESEL consiste em uma plataforma de bancada destinada a manutencao, diagnostico, analise, simulacao e validacao de centrais e modulos automotivos da linha DIESEL, com foco em caminhoes, maquinas agricolas e equipamentos pesados.
 
-Este arquivo e a porta de entrada do repositorio.
+Suas ferramentas permitem ao reparador realizar testes, simulacoes e analises de funcionamento de redes, sinais e modulos eletronicos, auxiliando processos de manutencao, desenvolvimento, engenharia reversa e diagnostico avancado em bancada.
 
 ## Para humanos
 
-A documentacao oficial do projeto fica em:
+Para conhecer mais sobre o projeto, leia:
 
-- [`docs/`](docs/)
 - [`docs/README.md`](docs/README.md)
 - [`docs/00-INDICE.md`](docs/00-INDICE.md)
 
-Use `docs/` para entender arquitetura, protocolos, hardware, firmware, banco, testes e regras documentais.
+Esses arquivos guiarao voce pela documentacao e estrutura do projeto.
 
 ## Para agentes de IA
 
-Antes de analisar, planejar, propor ETAPA, alterar codigo, alterar documentacao ou orientar implementacao, leia obrigatoriamente:
+Siga para:
 
 - [`.agents/README.md`](.agents/README.md)
-
-Agentes nao devem depender apenas de memoria conversacional. A pasta `.agents/` e o ponto oficial de governanca operacional para agentes de IA.
-
-## Regra principal
-
-Humanos entram por `docs/`.
-
-Agentes entram por `.agents/README.md`.
