@@ -8,8 +8,6 @@ O SimulDIESEL consiste em uma plataforma de bancada destinada à manutenção, d
 
 Suas ferramentas permitem ao reparador realizar testes, simulações e análises de funcionamento de redes, sinais e módulos eletrônicos, auxiliando processos de manutenção, desenvolvimento, engenharia reversa e diagnóstico avançado em bancada.
 
-## Para humanos
-
 Para conhecer mais sobre o projeto, leia:
 
 - [`docs/README.md`](docs/README.md)
@@ -17,7 +15,7 @@ Para conhecer mais sobre o projeto, leia:
 
 Esses arquivos guiarão você pela documentação e estrutura do projeto.
 
-## Para agentes de IA
+## agentes de IA
 
 Siga para:
 
@@ -31,8 +29,6 @@ SimulDIESEL is a bench platform designed for maintenance, diagnostics, analysis,
 
 Its tools allow technicians to perform tests, simulations, and analysis of networks, signals, and electronic modules, supporting maintenance, development, reverse engineering, and advanced bench diagnostics.
 
-## For humans
-
 To learn more about the project, read:
 
 - [`docs/README.md`](docs/README.md)
@@ -40,7 +36,7 @@ To learn more about the project, read:
 
 These files will guide you through the project's documentation and structure.
 
-## For AI agents
+## AI agents
 
 Proceed to:
 
@@ -54,8 +50,6 @@ SimulDIESEL es una plataforma de banco destinada al mantenimiento, diagnóstico,
 
 Sus herramientas permiten al reparador realizar pruebas, simulaciones y análisis del funcionamiento de redes, señales y módulos electrónicos, ayudando en procesos de mantenimiento, desarrollo, ingeniería inversa y diagnóstico avanzado en banco.
 
-## Para humanos
-
 Para conocer más sobre el proyecto, lea:
 
 - [`docs/README.md`](docs/README.md)
@@ -63,7 +57,7 @@ Para conocer más sobre el proyecto, lea:
 
 Estos archivos lo guiarán a través de la documentación y estructura del proyecto.
 
-## Para agentes de IA
+## agentes de IA
 
 Diríjase a:
 
@@ -77,8 +71,6 @@ SimulDIESEL ist eine Prüfstandsplattform für Wartung, Diagnose, Analyse, Simul
 
 Die Werkzeuge ermöglichen Technikern die Durchführung von Tests, Simulationen und Analysen von Netzwerken, Signalen und elektronischen Modulen und unterstützen Wartung, Entwicklung, Reverse Engineering und erweiterte Prüfstandsdiagnosen.
 
-## Für Menschen
-
 Um mehr über das Projekt zu erfahren, lesen Sie:
 
 - [`docs/README.md`](docs/README.md)
@@ -86,7 +78,7 @@ Um mehr über das Projekt zu erfahren, lesen Sie:
 
 Diese Dateien führen Sie durch die Dokumentation und Struktur des Projekts.
 
-## Für KI-Agenten
+## KI-Agenten
 
 Weiter zu:
 
