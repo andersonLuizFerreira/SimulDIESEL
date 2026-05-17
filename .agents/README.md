@@ -171,3 +171,4 @@ Toda entrega deve conter:
 | `git-checkpoint` | Status, diff, rollback e consolidacao Git autorizada. |
 | `build-validation` | Builds, scripts e validacoes reproduziveis. |
 | `dump-generation` | Dumps de ETAPA, inventarios e registros de decisoes. |
+| `governance-rule-management` | Leitura obrigatoria em `.agents/skills/governance-rule-management/SKILL.md` para criar, alterar, remover ou consolidar regras de governanca. |
