@@ -4,7 +4,7 @@ Governance Rule Management
 
 ## Objetivo
 
-Orientar agentes de IA na criacao, alteracao, remocao e consolidacao de regras de governanca do projeto SimulDIESEL.
+Orientar agentes na criacao, alteracao, remocao e consolidacao de regras de governanca do projeto SimulDIESEL.
 
 ## Quando usar
 
@@ -31,14 +31,14 @@ Nao use para alterar codigo-fonte da aplicacao, firmware, banco de dados ou arqu
 
 A autoridade final sobre criacao, alteracao, remocao, consolidacao, excecao ou resolucao de conflito de governanca pertence ao humano responsavel pelo projeto.
 
-A IA pode identificar lacunas, sugerir ajustes, validar coerencia e reportar conflitos, mas nao pode aprovar sozinha mudancas permanentes de governanca.
+O agente pode identificar lacunas, sugerir ajustes, validar coerencia e reportar conflitos, mas nao pode aprovar sozinho mudancas permanentes de governanca.
 
-Quando houver duvida, lacuna, conflito ou ambiguidade de governanca, a IA deve interromper a ETAPA e solicitar decisao humana explicita.
+Quando houver duvida, lacuna, conflito ou ambiguidade de governanca, o agente deve interromper a ETAPA e solicitar decisao humana explicita.
 
 ## Padroes do projeto
 
-- A IA deve validar se a regra proposta faz sentido operacional para a maquina.
-- A documentacao deve ser deterministica, objetiva e sem ambiguidades interpretativas para a maquina.
+- O agente deve validar se a regra proposta faz sentido operacional.
+- A documentacao deve ser deterministica, objetiva e sem ambiguidades interpretativas.
 - A governanca segue obrigatoriamente a hierarquia Global -> Local: primeiro `.agents/README.md`, depois `.agents/skills/<skill>/SKILL.md`.
 - Regras globais pertencem exclusivamente a `.agents/README.md`.
 - Regras locais pertencem exclusivamente a skill correspondente em `.agents/skills/<skill>/SKILL.md`.
@@ -46,11 +46,11 @@ Quando houver duvida, lacuna, conflito ou ambiguidade de governanca, a IA deve i
 - Se uma regra nao existir nesse caminho Global -> Local, ela nao deve existir em nenhum outro local.
 - A busca por regras deve ocorrer somente em `.agents/README.md` e na skill da atividade em questao.
 - Quando uma ETAPA exigir mais de uma skill local, todas as skills aplicaveis devem ser lidas.
-- Se houver conflito, divergencia ou sobreposicao operacional entre skills locais, a IA deve interromper a ETAPA, reportar o conflito e solicitar decisao humana.
-- Antes de alterar governanca, a IA deve verificar se ja existe regra equivalente, redundante, conflitante, sobreposta ou de mesmo impacto.
+- Se houver conflito, divergencia ou sobreposicao operacional entre skills locais, o agente deve interromper a ETAPA, reportar o conflito e solicitar decisao humana.
+- Antes de alterar governanca, o agente deve verificar se ja existe regra equivalente, redundante, conflitante, sobreposta ou de mesmo impacto.
 - Nao e permitida duplicidade de regras.
-- Ao detectar duplicidade, conflito, divergencia ou ambiguidade, a IA deve interromper a ETAPA e comunicar imediatamente ao humano.
-- Havendo duvida interpretativa, a IA deve interromper a ETAPA e questionar o humano antes de implementar.
+- Ao detectar duplicidade, conflito, divergencia ou ambiguidade, o agente deve interromper a ETAPA e comunicar imediatamente ao humano.
+- Havendo duvida interpretativa, o agente deve interromper a ETAPA e questionar o humano antes de implementar.
 - Skills locais nao podem violar regras globais implicitamente.
 - Violacoes locais de regras globais exigem secao explicita `EXCEÇÕES`.
 
@@ -72,7 +72,7 @@ Quando uma skill local precisar violar expressamente uma regra global, a secao `
 - [ ] Foi verificada a existencia de regra equivalente, redundante, conflitante ou sobreposta.
 - [ ] Nao foi criada duplicidade de regra.
 - [ ] Conflitos, divergencias, ambiguidades ou duvidas interpretativas foram comunicados ao humano antes da alteracao.
-- [ ] A regra criada ou alterada e operacionalmente compreensivel para a maquina.
+- [ ] A regra criada ou alterada e operacionalmente compreensivel.
 - [ ] A autoridade humana final foi preservada.
 - [ ] A regra nao viola regra global implicitamente.
 - [ ] Excecoes explicitas, quando existirem, declaram todos os campos obrigatorios.
