@@ -33,6 +33,24 @@ Antes de qualquer analise, planejamento, ETAPA, alteracao de codigo ou alteracao
 
 Cada skill deve conter apenas conhecimento especializado do dominio. Regras globais, bootstrap, rollback generico, validacao generica e regras de ETAPA pertencem a este README.
 
+## Hierarquia Global -> Local
+
+A governanca segue obrigatoriamente esta hierarquia, sem fontes paralelas:
+
+1. Global: `.agents/README.md`.
+2. Local: `.agents/skills/<skill>/SKILL.md`.
+
+Regras globais pertencem exclusivamente a `.agents/README.md`.
+
+Regras locais pertencem exclusivamente a skill correspondente em `.agents/skills/<skill>/SKILL.md`.
+
+Se uma regra nao existir nesse caminho Global -> Local, ela nao deve existir em nenhum outro local.
+
+A busca por regras deve ocorrer somente em:
+
+- `.agents/README.md`;
+- `.agents/skills/<skill>/SKILL.md` da atividade em questao.
+
 ## Fonte oficial
 
 - `docs/` = documentacao consolidada do projeto.

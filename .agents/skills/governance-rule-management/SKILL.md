@@ -18,7 +18,6 @@ Nao use para alterar codigo-fonte da aplicacao, firmware, banco de dados ou arqu
 
 - `.agents/README.md`
 - `.agents/skills/<skill>/SKILL.md`
-- Documentos de governanca diretamente autorizados pela ETAPA.
 
 ## Escopo proibido
 
@@ -31,16 +30,21 @@ Nao use para alterar codigo-fonte da aplicacao, firmware, banco de dados ou arqu
 
 - A IA deve validar se a regra proposta faz sentido operacional para a maquina.
 - A documentacao deve ser deterministica, objetiva e sem ambiguidades interpretativas para a maquina.
+- A governanca segue obrigatoriamente a hierarquia Global -> Local: primeiro `.agents/README.md`, depois `.agents/skills/<skill>/SKILL.md`.
+- Regras globais pertencem exclusivamente a `.agents/README.md`.
+- Regras locais pertencem exclusivamente a skill correspondente em `.agents/skills/<skill>/SKILL.md`.
+- Se uma regra nao existir nesse caminho Global -> Local, ela nao deve existir em nenhum outro local.
+- A busca por regras deve ocorrer somente em `.agents/README.md` e na skill da atividade em questao.
 - Antes de alterar governanca, a IA deve verificar se ja existe regra equivalente, redundante, conflitante, sobreposta ou de mesmo impacto.
 - Nao e permitida duplicidade de regras.
 - Ao detectar duplicidade, conflito, divergencia ou ambiguidade, a IA deve interromper a ETAPA e comunicar imediatamente ao humano.
 - Havendo duvida interpretativa, a IA deve interromper a ETAPA e questionar o humano antes de implementar.
 - Skills locais nao podem violar regras globais implicitamente.
-- Violacoes locais de regras globais exigem secao explicita `EXCECOES`.
+- Violacoes locais de regras globais exigem secao explicita `EXCEÇÕES`.
 
-## EXCECOES
+## EXCEÇÕES
 
-Quando uma skill local precisar violar expressamente uma regra global, a secao `EXCECOES` deve declarar:
+Quando uma skill local precisar violar expressamente uma regra global, a secao `EXCEÇÕES` deve declarar:
 
 - regra global afetada;
 - motivo da excecao;
@@ -51,6 +55,8 @@ Quando uma skill local precisar violar expressamente uma regra global, a secao `
 ## Checklist de validacao
 
 - [ ] A estrutura oficial de governanca foi identificada antes da alteracao.
+- [ ] A hierarquia Global -> Local foi respeitada.
+- [ ] A busca por regras ocorreu somente em `.agents/README.md` e na skill da atividade em questao.
 - [ ] Foi verificada a existencia de regra equivalente, redundante, conflitante ou sobreposta.
 - [ ] Nao foi criada duplicidade de regra.
 - [ ] Conflitos, divergencias, ambiguidades ou duvidas interpretativas foram comunicados ao humano antes da alteracao.
