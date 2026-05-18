@@ -181,4 +181,4 @@ Pendencias:
 
 Commit de documentacao:
 
-pendente de registro apos commit
+`2b061186` - `Update docs from code state`

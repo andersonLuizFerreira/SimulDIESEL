@@ -72,7 +72,7 @@ Atualizacao de documentos existentes em `docs/` para refletir o estado atual com
 
 - Validacao fisica de bancada ampla da UCE/CAN/SDCTP permanece fora desta etapa.
 - Catalogo fisico completo de boards e detalhamento por netlist do backplane permanecem como evolucao futura.
-- O hash do commit sera registrado no arquivo da ETAPA apos o primeiro commit desta execucao.
+- Commit de documentacao registrado: `2b061186` - `Update docs from code state`.
 
 ## Rollback
 
