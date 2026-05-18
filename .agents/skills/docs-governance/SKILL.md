@@ -72,6 +72,7 @@ Qualquer alteracao na arvore autorizada de `docs/` deve:
 ## Navegacao documental
 
 - Toda pagina oficial deve possuir navegacao clara para seu contexto documental.
+- Toda pagina oficial deve possuir, no topo da pagina, link de retorno ao pai imediato e link de retorno ao indice geral.
 - A relacao estrutural oficial da documentacao deve seguir:
 
 ```text
@@ -79,6 +80,7 @@ pai -> filhos imediatos
 ```
 
 - O indice geral deve permanecer como ponto central de navegacao documental.
+- O indice geral e a unica pagina autorizada a apontar para qualquer pagina da arvore viva.
 - Revisoes futuras da organizacao documental devem ser registradas pela governanca documental ou ETAPA correspondente.
 
 ## Glossario
@@ -99,6 +101,7 @@ A separacao deve permanecer clara em documentacoes arquiteturais, firmware, soft
 ## Regras locais
 
 - A documentacao deve refletir a arquitetura e as decisoes oficiais consolidadas.
+- A nomenclatura oficial do gateway do projeto e `SDGW (SimulDiesel GateWay)`.
 - Nao documentar comportamento nao validado como implementado.
 - Nao promover automaticamente algo de `PLANEJADO` para `IMPLEMENTADO`.
 - Documentacao duplicada deve ser consolidada.

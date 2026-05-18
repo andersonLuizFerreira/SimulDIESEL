@@ -2,7 +2,7 @@
 
 ## STATUS
 
-PENDENTE
+CONCLUIDA
 
 ## CRIADA_POR
 
@@ -10,7 +10,7 @@ Humano + ChatGPT
 
 ## EXECUTADA_POR
 
-pendente de confirmacao
+Codex
 
 ## VALIDADA_POR
 
@@ -22,7 +22,7 @@ pendente de confirmacao
 
 ## DATA_EXECUCAO
 
-pendente de confirmacao
+2026-05-18
 
 ## DATA_VALIDACAO
 
@@ -59,17 +59,17 @@ Auditar, consolidar e saneiar a pasta `docs/` para alinhamento com a nova govern
 
 ## Tarefas
 
-- [ ] Auditar arvore atual de `docs/`.
-- [ ] Identificar estruturas paralelas ou redundantes.
-- [ ] Identificar documentos contraditorios.
-- [ ] Identificar documentos duplicados.
-- [ ] Identificar links quebrados.
-- [ ] Identificar documentos sem navegacao adequada.
-- [ ] Identificar documentos sem glossario relevante.
-- [ ] Identificar divergencias relevantes entre docs e codigo.
-- [ ] Consolidar conteudo util de `DOCUMENTATION_RULES.md` na skill oficial.
-- [ ] Propor estrutura documental final alvo.
-- [ ] Propor plano de saneamento documental.
+- [x] OK - Auditar arvore atual de `docs/`.
+- [x] OK - Identificar estruturas paralelas ou redundantes.
+- [x] OK - Identificar documentos contraditorios.
+- [x] OK - Identificar documentos duplicados.
+- [x] OK - Identificar links quebrados.
+- [x] OK - Identificar documentos sem navegacao adequada.
+- [x] OK - Identificar documentos sem glossario relevante.
+- [x] OK - Identificar divergencias relevantes entre docs e codigo.
+- [x] OK - Consolidar conteudo util de `DOCUMENTATION_RULES.md` na skill oficial.
+- [x] OK - Propor estrutura documental final alvo.
+- [x] OK - Propor plano de saneamento documental.
 
 ## Validacao obrigatoria
 
@@ -97,4 +97,47 @@ Auditar, consolidar e saneiar a pasta `docs/` para alinhamento com a nova govern
 
 ## Resultado da execucao
 
-pendente de execucao
+Execucao concluida em 2026-05-18.
+
+Arquivos criados:
+
+- `out/dumps/relatorio_task/ETAPA_001_relatorio_auditoria_documental.md`
+
+Arquivos alterados:
+
+- `.agents/skills/docs-governance/SKILL.md`
+- `.agents/task-execution-workflow/ETAPA_001_saneamento_docs.md`
+
+Resumo:
+
+- Auditada a arvore atual de `docs/`, com 138 arquivos Markdown.
+- Identificadas estruturas paralelas ou divergentes: `docs/official/`, `docs/legacy/`, `docs/architecture/` e `docs/ETAPA_10_SDCTP_CAN_TRANSPORT_PROTOCOL.md`.
+- Registradas contradicoes entre `docs/DOCUMENTATION_RULES.md`, `docs/README.md`, `docs/00-INDICE.md`, `docs/official/09-desenvolvimento/01-organizacao-repositorio.md` e `.agents/skills/docs-governance/SKILL.md`.
+- Identificadas duplicidades exatas e titulo duplicado relevante em documentos legados.
+- Verificador basico de links Markdown internos executado: 0 links quebrados encontrados.
+- Identificados documentos sem navegacao padrao e sem glossario.
+- Registradas divergencias docs x codigo sem escolher fonte de verdade.
+- Consolidado conteudo util de `DOCUMENTATION_RULES.md` em `.agents/skills/docs-governance/SKILL.md`: navegacao de topo, papel do indice geral e nomenclatura `SDGW (SimulDiesel GateWay)`.
+- Propostos estrutura alvo e plano de saneamento documental.
+
+Validacoes executadas:
+
+- Coerencia com `.agents/README.md`: OK, conflitos apenas registrados.
+- Coerencia com `.agents/skills/docs-governance/SKILL.md`: OK, divergencias estruturais registradas.
+- Ausencia de governanca documental paralela: OK como verificacao; governanca paralela identificada e registrada em `docs/DOCUMENTATION_RULES.md`.
+- Navegacao documental basica: OK parcial; links internos relativos sem quebra, mas documentos sem topo padrao registrados.
+- Build funcional: NAO APLICAVEL por ETAPA exclusivamente documental.
+
+Warnings e pendencias:
+
+- Decisao humana necessaria sobre manter, consolidar ou remover `docs/official/`, `docs/legacy/`, `docs/architecture/` e ETAPA operacional em `docs/`.
+- Decisao humana necessaria sobre prioridade entre codigo, contratos e docs durante divergencias.
+- Saneamento estrutural efetivo deve ocorrer em ETAPA propria, com absorcao de conteudo util antes de remocao.
+
+Rollback:
+
+- Preservado via Git. Nenhum arquivo funcional foi alterado.
+
+Commit hash:
+
+- pendente ate commit/push desta ETAPA.
