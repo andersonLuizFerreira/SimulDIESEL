@@ -86,6 +86,7 @@ Auditar, consolidar e saneiar a pasta `docs/` para alinhamento com a nova govern
 - Estrutura alvo proposta.
 - Plano de saneamento.
 - Atualizacao das skills/documentacao impactadas.
+- A saida dos relatórios deve ser feita em /out/dumps/relatorio_task/
 
 ## Restricoes
 
