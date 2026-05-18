@@ -86,15 +86,6 @@ pai -> filhos imediatos
 - Toda pagina viva da documentacao deve possuir secao `Glossario` quando utilizar termos tecnicos relevantes.
 - O glossario deve conter apenas termos efetivamente usados no documento.
 
-## Nomenclaturas oficiais
-
-- A nomenclatura oficial do gateway do projeto e:
-
-```text
-SDGW (SimulDiesel GateWay)
-```
-
-- Nomenclaturas oficiais consolidadas nao devem ser alteradas sem ETAPA ou autorizacao humana.
 
 ## Separacao ONDE vs COMO
 
