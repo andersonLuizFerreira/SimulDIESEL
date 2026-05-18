@@ -7,8 +7,7 @@ Esta documentação está organizada como uma **árvore hierárquica de aprofund
 * visão física
 * visão lógica
 
-O objetivo é permitir que a consulta comece por um mapa global, avance por pais e filhos imediatos e mantenha governança formal da estrutura ativa.
-
+O objetivo é permitir que a consulta comece por um mapa global, avance se aprofundando gradativamente pelo projeto.
 ## Como navegar
 
 * Use o [índice geral](./00-INDICE.md) como mapa rápido global.

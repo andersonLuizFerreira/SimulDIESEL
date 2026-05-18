@@ -3,13 +3,13 @@
 
 # Visão Geral do Projeto
 
-Esta página consolida o estado oficial do SimulDIESEL após o aprofundamento documental desta etapa.
+O SimulDIESEL é um equipamento construído para funcionar como bancada de testes de módulos Diesel para caminhões e máquinas agricolas. Sua concepção abrange simular, gerar relatórios e testar módulos proporcionando uma maneira eficiente de diagnosticar falhas em equipamentos dessa natureza
 
 ## O que o projeto é hoje
 
 O SimulDIESEL é uma plataforma de bancada formada por:
 
-- software local WinForms
+- software local Que gerencia 
 - gateway embarcado BPM
 - baby board GSA
 - baby board UCE
