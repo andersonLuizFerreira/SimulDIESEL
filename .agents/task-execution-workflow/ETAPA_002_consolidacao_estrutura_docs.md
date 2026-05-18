@@ -176,4 +176,4 @@ Rollback:
 
 Commit hash:
 
-- pendente ate commit/push desta ETAPA.
+- `b830a110` - Consolidate documentation structure.
