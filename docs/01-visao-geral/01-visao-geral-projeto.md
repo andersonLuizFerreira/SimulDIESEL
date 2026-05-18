@@ -3,66 +3,37 @@
 
 # Visão Geral do Projeto
 
-O SimulDIESEL é um equipamento construído para funcionar como bancada de testes de módulos Diesel para caminhões e máquinas agricolas. Sua concepção abrange simular, gerar relatórios e testar módulos proporcionando uma maneira eficiente de diagnosticar falhas em equipamentos dessa natureza
+O **SimulDIESEL** é uma plataforma de bancada voltada à manutenção, diagnóstico, análise, simulação e validação de módulos eletrônicos da linha Diesel, com foco em caminhões, máquinas agrícolas e equipamentos pesados.
+
+A proposta do projeto é permitir que um módulo eletrônico seja analisado fora do veículo, em uma bancada controlada, recebendo sinais, comandos e mensagens semelhantes aos que encontraria em uma máquina real.
+
+Com isso, o técnico pode observar o comportamento do módulo, testar hipóteses de falha, validar respostas elétricas e de comunicação, além de documentar resultados de manutenção e diagnóstico.
 
 ## O que o projeto é hoje
 
-O SimulDIESEL é uma plataforma de bancada formada por:
+O SimulDIESEL é constituído por um software local que controla uma bancada eletrônica modular. Essa bancada pode ser entendida como um rack composto por placas com funções específicas, interligadas por uma estrutura comum.
 
-- software local Que gerencia 
-- gateway embarcado BPM
-- baby board GSA
-- baby board UCE
-- estrutura física de bancada ainda em consolidação progressiva
+Essa modularidade permite que o projeto cresça de forma organizada: novas placas podem ser adicionadas conforme novas funções forem necessárias, mantendo a escalabilidade da bancada e separando responsabilidades entre os componentes.
 
-## Estado após esta etapa
+A bancada é formada por alguns blocos principais:
 
-- **IMPLEMENTADO**: arquitetura documental consolidada em trilhas `ONDE` e `COMO`.
-- **IMPLEMENTADO**: aprofundamento da API/host local com base no código real.
-- **IMPLEMENTADO**: aprofundamento de firmware BPM, GSA e UCE com base no código real.
-- **IMPLEMENTADO**: aprofundamento do hardware físico no limite confirmado por firmware e esquemáticos vivos.
-- **IMPLEMENTADO**: trilha host para comandos `UCE.*`, SDCTP e contratos CAN/J1939 já presente no código.
-- **PARCIALMENTE IMPLEMENTADO**: validação ampla de bancada, catálogo físico completo de boards e fechamento total de documentação elétrica.
+- **Backplane**: estrutura central de interligação elétrica e lógica da bancada. Ela distribui sinais, alimentação e comunicação entre as placas conectadas ao rack.
+- **X-CONN**: placa de conexão entre o chicote do módulo em teste e o backplane. Ela faz a ponte entre os pinos reais do módulo e os recursos disponíveis na bancada.
+- **BPM (Backplane Manager Module)**: placa responsável por gerenciar a comunicação entre a aplicação Windows local e as demais placas da bancada. Dentro da arquitetura, a BPM atua como gateway e hub de mensagens, comandos e configurações vindas da aplicação.
+- **UCE (Unidade de Comunicação Externa)**: placa responsável por concentrar as interfaces de comunicação com os módulos em teste. Ela é voltada a protocolos automotivos e industriais usados em módulos Diesel, como CAN/J1939 e outros protocolos previstos para evolução do projeto.
+- **GSA (Gerador de Sinais Analógicos)**: placa responsável por gerar níveis elétricos contínuos para simular sinais como temperatura, pressão, nível de combustível e outras grandezas analógicas. A GSA conta com canais de saída de `0–5 V` e `0–12 V`, permitindo simular diferentes faixas de sensores.
 
-## Núcleo funcional atual
-
-```text
-Host local
-  -> SDGW / BPM
-  -> GSA
-  -> UCE
-  -> bancada física parcial
-```
-
-Hoje o conjunto mais maduro do projeto é:
-
-- host local
-- enlace `SDGW`
-- gateway BPM
-- GSA
-- UCE por `SPI`, com LED, controle CAN e base SDCTP
-
-## O que ainda não deve ser lido como concluído
-
-- catálogo amplo de boards além de GSA e UCE
-- backplane totalmente detalhado por netlist
-- finalização completa da bancada em todos os aspectos físicos e funcionais
-
-## Direção de continuidade
-
-Com a etapa atual encerrada, a leitura oficial do projeto passa a ser:
-
-1. base documental consolidada
-2. BPM, GSA e UCE suficientemente aprofundadas para manutenção técnica
-3. validação de bancada, SDCTP/CAN/J1939 e catálogo físico como próximos focos
-4. novas boards só devem entrar na documentação oficial depois de existirem como código, firmware, contrato ou evidência técnica
+As demais placas da bancada ainda não foram implementadas. A documentação oficial será atualizada conforme novas placas forem desenvolvidas, validadas e integradas ao projeto.
 
 ## Glossário
 
-- **Etapa atual**: ciclo de consolidação documental e técnica encerrado nesta rodada.
-- **UCE**: Unidade de Comunicação Externa, board já presente na rota `SPI` da BPM e na pilha host.
-- **SDCTP**: contrato de transporte/tabelas CAN usado pela trilha UCE.
-- **Consolidação documental**: alinhamento entre árvore viva, código real e contratos técnicos.
+- **Backplane**: estrutura central da bancada, responsável por interligar eletricamente as placas e distribuir sinais, alimentação e comunicação.
+- **BPM**: Backplane Manager, placa que atua como gateway e hub de mensagens entre a aplicação local e as placas conectadas ao backplane.
+- **GSA**: Gerador de Sinais Analógicos, placa responsável por gerar níveis elétricos contínuos para simulação de sensores e grandezas analógicas.
+- **Host local**: software executado no computador, responsável por controlar a bancada, enviar comandos e apresentar informações ao operador.
+- **Módulo em teste**: central ou módulo eletrônico Diesel conectado à bancada para diagnóstico, simulação ou validação.
+- **UCE**: Unidade de Comunicação Externa, placa responsável pelas interfaces de comunicação com os módulos em teste.
+- **X-CONN**: placa de conexão entre o chicote do módulo em teste e o backplane da bancada.
 
 ## Próximas camadas
 
