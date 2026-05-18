@@ -34,6 +34,38 @@ Esta skill governa exclusivamente:
 - Documentos legados, duplicados ou historicos dentro de `docs/` podem induzir erro e devem ser saneados por ETAPA propria.
 - Dumps, chats, prompts e arquivos temporarios nao substituem documentacao oficial.
 
+## Estilo editorial de `/docs`
+
+A pasta `docs/` e destinada a leitores humanos.
+
+A documentacao oficial deve ser escrita de forma didatica, explicativa e progressiva, priorizando entendimento, contexto, motivacao, exemplos e orientacao de leitura.
+
+Documentos em `docs/` nao devem parecer relatorios de entrega de IA, logs de execucao, dumps de validacao, historicos operacionais de ETAPAS, prompts ou transcricoes de conversa.
+
+Ao criar ou editar documentos em `docs/`, a IA deve:
+
+- explicar o objetivo do assunto documentado;
+- contextualizar por que o componente, fluxo ou decisao existe;
+- descrever o funcionamento em linguagem clara;
+- diferenciar explicitamente o que esta implementado, planejado, pendente ou em estudo;
+- usar exemplos, diagramas e analogias tecnicas quando ajudarem o entendimento;
+- manter a leitura util para desenvolvedores, tecnicos e mantenedores humanos;
+- preservar o carater didatico mesmo em documentacoes tecnicas profundas.
+
+Evitar em `docs/`:
+
+- textos no formato `ETAPA concluida`;
+- listas de arquivos alterados como relatorio de entrega;
+- logs de build, hashes de commit e evidencias de execucao;
+- justificativas do tipo `foi feito pela IA`;
+- linguagem de auditoria operacional sem valor didatico;
+- transcricao bruta de dumps, prompts ou conversas;
+- excesso de detalhe operacional que pertenca a `out/dumps/`.
+
+Quando houver necessidade de registrar evidencias tecnicas, logs, validacoes, auditorias ou relatorios de execucao, esses registros devem ficar fora de `docs/`, preferencialmente em `out/dumps/` ou no local definido pela ETAPA.
+
+A pasta `docs/` deve explicar o projeto como ele deve ser compreendido, nao apenas registrar como uma tarefa foi executada.
+
 ## Relacao docs -> codigo
 
 - O estado atual da documentacao ainda esta em consolidacao e saneamento.
@@ -145,7 +177,9 @@ Toda ETAPA documental deve validar:
 - links internos basicos;
 - ausencia de duplicidade evidente;
 - estados documentais corretos;
-- ausencia de fontes paralelas dentro de `docs/`.
+- ausencia de fontes paralelas dentro de `docs/`;
+- linguagem humana, didatica e explicativa;
+- ausencia de aparencia de relatorio de IA, dump, log ou historico operacional em `docs/`.
 
 ## Estados documentais
 
@@ -186,5 +220,7 @@ Em caso de conflito entre documentacao e codigo:
 - [ ] Links revisados.
 - [ ] Estrutura documental preservada ou saneamento proposto.
 - [ ] Conteudo util absorvido antes de consolidacao.
+- [ ] Linguagem revisada para leitura humana, didatica e explicativa.
+- [ ] Conteudo com aparencia de relatorio de IA, dump, log ou historico operacional removido de `docs/` ou movido para local adequado.
 - [ ] Nenhuma documentacao oficial removida sem justificativa.
 - [ ] Skill atualizada se a arvore autorizada de `docs/` mudar.
