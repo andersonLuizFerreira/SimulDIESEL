@@ -140,4 +140,4 @@ Rollback:
 
 Commit hash:
 
-- pendente ate commit/push desta ETAPA.
+- `7f7c6531` - Audit documentation governance.
