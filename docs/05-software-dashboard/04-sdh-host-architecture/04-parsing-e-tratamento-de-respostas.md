@@ -120,7 +120,7 @@ Esse detalhe é importante porque o host aceita:
 ## O que ainda não virou fluxo quente
 
 - `SdhResponse` existe como tipo de contrato, mas não é a forma usada hoje para devolver resposta ao restante do host.
-- `OperationStatusDto` existe como DTO comum, mas a trilha ativa prefere resultados específicos de BPM e GSA.
+- `OperationStatusDto` existe como DTO comum, mas a trilha ativa prefere resultados específicos de BPM, GSA e UCE.
 
 ## Glossário
 

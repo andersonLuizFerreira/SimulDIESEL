@@ -12,48 +12,48 @@ A UCE é uma board remota controlada pela BPM por `SPI` em modo slave.
 Ela fica entre:
 
 - acima: BPM por `SPI`, `CS`, `IRQ` e reset físico
-- abaixo, no fluxo lógico: `Transport`, `Link`, `Service`, `LedService` e `CanService`
+- abaixo, no fluxo lógico: `SpiLink`, `UceTransport`, `UceServiceDispatcher`, `LedService`, `SdctpService` e serviços CAN
 
 ## Árvore física atual da UCE
 
-Na árvore real do firmware da UCE, esses blocos não ficam mais em diretórios achatados. A organização física vigente é funcional:
+Na árvore real do firmware da UCE, a organização física vigente é:
 
-- `lib/core/transport`
 - `lib/core/link`
-- `lib/core/service`
-- `lib/core/runtime`
+- `lib/core/transport`
+- `lib/core/services`
 - `lib/services/led`
-- `lib/services/can`
-- `lib/protocol/tlv`
-- `lib/diag/trace`
-- `lib/drivers/can`
-- `lib/hal/board`
-- `lib/hal/transceivers`
+- `lib/services/can/service`
+- `lib/services/can/driver`
+- `lib/services/can/protocol`
+- `lib/services/can/rxhub`
+- `lib/services/can/table`
+- `lib/services/can/sdctp`
 
 ## Arquivos e classes reais
 
 | arquivo real | classe/bloco | acima de | abaixo de | status |
 | --- | --- | --- | --- | --- |
-| `src/main.cpp` | composição estática da UCE | BPM | `Transport`, `Link`, serviços | `IMPLEMENTADO` |
-| `lib/app/UceApp.h` | `UceApp` | `main.cpp` | `Transport`, `Link`, `Service`, `LedService`, `CanService` | `IMPLEMENTADO` |
-| `lib/core/transport/Transport.h` | `Transport` | `Link` | `SPI0` nativo da Arduino Due | `IMPLEMENTADO` |
-| `lib/core/link/Link.h` | `Link` | `Transport` | `Service` | `IMPLEMENTADO` |
-| `lib/core/service/Service.h` | `Service` | `Link` | `LedService`, `CanService` | `IMPLEMENTADO` |
-| `lib/services/led/LedService.h` | `LedService` | `Service` | `LED_BUILTIN` | `IMPLEMENTADO` |
-| `lib/services/can/CanService.h` | `CanService` | `Service` | `Sam3xCanDriver`, transceiver e `CanConfig`/`CanStatus` | `IMPLEMENTADO` |
-| `lib/drivers/can/Sam3xCanDriver.h` | `Sam3xCanDriver` | `CanService` | periférico CAN da Arduino Due | `IMPLEMENTADO` |
-| `lib/protocol/tlv/Tlv.h` | `Tlv` | `Link`, `Service` | contrato TLV da UCE | `IMPLEMENTADO` |
-| `lib/diag/trace/DiagTrace.h` | `DiagTrace` | firmware inteiro | `SerialUSB` | `IMPLEMENTADO` |
+| `src/main.cpp` | composição estática da UCE | BPM | `SpiLink`, `UceTransport`, serviços | `IMPLEMENTADO` |
+| `lib/core/link/SpiLink.h` | `SpiLink` | `UceTransport` | `SPI0`, `CS`, `IRQ` | `IMPLEMENTADO` |
+| `lib/core/transport/UceTransport.h` | `UceTransport` | `UceServiceDispatcher` | `SpiLink` | `IMPLEMENTADO` |
+| `lib/core/services/UceServiceDispatcher.h` | `UceServiceDispatcher` | `UceTransport` | `LedService`, `SdctpService` | `IMPLEMENTADO` |
+| `lib/services/led/LedService.h` | `LedService` | `UceServiceDispatcher` | `LED_BUILTIN` | `IMPLEMENTADO` |
+| `lib/services/can/sdctp/SdctpService.h` | `SdctpService` | `UceServiceDispatcher` | `CanService`, tabelas RX/TX SDCTP | `IMPLEMENTADO` |
+| `lib/services/can/service/CanService.h` | `CanService` | `SdctpService` | `CanDriver`, `CanCrudProtocol`, `CanRxHub`, tabelas CAN | `IMPLEMENTADO` |
+| `lib/services/can/driver/CanDriver.h` | `CanDriver` | `CanService` | controlador CAN da Arduino Due | `IMPLEMENTADO` |
+| `lib/services/can/driver/CanDriver_fake.h` | `CanDriverFake` | `CanService` | fake para validação/bench | `IMPLEMENTADO` |
+| `lib/services/can/protocol/CanCrudProtocol.h` | `CanCrudProtocol` | `CanService` | payloads CRUD de tabelas CAN | `IMPLEMENTADO` |
 
 ## Empilhamento lógico real
 
 ```text
 SPI da BPM
-  -> Transport
-  -> Link
-  -> Service
-  -> LedService / CanService
-  -> LED_BUILTIN / controlador CAN da Arduino Due
+  -> SpiLink
+  -> UceTransport
+  -> UceServiceDispatcher
+  -> LedService / SdctpService
+  -> CanService
+  -> LED_BUILTIN / controlador CAN da Arduino Due / tabelas CAN-SDCTP
 ```
 
 ## Conectores físicos confirmados
@@ -79,6 +79,9 @@ As definições vivas estão em `include/config.h` na UCE e `include/SdgwDefs.h`
   - `UCE.can.config set controller=can0|can1 bitrate=125|250|500|1000 mode=normal|listen`
   - `UCE.can.enable set controller=can0|can1 state=on|off`
   - `UCE.can.status get controller=can0|can1`
+  - `UCE.can.rx poll controller=can0|can1`
+  - `UCE.can.driverLog poll controller=can0|can1`
+  - `UCE.can.tx send|direct|create|edit|delete|stop ...`
   - `UCE.can reset controller=can0|can1`
 - TLVs funcionais da UCE hoje:
   - LED: `type 0x12`, `len 0x01`
@@ -110,7 +113,7 @@ Fluxo confirmado:
 
 ## Feature CAN nesta rodada
 
-A UCE agora também expõe configuração da porta CAN pela mesma rota compacta já existente.
+A UCE agora também expõe controle CAN, filas RX/TX e base SDCTP pela mesma rota compacta já existente.
 
 Escopo efetivamente implementado no código:
 
@@ -118,6 +121,9 @@ Escopo efetivamente implementado no código:
 - habilitação e desabilitação da interface
 - leitura de status síncrono
 - reset funcional da interface por comando
+- polling de RX CAN e diagnóstico do driver
+- envio direto e CRUD de linhas TX CAN
+- tabelas SDCTP de RX/TX com snapshot/buffer no host
 
 Encadeamento lógico da feature:
 
@@ -126,23 +132,24 @@ frmUCE_UI
   -> FrmUceLogic
   -> UceClient
   -> BPM / GW_OP_UCE_TLV_TRANSACT
-  -> Transport
-  -> Link
-  -> Service
-  -> CanService
+  -> SpiLink
+  -> UceTransport
+  -> UceServiceDispatcher
+  -> SdctpService / CanService
 ```
 
 Observações importantes:
 
-- a UI atual trabalha fixamente com `controller=can0`
+- a UI atual usa `controller=can0` como caminho principal, enquanto o contrato aceita `can0` e `can1`
 - a BPM não ganhou rota nova; continua apenas roteando `0x2` para a UCE por `SPI`
-- o `Service` da UCE passou a despachar CAN por `switch(tlv.t)` usando `CMD_CAN_CONFIG`, `CMD_CAN_ENABLE`, `CMD_CAN_STATUS` e `CMD_CAN_RESET`
+- o dispatcher da UCE despacha LED e SDCTP/CAN por TLVs no mesmo envelope `SDGW_CMD_UCE_TLV`
+- `CMD_CAN_READ_ALL` ainda existe no firmware como compatibilidade, mas o mapper do host rejeita `UCE.can.rx readAll`; o caminho oficial é SDCTP por snapshot/buffer
 - o LED permanece como recurso residual de validação de rota, não como foco funcional da tela
 - esta rodada confirmou compilação de host, BPM e UCE, mas não registrou validação física em bancada da feature CAN
 
 ## Comentário orientado a código
 
-Em `Transport::begin()`, este trecho fixa a característica elétrica mais delicada da integração:
+Em `SpiLink::begin()`, este trecho fixa a característica elétrica mais delicada da integração:
 
 ```cpp
 PIOA->PIO_PDR = kUceSpiSignalPins;

@@ -2,7 +2,7 @@
 
 ## STATUS
 
-PENDENTE
+CONCLUIDA
 
 ## CRIADA_POR
 
@@ -10,11 +10,11 @@ Humano + ChatGPT
 
 ## EXECUTADA_POR
 
-pendente de confirmacao
+Codex
 
 ## VALIDADA_POR
 
-pendente de confirmacao
+2026-05-18
 
 ## DATA_CRIACAO
 
@@ -97,17 +97,17 @@ Se a informacao nao puder ser confirmada, registrar `pendente de confirmacao` em
 
 ## Tarefas
 
-- [ ] Auditar os documentos existentes em `docs/` contra o codigo atual.
-- [ ] Identificar documentos com conteudo legado ou desatualizado.
-- [ ] Editar documentos existentes substituindo conteudo legado por conteudo atual comprovado.
-- [ ] Preservar informacoes existentes que ainda forem verdadeiras.
-- [ ] Atualizar estados documentais conforme evidencia atual.
-- [ ] Atualizar nomenclaturas oficiais, especialmente `SDGW` e `SDCTP` quando aplicavel.
-- [ ] Atualizar referencias a estruturas antigas de pastas/documentos quando necessario.
-- [ ] Atualizar links internos impactados pelas edicoes.
-- [ ] Atualizar glossarios quando necessario.
-- [ ] Registrar divergencias sem evidencia suficiente como `pendente de confirmacao`.
-- [ ] Gerar relatorio final em `out/dumps/relatorio_task/ETAPA_003_relatorio_atualizacao_docs_codigo.md`.
+- [x] OK - Auditar os documentos existentes em `docs/` contra o codigo atual.
+- [x] OK - Identificar documentos com conteudo legado ou desatualizado.
+- [x] OK - Editar documentos existentes substituindo conteudo legado por conteudo atual comprovado.
+- [x] OK - Preservar informacoes existentes que ainda forem verdadeiras.
+- [x] OK - Atualizar estados documentais conforme evidencia atual.
+- [x] OK - Atualizar nomenclaturas oficiais, especialmente `SDGW` e `SDCTP` quando aplicavel.
+- [x] OK - Atualizar referencias a estruturas antigas de pastas/documentos quando necessario.
+- [x] OK - Atualizar links internos impactados pelas edicoes.
+- [x] OK - Atualizar glossarios quando necessario.
+- [x] OK - Registrar divergencias sem evidencia suficiente como `pendente de confirmacao`.
+- [x] OK - Gerar relatorio final em `out/dumps/relatorio_task/ETAPA_003_relatorio_atualizacao_docs_codigo.md`.
 
 ## Validacao obrigatoria
 
@@ -136,4 +136,49 @@ Se a informacao nao puder ser confirmada, registrar `pendente de confirmacao` em
 
 ## Resultado da execucao
 
-pendente de execucao
+Execucao concluida em 2026-05-18.
+
+Arquivos alterados:
+
+- `docs/00-INDICE.md`
+- `docs/01-visao-geral/01-visao-geral-projeto.md`
+- `docs/02-arquitetura/04-api-e-host-local.md`
+- `docs/02-arquitetura/05-bll-do-host.md`
+- `docs/02-arquitetura/05-bll-do-host/01-formslogic-e-fachadas.md`
+- `docs/02-arquitetura/06-dal-do-host.md`
+- `docs/02-arquitetura/06-dal-do-host/01-sessao-sdh-e-sdgw.md`
+- `docs/02-arquitetura/07-dtl-do-host.md`
+- `docs/02-arquitetura/07-dtl-do-host/01-contratos-sdh-e-dtos.md`
+- `docs/04-firmware/01-arquitetura-firmware.md`
+- `docs/04-firmware/02-drivers.md`
+- `docs/04-firmware/04-sdh-gateway-architecture.md`
+- `docs/04-firmware/boards/UCE/11-uce.md`
+- `docs/05-software-dashboard/01-arquitetura-software.md`
+- `docs/05-software-dashboard/04-sdh-host-architecture/04-parsing-e-tratamento-de-respostas.md`
+- `docs/06-protocolos/07-uce-sdh-tlv.md`
+- `docs/09-desenvolvimento/01-organizacao-repositorio.md`
+- `docs/11-planejamento/01-planejamento.md`
+- `docs/11-planejamento/02-proximas-funcionalidades.md`
+- `out/dumps/relatorio_task/ETAPA_003_relatorio_atualizacao_docs_codigo.md`
+
+Resumo:
+
+- Documentacao atualizada para refletir UCE como board ja presente na rota `SPI` da BPM e na pilha host.
+- BLL, DAL, DTL, firmware, software dashboard, protocolos, planejamento e organizacao do repositorio alinhados ao codigo atual.
+- Referencias a estruturas antigas de UCE e a pastas documentais removidas foram substituidas por nomes atuais comprovados na arvore versionada.
+
+Validacoes:
+
+- `git status --short` confirmou alteracoes restritas a documentacao, relatorio e controle da ETAPA.
+- Verificador basico de links Markdown em `docs/` retornou `broken_links=0`.
+- Busca por referencias legadas criticas foi executada e nao encontrou ocorrencias desatualizadas fora de contextos ainda validos.
+- A autorizacao `codigo -> docs` foi aplicada somente nesta ETAPA.
+
+Pendencias:
+
+- Validacao fisica ampla de bancada UCE/CAN/SDCTP segue fora do escopo desta ETAPA.
+- O hash do primeiro commit desta execucao sera registrado em commit posterior.
+
+Commit de documentacao:
+
+pendente de registro apos commit

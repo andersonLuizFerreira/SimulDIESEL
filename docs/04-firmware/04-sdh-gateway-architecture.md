@@ -16,7 +16,7 @@ Esta página documenta **como o gateway realmente opera hoje**.
 - **IMPLEMENTADO**: sessão `SDGW` com handshake textual, `COBS`, `CRC8`, `ACK`, `ERR`, sequência e watchdog.
 - **IMPLEMENTADO**: roteamento local `BPM.gateway ping`.
 - **IMPLEMENTADO**: roteamento remoto para a GSA via `GwRouter`.
-- **PARCIALMENTE IMPLEMENTADO**: infraestrutura `SPI` pronta no gateway, mas sem device vivo na tabela.
+- **IMPLEMENTADO**: roteamento remoto para a UCE via `GwRouter` e `GwSpiBus`.
 - **PLANEJADO**: parser `SDH` dentro da BPM.
 
 ## Fluxo operacional real
@@ -87,6 +87,7 @@ Hoje isso significa:
 
 - `GW_ADDR_BPM` fica na própria BPM;
 - `GW_ADDR_GSA` segue para o roteador;
+- `GW_ADDR_UCE` segue para o roteador;
 - `GW_ADDR_BROADCAST` é ignorado no código atual.
 
 ## Onde a GSA entra no caminho
@@ -103,6 +104,16 @@ _link.sendEvent(SDGW_CMD_GSA_TLV, eventPacket, (uint8_t)eventLen);
 
 Esse bloco existe para transformar o evento curto da GSA em evento `SDGW` para o host.
 
+## Onde a UCE entra no caminho
+
+A UCE está publicada na tabela de devices da BPM como `GW_ADDR_UCE` sobre `SPI`.
+
+```cpp
+{GW_ADDR_UCE, GW_BUS_SPI, 0x00, BPM_UCE_SPI_CS_PIN, BPM_UCE_IRQ_PIN, BPM_UCE_RESET_PIN, true}
+```
+
+Quando o host envia `SDGW_CMD_UCE_TLV`, a BPM não interpreta CAN ou LED. Ela seleciona a UCE por `CS`, transporta o TLV pelo `GwSpiBus` e devolve a resposta pelo mesmo link `SDGW`.
+
 ## Consequência arquitetural
 
 O gateway ativo do projeto não é um interpretador semântico amplo. Ele é:
@@ -110,6 +121,7 @@ O gateway ativo do projeto não é um interpretador semântico amplo. Ele é:
 - um terminador de sessão `SDGW`;
 - um roteador compacto `ADDR/OP`;
 - um adaptador entre host e barramentos da bancada.
+- um roteador físico que transporta TLV para GSA por `I2C` e para UCE por `SPI`.
 
 ## Glossário
 
@@ -117,6 +129,7 @@ O gateway ativo do projeto não é um interpretador semântico amplo. Ele é:
 - **Handshake**: transição do banner textual para o modo binário `SDGW`.
 - **ADDR/OP**: compactação do comando usada pelo gateway atual.
 - **Tick**: trabalho cooperativo executado no loop fora do parser principal.
+- **UCE**: board remota SPI que executa LED, CAN e SDCTP fora da BPM.
 
 ## Próximas camadas
 

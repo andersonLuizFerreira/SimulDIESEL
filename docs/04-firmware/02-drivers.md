@@ -3,7 +3,7 @@
 
 # Drivers de Firmware
 
-Esta página lista os drivers e adaptadores realmente usados hoje pelos firmwares da BPM e da GSA.
+Esta página lista os drivers e adaptadores realmente usados hoje pelos firmwares da BPM, da GSA e da UCE.
 
 ## Drivers confirmados na BPM
 
@@ -25,6 +25,16 @@ Esta página lista os drivers e adaptadores realmente usados hoje pelos firmware
 | `lib/Mcp4725Service/Mcp4725Service.h` | `Mcp4725Service` | `SoftwareWire` | escrita e disable nos DACs `MCP4725` | `IMPLEMENTADO` |
 | `lib/LedService/LedService.cpp` | `LedService` | `digitalWrite` | LED builtin para teste local | `IMPLEMENTADO` |
 | `lib/EepromService/EepromService.h` | `EepromService` | `EEPROM` | persistência de offsets por canal | `IMPLEMENTADO` |
+
+## Drivers confirmados na UCE
+
+| arquivo real | classe | driver/base | papel | status |
+| --- | --- | --- | --- | --- |
+| `lib/core/link/SpiLink.h` | `SpiLink` | `SPI0`/PIO da Arduino Due | enlace físico slave com `CS` nativo e `IRQ` | `IMPLEMENTADO` |
+| `lib/core/transport/UceTransport.h` | `UceTransport` | `SpiLink` | transporte TLV/CRC usado pela BPM | `IMPLEMENTADO` |
+| `lib/services/can/driver/CanDriver.h` | `CanDriver` | controlador CAN da Due | driver CAN real | `IMPLEMENTADO` |
+| `lib/services/can/driver/CanDriver_fake.h` | `CanDriverFake` | simulação/bench | apoio de validação sem periférico real | `IMPLEMENTADO` |
+| `lib/services/can/sdctp/SdctpService.h` | `SdctpService` | `CanService` e tabelas CAN | fachada SDCTP exposta pela UCE | `IMPLEMENTADO` |
 
 ## Comentário orientado a código
 
@@ -50,8 +60,9 @@ Aqui o Bluetooth pede ownership assim que há cliente SPP conectado, mesmo antes
 ## Observações importantes
 
 - A documentação antiga com `SggwBluetoothEndpoint` está desatualizada; o nome real vivo é `SdgwBluetoothEndpoint`.
-- O caminho `SPI` existe e é inicializado na BPM, mas a tabela viva de devices ainda não publica nenhuma board `SPI`.
+- O caminho `SPI` existe, é inicializado na BPM e a tabela viva de devices publica a UCE por `GW_ADDR_UCE`.
 - Na GSA, `Wire` e `SoftwareWire` têm papéis diferentes e não devem ser tratados como o mesmo barramento.
+- Na UCE, `SpiLink` é o enlace físico e `UceTransport` é a camada que entrega TLVs para o dispatcher.
 
 ## Glossário
 
@@ -59,6 +70,8 @@ Aqui o Bluetooth pede ownership assim que há cliente SPP conectado, mesmo antes
 - **Endpoint**: origem física de bytes para a sessão `SDGW`.
 - **I2C físico**: barramento entre BPM e GSA.
 - **I2C lógico**: barramento interno da GSA para `TCA9548A` e `MCP4725`.
+- **SPI físico**: barramento entre BPM e UCE.
+- **SDCTP**: conjunto de contratos/tabelas CAN atendido pela UCE.
 - **SPP**: Serial Port Profile usado pelo Bluetooth Classic da BPM.
 
 ## Próximas camadas

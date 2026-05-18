@@ -36,7 +36,7 @@ BLL
 ### Acima
 
 - `SdgwHostSession` cria e possui `SdgwSession`, `SdhClient`, `SdGwTxScheduler`, `SdGwLinkEngine` e `SdGwLinkSupervisor`.
-- `BpmClient` e `GsaClient` entram nesta camada via `SdhClient`.
+- `BpmClient`, `GsaClient` e `UceClient` entram nesta camada via `SdhClient`.
 
 ### Abaixo
 
@@ -48,7 +48,7 @@ BLL
 
 - `SdgwHostSession` está fisicamente em `BLL/Boards/BPM/Comm`, mas estruturalmente é a borda superior da DAL do host.
 - `SdgwFrameReader` e `SdgwFrameWriter` existem e funcionam, porém o fluxo ativo usa principalmente o caminho interno de `SdGwLinkEngine`.
-- O catálogo SDH aceito por esta DAL é bem menor que o catálogo documental global do projeto: o código atual confirma `BPM.gateway ping` e `GSA.*`.
+- O catálogo SDH aceito por esta DAL é menor que o catálogo conceitual do projeto, mas o código atual confirma `BPM.gateway ping`, `GSA.*` e `UCE.*` para LED, CAN RX/TX, status, driver log e reset.
 - O caminho `SendOutcome.Enqueued` existe no engine, mas nenhum caso funcional ativo do host atual usa envio sem ACK.
 
 ## Trecho âncora: fronteira semântica
@@ -76,6 +76,7 @@ Esse trecho é o ponto onde a DAL deixa de falar em `Target`, `Op` e `Args` e pa
 - **DAL**: camada que concentra protocolo, sessão e transporte.
 - **Hot path**: caminho realmente usado durante a execução normal do link.
 - **Frame compacto**: comando SDGW já pronto para descer ao enlace.
+- **Catálogo SDH ativo**: conjunto de targets e ops aceitos por `SdhValidator` e mapeados por `SdhToSdgwMapper`.
 
 ## Próximas camadas
 

@@ -23,7 +23,7 @@ Fora desta página, a navegação estrutural continua restrita à relação pai 
         - [Banco Local API](02-arquitetura/12-banco-local-api.md)
         - [BLL do Host](02-arquitetura/05-bll-do-host.md)
           - [FormsLogic e Fachadas do Host](02-arquitetura/05-bll-do-host/01-formslogic-e-fachadas.md)
-          - [Clients BPM e GSA](02-arquitetura/05-bll-do-host/02-clients-bpm-e-gsa.md)
+          - [Clients BPM, GSA e UCE](02-arquitetura/05-bll-do-host/02-clients-bpm-e-gsa.md)
         - [DAL do Host](02-arquitetura/06-dal-do-host.md)
           - [Sessão, SDH e SDGW na DAL](02-arquitetura/06-dal-do-host/01-sessao-sdh-e-sdgw.md)
           - [Framing, Scheduler e Supervisor](02-arquitetura/06-dal-do-host/02-framing-scheduler-e-supervisor.md)

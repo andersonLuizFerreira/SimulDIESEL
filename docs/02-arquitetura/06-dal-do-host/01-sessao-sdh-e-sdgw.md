@@ -8,7 +8,7 @@
 Esta página cobre a parte da DAL que recebe o comando já decidido pela BLL e o transforma em envio SDGW.
 
 ```text
-GsaClient / BpmClient
+GsaClient / UceClient / BpmClient
   -> SdhClient
   -> SdhValidator
   -> SdhToSdgwMapper
@@ -42,6 +42,14 @@ GsaClient / BpmClient
 - `IMPLEMENTADO`: `GSA.channel.fault reset`
 - `IMPLEMENTADO`: `GSA.channel.offset set|get|save|reset`
 - `IMPLEMENTADO`: `GSA.offset reset`
+- `IMPLEMENTADO`: `UCE.led set`
+- `IMPLEMENTADO`: `UCE.can.config set`
+- `IMPLEMENTADO`: `UCE.can.enable set`
+- `IMPLEMENTADO`: `UCE.can.status get`
+- `IMPLEMENTADO`: `UCE.can.rx poll`
+- `IMPLEMENTADO`: `UCE.can.driverLog poll`
+- `IMPLEMENTADO`: `UCE.can.tx send|direct|create|edit|delete|stop`
+- `IMPLEMENTADO`: `UCE.can reset`
 - `PLANEJADO`: qualquer outro target SDH fora dessa lista
 
 ## Trecho comentado: filtro do catálogo
@@ -55,12 +63,15 @@ if (string.Equals(command.Target, BpmGatewayTarget, StringComparison.OrdinalIgno
 if (command.Target.StartsWith("GSA.", StringComparison.OrdinalIgnoreCase))
     return MapGsa(command);
 
+if (command.Target.StartsWith("UCE.", StringComparison.OrdinalIgnoreCase))
+    return MapUce(command);
+
 throw new NotSupportedException(...);
 ```
 
 O que esse trecho faz:
 
-- aceita apenas `BPM.gateway` e o espaço `GSA.*`;
+- aceita `BPM.gateway`, o espaço `GSA.*` e o espaço `UCE.*`;
 - força toda ampliação futura do catálogo a passar por um ponto único de mapeamento;
 - impede que a documentação trate outros targets como já implementados.
 
@@ -101,6 +112,7 @@ Esse caminho não é o hot path da UI atual, mas ele já existe como utilitário
 - **SdhCommand**: contrato semântico que carrega `Version`, `Target`, `Op` e `Args`.
 - **MappedSdgwCommand**: estrutura interna com `cmd`, `payload`, `RequireAck`, `TimeoutMs` e `Retries`.
 - **Frame lógico**: `SdgwFrame` já sem COBS e CRC, pronto para consumo da BLL.
+- **UCE.can.tx**: família SDH validada para envio direto, tabela TX, edição, exclusão e parada de transmissões CAN.
 
 ## Próximas camadas
 

@@ -13,9 +13,9 @@ Nesta trilha `COMO`, o foco não é a posição física da classe, mas a funçã
 
 ```text
 Operador
-  -> DashBoard / frmPortaSerial_UI / frmBluetoothConnect / frmGSA_UI
-  -> FrmBpmLogic / FrmGsaLogic
-  -> BpmSerialService / BpmClient / GsaClient
+  -> DashBoard / frmPortaSerial_UI / frmBluetoothConnect / frmGSA_UI / frmUCE_UI
+  -> FrmBpmLogic / FrmGsaLogic / FrmUceLogic
+  -> BpmSerialService / BpmClient / GsaClient / UceClient / dispatchers CAN-SDCTP
   -> SdhClient
   -> SdhValidator / SdhToSdgwMapper
   -> SdgwSession
@@ -32,6 +32,7 @@ Operador
 | abrir e fechar sessão | `FrmBpmLogic`, `BpmSerialService`, `SdgwHostSession` | `IMPLEMENTADO` |
 | subir handshake textual e entrar em `Linked` | `SdgwHostSession`, `BpmParsers` | `IMPLEMENTADO` |
 | traduzir intenção em comando | `FrmGsaLogic`, `GsaClient`, `BpmClient`, `SdhClient`, `SdhToSdgwMapper` | `IMPLEMENTADO` |
+| controlar UCE, CAN e SDCTP | `FrmUceLogic`, `UceClient`, `UceDispatcher`, `CanControlApiService`, `SdctpApiService` | `IMPLEMENTADO` |
 | arbitrar tráfego | `SdGwTxScheduler`, `SdGwLinkEngine` | `IMPLEMENTADO` |
 | manter saúde do link | `SdgwHostSession`, `SdGwLinkSupervisor` | `IMPLEMENTADO` |
 | tratar resposta funcional e eventos | `GsaClient`, `GsaParsers`, `frmGSA_UI` | `IMPLEMENTADO` |
@@ -45,6 +46,8 @@ Operador
 - `IMPLEMENTADO`: setpoint, enable, status, fault e offsets da GSA
 - `IMPLEMENTADO`: fault assíncrono `0x30`
 - `IMPLEMENTADO`: resultado físico assíncrono `0x31`
+- `IMPLEMENTADO`: `UCE.led`, controle CAN, RX/TX CAN e base SDCTP por comandos `UCE.*`
+- `IMPLEMENTADO`: serviços J1939 de data link, diagnostics, application layer, capture e network management no host
 - `PLANEJADO`: demais boards e demais recursos SDH ainda não mapeados no host
 
 ## Limites do comportamento atual

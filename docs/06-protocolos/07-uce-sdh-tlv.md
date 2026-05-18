@@ -7,7 +7,7 @@
 
 Este documento fixa o contrato lógico hoje implementado para a UCE.
 
-Nesta entrega, a UCE mantém o caso funcional do `LED_BUILTIN` e passa a expor também a configuração da porta CAN pela mesma rota compacta já existente.
+Nesta entrega, a UCE mantém o caso funcional do `LED_BUILTIN`, expõe controle CAN e atende a base SDCTP pela mesma rota compacta já existente.
 
 ## Endereçamento lógico
 
@@ -28,6 +28,9 @@ UCE.led set state=off
 UCE.can.config set controller=can0 bitrate=250 mode=normal
 UCE.can.enable set controller=can0 state=on
 UCE.can.status get controller=can0
+UCE.can.rx poll controller=can0
+UCE.can.driverLog poll controller=can0
+UCE.can.tx send controller=can0 ...
 UCE.can reset controller=can0
 ```
 
@@ -39,11 +42,12 @@ Regras de validação:
 
 Para CAN:
 
-- `target` pode ser `UCE.can.config`, `UCE.can.enable`, `UCE.can.status` ou `UCE.can`
+- `target` pode ser `UCE.can.config`, `UCE.can.enable`, `UCE.can.status`, `UCE.can.rx`, `UCE.can.driverLog`, `UCE.can.tx` ou `UCE.can`
 - `op` deve ser `set`, `get` ou `reset`, conforme o target
 - `controller` deve ser `can0` ou `can1`
 - `bitrate` deve ser `125`, `250`, `500` ou `1000`
 - `mode` deve ser `normal` ou `listen`
+- `rxMode`, quando usado, seleciona o modo de recepção aceito pelo contrato UCE
 - `state` deve ser `on` ou `off`
 
 Observação de UI:
@@ -252,7 +256,7 @@ Na rota da UCE, a BPM também pode anexar diagnóstico de `SPI` e `CRC` quando a
 
 ## Fluxo ponta a ponta
 
-Na extremidade da UCE, a sequência abaixo descreve o pipeline lógico. A árvore física correspondente hoje fica em `lib/core/transport`, `lib/core/link`, `lib/core/service`, `lib/services/led`, `lib/services/can`, `lib/protocol/tlv`, `lib/drivers/can` e `lib/diag/trace`.
+Na extremidade da UCE, a sequência abaixo descreve o pipeline lógico. A árvore física correspondente hoje fica em `lib/core/link`, `lib/core/transport`, `lib/core/services`, `lib/services/led`, `lib/services/can/service`, `lib/services/can/driver`, `lib/services/can/protocol`, `lib/services/can/rxhub`, `lib/services/can/table` e `lib/services/can/sdctp`.
 
 ```text
 frmUCE_UI
@@ -262,15 +266,15 @@ frmUCE_UI
   -> SdhValidator / SdhToSdgwMapper
   -> SdgwSession
   -> BPM / GwRouter / GwSpiBus
-  -> UCE (fluxo lógico: Transport -> Link -> Service -> LedService / CanService)
+  -> UCE (fluxo lógico: SpiLink -> UceTransport -> UceServiceDispatcher -> LedService / SdctpService -> CanService)
 ```
 
 ## Limites desta entrega
 
 - não há loopback
 - não há canal assíncrono novo da UCE no host
-- não há tráfego de frames CAN de dados nesta feature
-- não há tabela de mensagens, J1939 ou payload de tráfego CAN
+- o comando textual `UCE.can.rx readAll` é rejeitado pelo mapper; o caminho oficial é snapshot/buffer SDCTP
+- J1939 existe no host como serviços/catálogos, mas não transforma a UCE em decodificador autônomo dentro do firmware
 - a UI não seleciona `can1`; permanece fixa em `can0`
 - a validação física em bancada da nova feature CAN ainda não está registrada nesta rodada
 

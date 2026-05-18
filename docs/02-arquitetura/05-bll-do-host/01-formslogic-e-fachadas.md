@@ -8,8 +8,8 @@
 Este é o primeiro degrau da BLL. Aqui a UI para de falar com widgets e começa a falar com métodos de aplicação.
 
 ```text
-DashBoard / frmPortaSerial_UI / frmBluetoothConnect / frmGSA_UI
-  -> FrmBpmLogic / FrmGsaLogic
+DashBoard / frmPortaSerial_UI / frmBluetoothConnect / frmGSA_UI / frmUCE_UI
+  -> FrmBpmLogic / FrmGsaLogic / FrmUceLogic
   -> BpmSerialService
   -> SdgwHostSession / clients funcionais
 ```
@@ -20,7 +20,8 @@ DashBoard / frmPortaSerial_UI / frmBluetoothConnect / frmGSA_UI
 | --- | --- | --- | --- | --- |
 | `BLL/FormsLogic/BPM/FrmBpmLogic.cs` | `FrmBpmLogic` | `DashBoard`, `frmPortaSerial_UI`, `frmBluetoothConnect` | `BpmSerialService`, `BpmBluetoothService`, `BpmClient` | `IMPLEMENTADO` |
 | `BLL/FormsLogic/GSA/FrmGsaLogic.cs` | `FrmGsaLogic` | `frmGSA_UI` | `GsaClient` | `IMPLEMENTADO` |
-| `BLL/Boards/BPM/Comm/Serial/BpmSerialService.cs` | `BpmSerialService` | `FrmBpmLogic` | `SwitchableTransport`, `SdgwHostSession`, `BpmClient`, `GsaClient` | `IMPLEMENTADO` |
+| `BLL/FormsLogic/UCE/FrmUceLogic.cs` | `FrmUceLogic` | `frmUCE_UI` | `UceDispatcher`, `CanControlApiService`, `SdctpApiService` | `IMPLEMENTADO` |
+| `BLL/Boards/BPM/Comm/Serial/BpmSerialService.cs` | `BpmSerialService` | `FrmBpmLogic` e forms de boards | `SwitchableTransport`, `SdgwHostSession`, `BpmClient`, `GsaClient`, `UceClient`, serviços CAN/SDCTP | `IMPLEMENTADO` |
 | `BLL/Boards/BPM/Comm/Bluetooth/BpmBluetoothService.cs` | `BpmBluetoothService` | `FrmBpmLogic`, `DashBoard` | `BluetoothDeviceCatalog`, `BpmSerialService.ConnectBluetooth(...)` | `IMPLEMENTADO` |
 
 ## Fluxo estrutural confirmado
@@ -29,6 +30,7 @@ DashBoard / frmPortaSerial_UI / frmBluetoothConnect / frmGSA_UI
 - `DashBoard.toolStripBluetooth_Click(...)` chama `FrmBpmLogic.ConnectBluetoothPadrao()` e tenta ligar ao dispositivo preferencial imediatamente.
 - `frmBluetoothConnect` continua disponível para seleção manual, listagem de dispositivos e conexão explícita.
 - `frmGSA_UI` cria `FrmGsaLogic` e passa por ele em todas as operações de setpoint, enable, status e offsets.
+- `frmUCE_UI` cria `FrmUceLogic` e passa por ele para LED, CAN, tabelas SDCTP e diagnósticos expostos pela UCE.
 
 ## Métodos principais desta faixa
 
@@ -39,6 +41,7 @@ DashBoard / frmPortaSerial_UI / frmBluetoothConnect / frmGSA_UI
 | `FrmBpmLogic` | `GetInterfaceDisplayName()` | adapta `BpmStatusDto` para um rótulo pronto de UI |
 | `FrmGsaLogic` | `SetChannelSetpointAsync(...)` | cria `GsaChannelSetpointRequest` e chama o client |
 | `FrmGsaLogic` | `FailWhenNotLinked<T>()` | bloqueia a GSA enquanto o link não está em `Linked` |
+| `FrmUceLogic` | métodos de LED, CAN e SDCTP | convertem ações da tela em chamadas ao dispatcher UCE |
 | `BpmSerialService` | `Connect(...)` / `ConnectBluetooth(...)` | traduz chamadas da UI em `TransportConnectionSettings` |
 | `BpmSerialService` | `MapState(...)` | projeta `TransportConnected` em `SerialConnected` ou `BluetoothConnected` |
 
@@ -80,7 +83,7 @@ O que esse trecho faz:
 
 ## Classificação dos blocos
 
-- `IMPLEMENTADO`: `FrmBpmLogic`, `FrmGsaLogic`, `BpmSerialService`, `BpmBluetoothService`.
+- `IMPLEMENTADO`: `FrmBpmLogic`, `FrmGsaLogic`, `FrmUceLogic`, `BpmSerialService`, `BpmBluetoothService`, `CanControlApiService`, `SdctpApiService`.
 - `PARCIALMENTE IMPLEMENTADO`: o fluxo manual de `frmBluetoothConnect` existe, mas não é o caminho padrão do atalho do `DashBoard`.
 - `PLANEJADO`: a FormsLogic não possui ainda um equivalente para `BpmNetworkService`.
 

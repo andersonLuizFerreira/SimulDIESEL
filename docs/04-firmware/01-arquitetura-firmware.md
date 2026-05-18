@@ -11,7 +11,8 @@ O foco aqui é estrutural: onde cada bloco embarcado fica na pilha, quais arquiv
 
 - **IMPLEMENTADO**: firmware da `BPM - BACKPLANE MANAGER MODULE` com sessão `SDGW`, endpoints Serial e Bluetooth, roteamento local e acesso a `I2C`/`SPI`.
 - **IMPLEMENTADO**: firmware da `GSA - Gerador de sinais analógicos` com `Transport -> Link -> Service -> AnalogService`, fila de operações físicas, `IRQ` e eventos assíncronos.
-- **PARCIALMENTE IMPLEMENTADO**: caminho físico `SPI` no gateway existe no firmware da BPM, mas a tabela viva de devices ainda publica apenas a GSA em `I2C`.
+- **IMPLEMENTADO**: firmware da `UCE - Unidade de comunicacao externa` com `SpiLink`, `UceTransport`, `UceServiceDispatcher`, `LedService`, `CanService` e fachadas `Sdctp*`.
+- **IMPLEMENTADO**: a tabela viva de devices da BPM publica `GW_ADDR_GSA` em `I2C` e `GW_ADDR_UCE` em `SPI`.
 - **PLANEJADO**: demais boards documentadas em `docs/04-firmware/boards/` ainda não possuem firmware equivalente nesta auditoria.
 - **LEGADO**: a ideia de parser `SDH` residente no gateway continua apenas documental; o firmware ativo consome `SDGW` compacto e `TLV`.
 
@@ -35,6 +36,12 @@ Host local
        -> AnalogService / LedService
        -> BusArbiterService
        -> Tca9548Service / Mcp4725Service / EepromService
+  -> UCE (Arduino Due)
+       -> SpiLink
+       -> UceTransport
+       -> UceServiceDispatcher
+       -> LedService / SdctpService
+       -> CanService / CanDriver / tabelas RX-TX
 ```
 
 ## Boards com firmware vivo
@@ -43,6 +50,7 @@ Host local
 | --- | --- | --- | --- | --- |
 | BPM | `hardware/firmware/BPM - BACKPLANE MANAGER MODULE` | `src/main.cpp` | gateway físico entre host e boards | `IMPLEMENTADO` |
 | GSA | `hardware/firmware/GSA - Gerador de sinais analógicos` | `src/main.cpp` | board remota de geração analógica | `IMPLEMENTADO` |
+| UCE | `hardware/firmware/UCE - Unidade de comunicacao externa` | `src/main.cpp` | board remota SPI para LED, CAN e SDCTP | `IMPLEMENTADO` |
 | PSU, GSC, URL, SLU, UCO, UCS, UIOD, UHM | não encontrado em `hardware/firmware` | inexistente | reservadas na árvore documental | `PLANEJADO` |
 
 ## BPM: composição real
@@ -94,18 +102,41 @@ Aqui a pilha real é:
 4. `AnalogService` e `LedService`
 5. `BusArbiterService` e periféricos físicos
 
+## UCE: composição real
+
+Em `hardware/firmware/UCE - Unidade de comunicacao externa/src/main.cpp`, a UCE é montada com SPI, transporte, dispatcher e serviços físicos:
+
+```cpp
+SpiLink g_link;
+UceTransport g_transport(g_link);
+LedService g_ledService;
+SdctpService g_sdctpService;
+UceServiceDispatcher g_dispatcher(g_ledService, g_sdctpService);
+```
+
+Aqui a pilha real é:
+
+1. `SpiLink` como enlace físico com a BPM
+2. `UceTransport` como transporte TLV da board
+3. `UceServiceDispatcher` como despachante funcional
+4. `LedService` para execução simples de LED
+5. `SdctpService` como fachada atual para o caminho CAN RX/TX validado
+
 ## Decisões estruturais confirmadas
 
 - O gateway ativo fala `SDGW`, não `SDH` textual.
 - A BPM multiplexa Serial e Bluetooth, mas só um endpoint pode alimentar a sessão por vez.
 - A GSA separa `I2C` físico com a BPM de `I2C` lógico com `TCA9548A` e `MCP4725`.
 - O retorno físico da GSA usa `IRQ` e evento assíncrono, não BUSY/IDLE no mesmo barramento.
+- A UCE fica atrás da BPM por `SPI`, usa `IRQ` para sinalizar resposta pronta e concentra a execução física de LED e CAN.
 
 ## Glossário
 
 - **BPM**: board gateway do projeto, implementada em ESP32.
 - **GSA**: board de geração de sinais analógicos, implementada em Nano Every.
+- **UCE**: board de comunicação externa, implementada em Arduino Due.
 - **SDGW**: protocolo binário efetivamente implementado entre host e BPM.
+- **SDCTP**: protocolo de massa CAN RX/TX exposto pela UCE e consumido pelo host.
 - **TLV**: contrato curto usado entre BPM e board remota.
 - **Ownership**: política que garante um único endpoint ativo por sessão no gateway.
 

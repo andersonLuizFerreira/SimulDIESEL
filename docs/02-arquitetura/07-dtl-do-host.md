@@ -14,6 +14,9 @@ A DTL define os tipos que circulam entre UI, BLL e DAL. Ela não abre conexão, 
 | Estado da BPM | `DTL/Boards/BPM/BpmStatusDto.cs`, `BluetoothDeviceDto.cs` | `BpmStatusDto`, `BluetoothDeviceDto` | `IMPLEMENTADO` | DTOs de estado de interface e descoberta Bluetooth |
 | Requests da GSA | `DTL/Boards/GSA/GsaRequests.cs` | requests de setpoint, enable, status, fault e offset | `IMPLEMENTADO` | envelopes de entrada usados por `FrmGsaLogic` e `GsaClient` |
 | Responses e eventos da GSA | `DTL/Boards/GSA/GsaResponses.cs`, `GsaLedResponse.cs`, `GsaCommon.cs` | responses síncronas, enums e eventos assíncronos | `IMPLEMENTADO` | tipos finais entregues à UI e à BLL |
+| Contratos da UCE | `DTL/Boards/UCE/*.cs`, `DTL/Boards/UCE/Can/*.cs` | LED, CAN config/status/RX/TX e DTOs de tabela | `IMPLEMENTADO` | tipos consumidos por `FrmUceLogic`, `UceClient`, SDCTP e J1939 |
+| Contratos J1939 | `DTL/Protocols/J1939/**/*.cs` | mensagens data link, aplicação, diagnósticos, network management, captura e catálogos | `IMPLEMENTADO` | contratos consumidos pelos serviços J1939 e UI UCE |
+| Contrato SDCTP | `DTL/Protocols/SDCTP/SdctpRawEventDto.cs` | evento bruto SDCTP | `IMPLEMENTADO` | apoio ao transporte CAN de massa |
 | Tipos comuns | `DTL/Common/DeviceInfo.cs`, `OperationStatusDto.cs` | `DeviceInfo`, `OperationStatusDto` | `IMPLEMENTADO` | apoio geral para bootstrap textual e retornos simples |
 | Contratos SDH/SDGW | `DTL/Protocols/SDGW/*.cs` | `SdhCommand`, `SdhResponse`, `SdhTarget`, `SdgwFrame`, `SdgwCommand`, `GwProtocol` | `IMPLEMENTADO` / `PARCIALMENTE IMPLEMENTADO` | contratos semânticos e de enlace do host |
 
@@ -22,7 +25,7 @@ A DTL define os tipos que circulam entre UI, BLL e DAL. Ela não abre conexão, 
 - `GwProtocol.GsaChannelStatusType` está em `0x1B`; o host atual não usa `0x12` para `channel.status`.
 - A nomenclatura ativa do código é `Sdgw`, não `Sggw`.
 - `SdhResponse` existe como contrato, mas não participa do hot path atual do host.
-- `OperationStatusDto` existe como tipo comum, porém os caminhos ativos da BPM e da GSA preferem `BpmCommandResult`, `GsaCommandResult` e `GsaOperationResult<T>`.
+- `OperationStatusDto` existe como tipo comum, porém os caminhos ativos da BPM, GSA e UCE preferem resultados específicos como `BpmCommandResult`, `GsaOperationResult<T>` e `UceOperationResult<T>`.
 
 ## Trecho âncora
 
@@ -39,7 +42,7 @@ Isso explica por que o host consegue separar bem as responsabilidades: a DTL car
 
 ## Classificação de estado
 
-- `IMPLEMENTADO`: DTOs BPM, DTOs e enums GSA, `SdhCommand`, `SdhTarget`, `SdgwFrame`, `SdgwCommand`, `GwProtocol`.
+- `IMPLEMENTADO`: DTOs BPM, DTOs e enums GSA, DTOs UCE/CAN, DTOs J1939, `SdhCommand`, `SdhTarget`, `SdgwFrame`, `SdgwCommand`, `GwProtocol` e `SdctpRawEventDto`.
 - `PARCIALMENTE IMPLEMENTADO`: `SdhResponse` e `OperationStatusDto` existem como contratos, mas não estruturam o fluxo quente desta aplicação.
 - `LEGADO`: nomes `Sggw*` pertencem ao histórico documental; eles não são os tipos ativos do host auditado.
 
@@ -47,7 +50,8 @@ Isso explica por que o host consegue separar bem as responsabilidades: a DTL car
 
 - **DTL**: conjunto de DTOs, enums e contratos compartilhados entre camadas.
 - **Target SDH**: identificador semântico como `GSA.channel.status`.
-- **TLV**: formato compacto de tipo, comprimento e valor usado dentro do payload GSA.
+- **TLV**: formato compacto de tipo, comprimento e valor usado dentro dos payloads GSA e UCE.
+- **CanFrameDto**: DTO de frame CAN consumido por SDCTP e pela pilha J1939.
 
 ## Próximas camadas
 

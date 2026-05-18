@@ -8,15 +8,14 @@
 - `local-api/`: aplicação desktop (.NET WinForms), transporte e protocolo cliente.
 - `hardware/`: firmwares e boards.
 - `cloud/`: API/cloud scaffold atual com contratos de openapi.
-- `docs/`: hub documental do projeto.
 - `docs/`: documentação oficial vigente.
 - `out/dumps/docs_legacy_2026-05-18/`: acervo legado removido da árvore viva e preservado para auditoria histórica.
-- `docs/archive/` e `docs/generated/`: material arquivado e artefatos gerados.
+- `out/dumps/`: relatórios de execução, dumps e acervos históricos fora da árvore viva de documentação.
 - `infra/`, `tools/`, `tests/`: suporte operacional.
 
 ## Convenções de pasta
 
-- Pastas de firmware organizadas por domínio (`esp32-api-bridge`, `gerador-sinais-analogicos-GSA`).
+- Pastas de firmware organizadas por board ou domínio (`BPM - BACKPLANE MANAGER MODULE`, `GSA - Gerador de sinais analógicos`, `UCE - Unidade de comunicacao externa`).
 - `.gitkeep` marca áreas aguardando evolução sem remover intenção do diretório.
 
 ## Locais de documentação consolidada
