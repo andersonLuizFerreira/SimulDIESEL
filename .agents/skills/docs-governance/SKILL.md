@@ -36,11 +36,15 @@ Esta skill governa exclusivamente:
 
 ## Relacao docs -> codigo
 
-- `docs/` deve ser a fonte de verdade para o codigo.
-- O codigo deve seguir a documentacao oficial consolidada.
-- Divergencias entre codigo e documentacao devem ser registradas para saneamento.
-- Nao usar codigo divergente como justificativa automatica para alterar a documentacao oficial.
-- Saneamento de codigo divergente deve ocorrer em ETAPA propria, apos consolidacao documental.
+- O estado atual da documentacao ainda esta em consolidacao e saneamento.
+- Enquanto `docs/` nao estiver totalmente atualizado e confiavel, divergencias entre documentacao e codigo nao devem ser resolvidas automaticamente pela IA.
+- Divergencias entre documentacao e codigo devem ser registradas e apresentadas ao humano para decisao.
+- Somente uma ETAPA/task com instrucao humana explicita pode autorizar:
+  - atualizar docs para seguir o codigo;
+  - atualizar codigo para seguir docs;
+  - escolher uma fonte como verdade operacional naquele contexto.
+- Nao usar codigo divergente como justificativa automatica para alterar documentacao oficial.
+- Futuramente, apos consolidacao documental, `docs/` podera se tornar oficialmente a fonte de verdade para o codigo.
 
 ## Arvore oficial de `docs/`
 
@@ -127,10 +131,10 @@ Esta skill nao governa:
 
 Em caso de conflito entre documentacao e codigo:
 
-- a documentacao oficial consolidada deve orientar o codigo;
-- divergencias devem ser registradas;
-- saneamento de codigo deve ser feito em ETAPA propria;
-- solicitar decisao humana quando necessario.
+- registrar a divergencia;
+- nao decidir autonomamente qual lado prevalece;
+- solicitar decisao humana quando necessario;
+- seguir instrucoes explicitas da ETAPA/task quando existirem.
 
 ## Checklist de entrega
 
