@@ -18,13 +18,13 @@ O objetivo é permitir que a consulta comece por um mapa global, avance por pais
 
 ## Governança documental
 
-A regra oficial da árvore e das futuras revisões está em [DOCUMENTATION_RULES.md](./DOCUMENTATION_RULES.md).
+A governança oficial para agentes e manutenção documental está em [`.agents/README.md`](../.agents/README.md) e na skill [docs-governance](../.agents/skills/docs-governance/SKILL.md).
 
 ## Papel desta página
 
-Esta página continua sendo a porta de entrada da pasta `docs/`, conectando o leitor ao índice global e ao documento mestre de governança.
+Esta página continua sendo a porta de entrada da pasta `docs/`, conectando o leitor ao índice global e à árvore documental viva.
 
-O acervo histórico permanece preservado em `docs/legacy/`.
+O acervo histórico removido da árvore viva permanece preservado pelo Git e por registros em `out/dumps/`.
 
 ## Glossário
 
@@ -35,4 +35,3 @@ O acervo histórico permanece preservado em `docs/legacy/`.
 ## Próximas camadas
 
 * [00-INDICE — Índice Geral da Navegação](./00-INDICE.md)
-* [DOCUMENTATION_RULES — Regras Oficiais da Documentação](./DOCUMENTATION_RULES.md)

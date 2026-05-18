@@ -56,10 +56,21 @@ Arvore atualmente autorizada:
 docs/
 |-- README.md
 |-- 00-INDICE.md
-|-- DOCUMENTATION_RULES.md
+|-- 01-visao-geral/
+|-- 02-arquitetura/
+|-- 03-hardware/
+|-- 04-firmware/
+|-- 05-software-dashboard/
+|-- 06-protocolos/
+|-- 07-simulacoes/
+|-- 08-casos-de-uso/
+|-- 09-desenvolvimento/
+|-- 10-testes/
+|-- 11-planejamento/
+`-- 12-documentacao-tecnica/
 ```
 
-A arvore acima representa o alvo de governanca documental. O estado atual do repositorio pode ainda conter divergencias a serem saneadas.
+A arvore acima representa a documentacao viva consolidada. As antigas estruturas `docs/official/`, `docs/legacy/`, `docs/architecture/` e o arquivo `docs/DOCUMENTATION_RULES.md` nao pertencem mais a arvore viva.
 
 Qualquer alteracao na arvore autorizada de `docs/` deve:
 
@@ -81,7 +92,7 @@ pai -> filhos imediatos
 
 - O indice geral deve permanecer como ponto central de navegacao documental.
 - O indice geral e a unica pagina autorizada a apontar para qualquer pagina da arvore viva.
-- Revisoes futuras da organizacao documental devem ser registradas pela governanca documental ou ETAPA correspondente.
+- Revisoes futuras da organizacao documental devem ser registradas pela governanca documental em `.agents/` ou por ETAPA correspondente.
 
 ## Glossario
 
