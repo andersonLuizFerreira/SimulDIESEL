@@ -69,6 +69,42 @@ Qualquer alteracao na arvore autorizada de `docs/` deve:
 4. registrar divergencias encontradas;
 5. preservar conteudo util antes de consolidar ou remover documentos.
 
+## Navegacao documental
+
+- Toda pagina oficial deve possuir navegacao clara para seu contexto documental.
+- A relacao estrutural oficial da documentacao deve seguir:
+
+```text
+pai -> filhos imediatos
+```
+
+- O indice geral deve permanecer como ponto central de navegacao documental.
+- Revisoes futuras da organizacao documental devem ser registradas pela governanca documental ou ETAPA correspondente.
+
+## Glossario
+
+- Toda pagina viva da documentacao deve possuir secao `Glossario` quando utilizar termos tecnicos relevantes.
+- O glossario deve conter apenas termos efetivamente usados no documento.
+
+## Nomenclaturas oficiais
+
+- A nomenclatura oficial do gateway do projeto e:
+
+```text
+SDGW (SimulDiesel GateWay)
+```
+
+- Nomenclaturas oficiais consolidadas nao devem ser alteradas sem ETAPA ou autorizacao humana.
+
+## Separacao ONDE vs COMO
+
+Trilhas documentais profundas nao devem misturar:
+
+- `ONDE`: empilhamento, arquivos, interfaces, conectores e posicao estrutural;
+- `COMO`: comportamento, estados, fluxo, retry, parsing, eventos e resposta operacional.
+
+A separacao deve permanecer clara em documentacoes arquiteturais, firmware, software, hardware, protocolos e fluxos.
+
 ## Regras locais
 
 - A documentacao deve refletir a arquitetura e as decisoes oficiais consolidadas.
