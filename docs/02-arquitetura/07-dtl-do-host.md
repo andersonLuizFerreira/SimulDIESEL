@@ -3,55 +3,89 @@
 
 # DTL do Host
 
-## Posição na pilha
+A **DTL do Host** é o bloco da aplicação responsável por definir a forma dos dados que circulam entre as camadas do software local.
 
-A DTL define os tipos que circulam entre UI, BLL e DAL. Ela não abre conexão, não agenda fila e não faz retry; sua função é fixar a forma dos dados que o host realmente manipula.
+Ela não executa operação, não abre conexão, não acessa banco de dados e não conversa diretamente com o hardware. Sua função é fornecer tipos compartilhados para que a interface, a BLL e a DAL consigam trocar informações de forma estável e previsível.
 
-## Contratos reais da camada
+Em termos práticos, a DTL funciona como o vocabulário comum do host local.
 
-| grupo | arquivos | tipos principais | estado | papel |
-| --- | --- | --- | --- | --- |
-| Estado da BPM | `DTL/Boards/BPM/BpmStatusDto.cs`, `BluetoothDeviceDto.cs` | `BpmStatusDto`, `BluetoothDeviceDto` | `IMPLEMENTADO` | DTOs de estado de interface e descoberta Bluetooth |
-| Requests da GSA | `DTL/Boards/GSA/GsaRequests.cs` | requests de setpoint, enable, status, fault e offset | `IMPLEMENTADO` | envelopes de entrada usados por `FrmGsaLogic` e `GsaClient` |
-| Responses e eventos da GSA | `DTL/Boards/GSA/GsaResponses.cs`, `GsaLedResponse.cs`, `GsaCommon.cs` | responses síncronas, enums e eventos assíncronos | `IMPLEMENTADO` | tipos finais entregues à UI e à BLL |
-| Contratos da UCE | `DTL/Boards/UCE/*.cs`, `DTL/Boards/UCE/Can/*.cs` | LED, CAN config/status/RX/TX e DTOs de tabela | `IMPLEMENTADO` | tipos consumidos por `FrmUceLogic`, `UceClient`, SDCTP e J1939 |
-| Contratos J1939 | `DTL/Protocols/J1939/**/*.cs` | mensagens data link, aplicação, diagnósticos, network management, captura e catálogos | `IMPLEMENTADO` | contratos consumidos pelos serviços J1939 e UI UCE |
-| Contrato SDCTP | `DTL/Protocols/SDCTP/SdctpRawEventDto.cs` | evento bruto SDCTP | `IMPLEMENTADO` | apoio ao transporte CAN de massa |
-| Tipos comuns | `DTL/Common/DeviceInfo.cs`, `OperationStatusDto.cs` | `DeviceInfo`, `OperationStatusDto` | `IMPLEMENTADO` | apoio geral para bootstrap textual e retornos simples |
-| Contratos SDH/SDGW | `DTL/Protocols/SDGW/*.cs` | `SdhCommand`, `SdhResponse`, `SdhTarget`, `SdgwFrame`, `SdgwCommand`, `GwProtocol` | `IMPLEMENTADO` / `PARCIALMENTE IMPLEMENTADO` | contratos semânticos e de enlace do host |
+## Posição da DTL dentro do host
 
-## Pontos de fidelidade importantes
+A DTL não fica em uma única linha vertical da pilha como a BLL ou a DAL. Ela é uma camada compartilhada, usada por vários pontos da aplicação.
 
-- `GwProtocol.GsaChannelStatusType` está em `0x1B`; o host atual não usa `0x12` para `channel.status`.
-- A nomenclatura ativa do código é `Sdgw`, não `Sggw`.
-- `SdhResponse` existe como contrato, mas não participa do hot path atual do host.
-- `OperationStatusDto` existe como tipo comum, porém os caminhos ativos da BPM, GSA e UCE preferem resultados específicos como `BpmCommandResult`, `GsaOperationResult<T>` e `UceOperationResult<T>`.
+```mermaid
+flowchart LR
+    UI[Interface Windows<br/>Forms e telas]
+    BLL[BLL do Host<br/>Lógica da aplicação]
+    DAL[DAL do Host<br/>Acessos técnicos]
+    
+    subgraph DTL[DTL do Host]
+        COMMON[Tipos comuns]
+        BPM[Contratos BPM]
+        GSA[Contratos GSA]
+        UCE[Contratos UCE]
+        PROTOCOLS[Contratos de comunicação]
+    end
 
-## Trecho âncora
+    UI <-->|usa tipos| DTL
+    BLL <-->|usa tipos| DTL
+    DAL <-->|usa tipos| DTL
 
-O contrato base do comando semântico do host continua curto e objetivo:
-
-```csharp
-public string Version { get; set; } = "sdh/1";
-public string Target { get; set; }
-public string Op { get; set; }
-public Dictionary<string, string> Args { get; set; }
+    UI --> BLL
+    BLL --> DAL
 ```
 
-Isso explica por que o host consegue separar bem as responsabilidades: a DTL carrega o comando em uma forma estável e a DAL fica livre para validar, mapear e serializar.
+O diagrama mostra que a DTL é consultada por várias camadas. Ela não decide o fluxo da aplicação; ela define os formatos usados durante esse fluxo.
 
-## Classificação de estado
+## Tipos comuns
 
-- `IMPLEMENTADO`: DTOs BPM, DTOs e enums GSA, DTOs UCE/CAN, DTOs J1939, `SdhCommand`, `SdhTarget`, `SdgwFrame`, `SdgwCommand`, `GwProtocol` e `SdctpRawEventDto`.
-- `PARCIALMENTE IMPLEMENTADO`: `SdhResponse` e `OperationStatusDto` existem como contratos, mas não estruturam o fluxo quente desta aplicação.
-- `LEGADO`: nomes `Sggw*` pertencem ao histórico documental; eles não são os tipos ativos do host auditado.
+Os tipos comuns representam informações simples e reutilizáveis por várias partes do host.
+
+Eles podem descrever estados gerais, resultados de operação, informações de dispositivo ou estruturas compartilhadas que não pertencem exclusivamente a uma placa específica.
+
+## Contratos BPM
+
+Os contratos da BPM representam os dados usados para interagir com o bloco central da bancada.
+
+Eles ajudam a padronizar informações relacionadas a estado da conexão, identificação de dispositivos, comandos gerais e respostas associadas à BPM.
+
+## Contratos GSA
+
+Os contratos da GSA representam os dados usados nas operações do Gerador de Sinais Analógicos.
+
+Eles organizam informações relacionadas a canais, comandos de operação, respostas e eventos ligados à geração de sinais elétricos contínuos.
+
+## Contratos UCE
+
+Os contratos da UCE representam os dados usados nas operações da Unidade de Comunicação Externa.
+
+Eles organizam informações ligadas às interfaces de comunicação da bancada, incluindo configuração, estado, envio, recebimento e eventos relacionados à placa.
+
+## Contratos de comunicação
+
+Os contratos de comunicação definem estruturas usadas quando uma informação precisa atravessar as camadas do host e chegar às partes responsáveis por comunicação técnica.
+
+Esses contratos mantêm a separação entre a intenção da aplicação e os formatos internos usados no transporte ou nos serviços de comunicação.
+
+## Relação com as outras camadas
+
+A DTL é usada por UI, BLL e DAL.
+
+A interface usa tipos da DTL para exibir dados ao operador.  
+A BLL usa tipos da DTL para organizar operações e resultados.  
+A DAL usa tipos da DTL para receber comandos estruturados e devolver respostas em formatos conhecidos.
+
+Essa separação evita que cada camada invente sua própria forma de representar a mesma informação.
 
 ## Glossário
 
-- **DTL**: conjunto de DTOs, enums e contratos compartilhados entre camadas.
-- **Target SDH**: identificador semântico como `GSA.channel.status`.
-- **TLV**: formato compacto de tipo, comprimento e valor usado dentro dos payloads GSA e UCE.
-- **CanFrameDto**: DTO de frame CAN consumido por SDCTP e pela pilha J1939.
+- **DTL**: camada de tipos compartilhados usada para padronizar dados entre as camadas do host.
+- **Contrato**: formato combinado para representar uma informação ou operação dentro do software.
+- **Tipo comum**: estrutura reutilizável por várias partes da aplicação.
+- **Contrato BPM**: tipo de dado relacionado à BPM.
+- **Contrato GSA**: tipo de dado relacionado à GSA.
+- **Contrato UCE**: tipo de dado relacionado à UCE.
+- **Contrato de comunicação**: tipo de dado usado para organizar informações ligadas à comunicação interna do host.
 
 ## Próximas camadas
 
