@@ -3,93 +3,87 @@
 
 # API e Host Local
 
-## Recorte auditado
+A **API** é o software local do SimulDIESEL executado no computador do operador. Ela é o ponto de controle da bancada: por ela o usuário abre telas, escolhe funções, envia comandos, acompanha respostas e visualiza informações do módulo em teste.
 
-Esta página documenta o host realmente implementado em `local-api/src/SimulDIESEL/SimulDIESEL`.
+Mesmo sendo software, a API aparece na visão física porque ela se conecta diretamente ao hardware da bancada por meio de uma comunicação Serial ou Bluetooth. Por isso, nesta leitura, o host local é tratado como o bloco externo que opera a bancada eletrônica.
 
-O código observado confirma uma aplicação WinForms única, sem separação em múltiplos executáveis no host atual. As pastas `local-api/src/SimulDiesel.Application`, `SimulDiesel.Domain`, `SimulDiesel.Infrastructure`, `SimulDiesel.LocalApi`, `SimulDiesel.LocalApp`, `SimulDiesel.Protocols` e `SimulDiesel.Shared` continuam apenas como estrutura futura com `.gitkeep`; portanto, neste recorte elas permanecem `PLANEJADO`.
+## Papel do host na bancada
 
-## Empilhamento físico real
+O host local concentra três responsabilidades principais:
 
-```text
-Program.Main
-  -> DashBoard
-  -> UI (frmPortaSerial_UI, frmBluetoothConnect, frmGSA_UI, frmUCE_UI, FrmRedeCan)
-  -> FormsLogic (FrmBpmLogic, FrmGsaLogic, FrmUceLogic)
-  -> Fachada do host (BpmSerialService)
-  -> Clients funcionais (BpmClient, GsaClient, UceClient)
-  -> Sessão host (SdgwHostSession)
-  -> DAL semântica (SdhClient, SdhValidator, SdhToSdgwMapper, SdgwSession)
-  -> DAL de enlace (SdGwTxScheduler, SdGwLinkEngine, SdGwLinkSupervisor)
-  -> Transporte (SwitchableTransport, IByteTransport)
-  -> SerialTransport ou BluetoothTransport
-  -> Porta COM do Windows
+- apresentar a interface de operação ao usuário;
+- transformar ações da interface em comandos internos do sistema;
+- manter uma conexão física ativa com a bancada, usando Serial ou Bluetooth.
+
+A partir dele, o operador não precisa falar diretamente com as placas físicas. A API organiza essa comunicação e encaminha as ações para a BPM, que é a raiz do bloco de hardware.
+
+## Organização física da aplicação
+
+Em uma visão simplificada, a aplicação local pode ser entendida como uma pilha que começa na tela e termina na porta de comunicação do computador.
+
+```mermaid
+flowchart TD
+    OP[Operador]
+    UI[Interface Windows<br/>Telas da aplicação]
+    LOGIC[Lógica da aplicação<br/>FormsLogic e serviços]
+    CLIENTS[Clientes funcionais<br/>BPM, GSA e UCE]
+    TRANSPORT[Transporte local<br/>Serial ou Bluetooth]
+    COM[Porta de comunicação<br/>Windows / COM]
+    HW[Hardware da bancada<br/>BPM]
+
+    OP --> UI
+    UI --> LOGIC
+    LOGIC --> CLIENTS
+    CLIENTS --> TRANSPORT
+    TRANSPORT --> COM
+    COM --> HW
 ```
 
-## Inventário real por camada
+Esse diagrama não detalha todas as classes internas. Ele mostra apenas o caminho físico e estrutural: o operador usa a interface, a aplicação organiza o comando e o transporte local entrega a comunicação ao hardware.
 
-| camada | arquivos e classes reais | pai estrutural | filho estrutural | estado | papel no host |
-| --- | --- | --- | --- | --- | --- |
-| UI | `Program.cs`, `DashBoard.cs`, `UI/frmPortaSerial_UI.cs`, `UI/frmBluetoothConnect.cs`, `UI/frmGSA_UI.cs`, `UI/frmUCE_UI.cs`, `UI/FrmRedeCan.cs` | operador | `FrmBpmLogic`, `FrmGsaLogic`, `FrmUceLogic` | `IMPLEMENTADO` | abre telas, exibe estado e dispara ações do operador |
-| BLL de forms | `BLL/FormsLogic/BPM/FrmBpmLogic.cs`, `BLL/FormsLogic/GSA/FrmGsaLogic.cs`, `BLL/FormsLogic/UCE/FrmUceLogic.cs` | UI | `BpmSerialService`, `GsaClient`, `UceClient`, serviços CAN/J1939 | `IMPLEMENTADO` | adapta a árvore interna do host para métodos consumíveis pela UI |
-| BLL de boards | `BLL/Boards/BPM/BpmClient.cs`, `BLL/Boards/GSA/GsaClient.cs`, `BLL/Boards/UCE/UceClient.cs` | FormsLogic | `SdhClient`, `SdgwSession` | `IMPLEMENTADO` | concentra casos de uso de BPM, GSA e UCE |
-| Fachada da sessão | `BLL/Boards/BPM/Comm/Serial/BpmSerialService.cs`, `BLL/Boards/BPM/Comm/SdgwHostSession.cs` | FormsLogic e clients | DAL de protocolo e transporte | `IMPLEMENTADO` | compõe o host, sobe o link e projeta estado para cima |
-| DAL de protocolo | `DAL/Protocols/SDGW/SdhClient.cs`, `SdhValidator.cs`, `SdhToSdgwMapper.cs`, `SdgwSession.cs` | BLL | scheduler e link engine | `IMPLEMENTADO` | valida, mapeia e entrega comandos SDH para o enlace SDGW |
-| DAL de enlace | `DAL/Protocols/SDGW/SdGwTxScheduler.cs`, `SdgwLinkEngine.cs`, `SdgwLinkSupervisor.cs`, `SdgwFrameReader.cs`, `SdgwFrameWriter.cs`, `SdgwFrameCodec.cs` | DAL de protocolo | transporte | `IMPLEMENTADO` | fila, stop-and-wait, ACK, retry, framing, COBS e watchdog |
-| Transporte | `DAL/Transport/SwitchableTransport.cs`, `DAL/Transport/Serial/*.cs`, `DAL/Transport/Bluetooth/*.cs` | DAL de enlace | Windows/COM | `IMPLEMENTADO` | mantém uma sessão física ativa e entrega bytes ao SO |
-| DTL | `DTL/Common/*.cs`, `DTL/Boards/BPM/*.cs`, `DTL/Boards/GSA/*.cs`, `DTL/Boards/UCE/*.cs`, `DTL/Protocols/SDGW/*.cs`, `DTL/Protocols/SDCTP/*.cs`, `DTL/Protocols/J1939/*.cs` | compartilhada por UI, BLL e DAL | compartilhada por UI, BLL e DAL | `IMPLEMENTADO` | fixa DTOs, enums, requests, responses e contratos SDH/SDGW/SDCTP/J1939 |
-| Rede | `BLL/Boards/BPM/Comm/Network/BpmNetworkService.cs` | `BpmSerialService.Network` | nenhum | `PLANEJADO` | slot reservado para um futuro transporte não serial |
+## Interface com o usuário
 
-## Pontos de entrada reais
+A interface Windows é a camada visível da aplicação. Ela concentra telas de conexão, operação de boards, monitoramento e visualização de informações.
 
-- `Program.Main()` abre apenas `DashBoard`.
-- `DashBoard.toolStripConectar_Click(...)` abre `frmPortaSerial_UI` para serial.
-- `DashBoard.toolStripBluetooth_Click(...)` não abre a tela dedicada; ele chama `FrmBpmLogic.ConnectBluetoothPadrao()` e tenta conectar imediatamente ao dispositivo preferencial.
-- `frmGSA_UI` cria `FrmGsaLogic` e opera a GSA inteira por essa trilha, sem falar direto com `SerialPort`.
-- `frmUCE_UI` cria `FrmUceLogic` e opera LED, CAN, SDCTP e visualizações J1939 sem acessar diretamente `SerialPort`, `SQLite` ou TLV bruto.
-- `FrmRedeCan` consome snapshots read-only de módulos J1939/81 detectados e enriquecidos por BLL/catálogo.
+Nesta camada ficam as ações do operador, como conectar à bancada, acessar funções da GSA, acessar funções da UCE ou visualizar dados de rede.
 
-## Conectores estruturais mais importantes
+## Lógica local da aplicação
 
-- `FrmBpmLogic` sobe `BpmStatusDto` para a UI e desce chamadas para `BpmSerialService`.
-- `BpmSerialService` expõe `Sdh`, `Sdgw`, `Bpm`, `Gsa`, `Bluetooth`, `Backplane`, `XConn` e `Network`.
-- `GsaClient`, `UceClient` e `BpmClient` nunca falam com `IByteTransport`; eles entram em `SdhClient`.
-- `SdgwHostSession` usa `IByteTransport`, mas cria internamente `SdGwLinkEngine`, `SdGwTxScheduler`, `SdgwSession` e `SdhClient`.
-- `SwitchableTransport` escolhe `SerialTransport` ou `BluetoothTransport` conforme `TransportConnectionSettings.TransportKind`.
+Abaixo das telas existe uma camada de lógica local responsável por separar a interface da comunicação com a bancada.
 
-## Trecho âncora da composição
+Essa separação é importante porque evita que uma tela fale diretamente com Serial, Bluetooth, protocolos internos ou detalhes de baixo nível. A interface solicita uma ação; a lógica local decide como essa ação deve ser encaminhada.
 
-Em `BLL/Boards/BPM/Comm/Serial/BpmSerialService.cs`, o construtor mostra exatamente onde a pilha do host se fecha:
+## Comunicação com o hardware
 
-```csharp
-_transport = new SwitchableTransport();
-_session = new Comm.SdgwHostSession(_transport);
-Bluetooth = new Comm.Bluetooth.BpmBluetoothService(this);
-Network = new Comm.Network.BpmNetworkService();
-Gsa = new GsaClient(Sdh, Sdgw);
-Uce = new UceClient(Sdh, Sdgw);
-Bpm = new BpmClient(Sdh, this, Backplane, XConn);
-```
+A comunicação física entre o host e a bancada ocorre por Serial ou Bluetooth. Em ambos os casos, para o Windows, a comunicação chega à aplicação como uma porta de comunicação local.
 
-Esse trecho é importante porque concentra a árvore ativa do host em um ponto físico único: acima dele ficam UI e FormsLogic; abaixo dele começam sessão, DAL e transporte.
+A partir dessa conexão, a aplicação se comunica com a BPM, que assume o papel de entrada do bloco de hardware.
 
-## Limites confirmados pelo código
+## Limites desta página
 
-- `IMPLEMENTADO`: serial direta e Bluetooth Classic SPP sobre COM.
-- `IMPLEMENTADO`: catálogo funcional ativo para `BPM.gateway ping`, operações `GSA.*` e operações `UCE.*` de LED, CAN RX/TX, status, driver log e reset.
-- `PARCIALMENTE IMPLEMENTADO`: `frmBluetoothConnect` existe e funciona, mas o atalho principal do `DashBoard` usa conexão automática por dispositivo preferencial.
-- `PARCIALMENTE IMPLEMENTADO`: `BackplaneService` e `XConnService` já existem na composição, porém retornam apenas mensagens de expansão preparada.
-- `PARCIALMENTE IMPLEMENTADO`: J1939 no host possui decoders, diagnósticos, gerenciamento de rede, catálogos e UI, mas depende de cobertura de catálogo e validação operacional de bancada.
-- `PLANEJADO`: transporte de rede equivalente ao serial/Bluetooth.
-- `LEGADO`: a documentação antiga usava `Sggw`; no host atual os tipos ativos são `SdgwFrame` e `SdgwCommand`.
+Esta página apresenta a posição da API e do host local dentro da visão física do SimulDIESEL.
+
+Ela não detalha:
+
+- todas as classes internas da aplicação;
+- contratos de protocolo;
+- regras de validação de comandos;
+- funcionamento de scheduler, retry, framing ou sessão;
+- decodificação CAN/J1939;
+- estrutura detalhada de BLL, DAL, DTL e transporte.
+
+Esses assuntos são tratados nas próximas camadas.
 
 ## Glossário
 
-- **Host local**: aplicação WinForms que roda no PC e controla a bancada.
-- **Fachada do host**: ponto da BLL que compõe sessão, clients e transportes.
-- **Borda BLL/DAL**: região onde intenção funcional vira chamada de protocolo.
-- **Sessão única**: regra segundo a qual só um transporte físico fica ativo por vez.
-- **SDCTP**: camada de massa CAN RX/TX usada pela UCE e exposta ao host por serviços BLL.
+- **API**: aplicação Windows local usada para operar a bancada SimulDIESEL.
+- **Bluetooth**: uma das formas de comunicação física entre o computador e a bancada.
+- **FormsLogic**: camada da aplicação que separa ações da interface de chamadas internas do sistema.
+- **Host local**: computador e aplicação local usados pelo operador para controlar a bancada.
+- **Interface Windows**: conjunto de telas usadas pelo operador.
+- **Porta COM**: porta de comunicação reconhecida pelo Windows para tráfego Serial ou Bluetooth.
+- **Serial**: forma de comunicação física direta entre o computador e a bancada.
+- **Transporte local**: parte da aplicação responsável por manter a comunicação física com a bancada.
 
 ## Próximas camadas
 
