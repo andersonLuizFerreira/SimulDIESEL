@@ -3,80 +3,132 @@
 
 # DAL do Host
 
-## Posição na pilha
+A **DAL do Host** é o bloco da aplicação responsável pelos acessos técnicos usados pelo software local.
 
-A DAL real do host concentra protocolo, sessão, framing e adaptação para o transporte. Na leitura `ONDE`, esta é a faixa que recebe intenção já escolhida pela BLL e a transforma em tráfego SDGW.
+Ela fica abaixo da BLL e oferece caminhos controlados para que a aplicação consiga se comunicar com recursos externos ou persistentes. No SimulDIESEL, isso inclui tanto a comunicação com a bancada quanto o acesso a dados locais, como banco de dados e arquivos.
 
-```text
-BLL
-  -> SdgwHostSession (borda superior)
-  -> SdhClient
-  -> SdhValidator / SdhToSdgwMapper
-  -> SdgwSession
-  -> SdGwTxScheduler
-  -> SdGwLinkEngine
-  -> SdGwLinkSupervisor
-  -> SwitchableTransport
+A BLL expressa **o que** a aplicação quer fazer. A DAL organiza **como** essa intenção será encaminhada para o destino técnico correto.
+
+## Posição da DAL dentro do host
+
+A DAL fica abaixo da BLL e concentra os acessos técnicos que a aplicação precisa realizar.
+
+Dentro do host local, ela pode ser entendida por dois caminhos principais:
+
+- **comunicação com a bancada**, quando a aplicação precisa enviar ou receber dados do hardware;
+- **persistência local**, quando a aplicação precisa consultar ou salvar informações em banco de dados ou arquivos.
+
+```mermaid
+flowchart LR
+    BLL[BLL do Host<br/>Intenção da aplicação]
+
+    subgraph DAL[DAL do Host]
+        direction TB
+
+        subgraph COM[Comunicação com a bancada]
+            direction LR
+            PREP[Preparação de comandos]
+            SESSION[Sessão de comunicação]
+            QUEUE[Fila e agendamento]
+            LINK[Controle do link]
+
+            PREP --> SESSION
+            SESSION --> QUEUE
+            QUEUE --> LINK
+        end
+
+        subgraph PERSIST[Persistência local]
+            direction LR
+            REPO[Repositórios]
+            PROVIDER[Provider de banco]
+            STORAGE[Banco de dados<br/>ou arquivos locais]
+
+            REPO --> PROVIDER
+            PROVIDER --> STORAGE
+        end
+    end
+
+    TRANSPORT[Transporte local<br/>Serial ou Bluetooth]
+    HARDWARE[Hardware da bancada]
+    STORAGEOUT[Armazenamento local]
+
+    BLL --> PREP
+    LINK --> TRANSPORT
+    TRANSPORT --> HARDWARE
+
+    BLL --> REPO
+    STORAGE --> STORAGEOUT
 ```
 
-## Componentes reais
+O diagrama mostra que a DAL possui dois papéis técnicos principais. Um caminho organiza a comunicação com a bancada. O outro organiza a persistência local de dados.
 
-| grupo | arquivos e classes | função estrutural | estado |
-| --- | --- | --- | --- |
-| Semântica SDH | `SdhClient.cs`, `SdhValidator.cs`, `SdhToSdgwMapper.cs`, `SdhTextParser.cs`, `SdhTextSerializer.cs` | valida target/op, interpreta texto e mapeia intenção para `cmd + payload` SDGW | `IMPLEMENTADO` |
-| Sessão SDGW | `SdgwSession.cs` | converte `AppFrame` do engine em `SdgwFrame` e sobe `FrameReceived` / `EventReceived` | `IMPLEMENTADO` |
-| Scheduler | `SdGwTxScheduler.cs` | fila única com prioridades `High`, `Normal` e `Low` | `IMPLEMENTADO` |
-| Link engine | `SdgwLinkEngine.cs` | delimitação, COBS, CRC8, ACK, timeout, retry e deduplicação RX | `IMPLEMENTADO` |
-| Supervisor | `SdgwLinkSupervisor.cs` | watchdog por silêncio de RX válido | `IMPLEMENTADO` |
-| Helpers de framing | `SdgwFrameReader.cs`, `SdgwFrameWriter.cs`, `SdgwFrameCodec.cs` | utilitários fora do hot path principal | `IMPLEMENTADO` |
-| Transporte | `DAL/Transport/**` | degrau final da DAL antes do sistema operacional | `IMPLEMENTADO` |
+## Comunicação com a bancada
 
-## Conectores acima e abaixo
+O caminho de comunicação com a bancada é usado quando a aplicação precisa enviar comandos ao hardware ou receber respostas e eventos.
 
-### Acima
+Nesse caminho, a DAL organiza a intenção recebida da BLL, prepara a mensagem, mantém a sessão de comunicação, controla a ordem de envio e entrega os dados ao transporte local.
 
-- `SdgwHostSession` cria e possui `SdgwSession`, `SdhClient`, `SdGwTxScheduler`, `SdGwLinkEngine` e `SdGwLinkSupervisor`.
-- `BpmClient`, `GsaClient` e `UceClient` entram nesta camada via `SdhClient`.
+Esse bloco protege a BLL dos detalhes técnicos da comunicação com o hardware.
 
-### Abaixo
+## Persistência local
 
-- `SdGwLinkEngine` só conhece um callback `WriteRaw(...)`.
-- `WriteRaw(...)` desce até `IByteTransport.Write(...)`.
-- `SwitchableTransport` escolhe `SerialTransport` ou `BluetoothTransport`.
+O caminho de persistência local é usado quando a aplicação precisa salvar, consultar ou organizar informações em banco de dados ou arquivos locais.
 
-## Observações de fidelidade
+Nesse caminho entram repositórios, providers de banco e estruturas responsáveis por gravar ou recuperar dados usados pelo sistema.
 
-- `SdgwHostSession` está fisicamente em `BLL/Boards/BPM/Comm`, mas estruturalmente é a borda superior da DAL do host.
-- `SdgwFrameReader` e `SdgwFrameWriter` existem e funcionam, porém o fluxo ativo usa principalmente o caminho interno de `SdGwLinkEngine`.
-- O catálogo SDH aceito por esta DAL é menor que o catálogo conceitual do projeto, mas o código atual confirma `BPM.gateway ping`, `GSA.*` e `UCE.*` para LED, CAN RX/TX, status, driver log e reset.
-- O caminho `SendOutcome.Enqueued` existe no engine, mas nenhum caso funcional ativo do host atual usa envio sem ACK.
+Esse bloco protege a BLL dos detalhes de armazenamento, como caminho físico do arquivo, conexão com banco ou tecnologia usada para persistência.
 
-## Trecho âncora: fronteira semântica
+## Preparação de comandos
 
-Em `DAL/Protocols/SDGW/SdhClient.cs`, a fronteira entre intenção e frame compacto é explícita:
+A preparação de comandos é a entrada do caminho de comunicação com a bancada.
 
-```csharp
-_validator.Validate(command);
-SdhToSdgwMapper.MappedSdgwCommand mapped = _mapper.Map(command);
+Ela recebe uma intenção já definida pela BLL e prepara essa intenção para ser enviada ao hardware em uma forma adequada para as camadas inferiores.
 
-return _sdgw.SendAsync(
-    mapped.Cmd,
-    mapped.Payload,
-    mapped.RequireAck,
-    mapped.TimeoutMs,
-    mapped.Retries,
-    priority,
-    origin ?? (command.Target + ":" + command.Op));
-```
+## Sessão de comunicação
 
-Esse trecho é o ponto onde a DAL deixa de falar em `Target`, `Op` e `Args` e passa a falar em `cmd`, `payload`, `timeout` e `retries`.
+A sessão de comunicação organiza a conversa entre o host e a bancada.
+
+Ela permite que envio, recebimento, eventos e respostas sejam tratados como parte de uma comunicação contínua.
+
+## Fila e agendamento
+
+A fila e o agendamento controlam a ordem de envio das mensagens para a bancada.
+
+Esse bloco evita que várias partes da aplicação disputem a comunicação ao mesmo tempo sem organização.
+
+## Controle do link
+
+O controle do link cuida da etapa mais próxima do transporte local.
+
+Ele prepara a mensagem para trafegar pela conexão disponível e acompanha a troca de dados entre o host e a bancada.
+
+## Relação com a BLL
+
+A BLL fica acima da DAL.
+
+Ela solicita operações em linguagem de aplicação: consultar, salvar, conectar, acionar uma placa ou executar uma função.
+
+A DAL recebe essa intenção e encaminha para o caminho técnico adequado: comunicação com a bancada ou persistência local.
+
+## Relação com transporte e armazenamento
+
+Abaixo da DAL existem destinos técnicos diferentes.
+
+Quando a operação é de comunicação, a DAL entrega os dados ao transporte local, como Serial ou Bluetooth.
+
+Quando a operação é de persistência, a DAL entrega a solicitação ao provider de banco ou ao mecanismo de armazenamento local.
 
 ## Glossário
 
-- **DAL**: camada que concentra protocolo, sessão e transporte.
-- **Hot path**: caminho realmente usado durante a execução normal do link.
-- **Frame compacto**: comando SDGW já pronto para descer ao enlace.
-- **Catálogo SDH ativo**: conjunto de targets e ops aceitos por `SdhValidator` e mapeados por `SdhToSdgwMapper`.
+- **DAL**: camada responsável pelos acessos técnicos da aplicação, incluindo comunicação com hardware e persistência de dados.
+- **Banco de dados**: estrutura usada para armazenar informações persistentes da aplicação.
+- **Controle do link**: parte da DAL que acompanha a troca de dados próxima ao transporte local.
+- **Fila de envio**: estrutura usada para controlar a ordem em que mensagens são transmitidas.
+- **Persistência local**: armazenamento de dados em banco ou arquivos locais.
+- **Provider de banco**: componente que encapsula a tecnologia usada para acessar o banco de dados.
+- **Repositório**: componente que oferece operações organizadas de leitura e gravação de dados.
+- **Sessão de comunicação**: organização contínua da conversa entre host e bancada.
+- **Transporte local**: camada que envia e recebe dados usando Serial ou Bluetooth.
 
 ## Próximas camadas
 
