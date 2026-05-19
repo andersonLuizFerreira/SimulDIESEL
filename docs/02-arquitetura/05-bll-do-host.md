@@ -3,80 +3,146 @@
 
 # BLL do Host
 
-## Posição na pilha
+A **BLL do Host** é o bloco da aplicação responsável por organizar as ações vindas da interface Windows antes que elas sejam encaminhadas para as camadas inferiores do sistema.
 
-A BLL real do host fica entre a UI WinForms e a DAL SDH/SDGW. Ela recebe eventos de tela, projeta estado para o operador e decide qual client funcional deve chamar a pilha de protocolo.
+Ela não é a tela e também não é o transporte físico. Sua função é ficar no meio: receber uma intenção da interface, escolher o serviço correto e entregar uma chamada mais organizada para a parte da aplicação que fala com a bancada.
 
-```text
-DashBoard / forms
-  -> FrmBpmLogic / FrmGsaLogic / FrmUceLogic
-  -> BpmSerialService
-  -> BpmClient / GsaClient / UceClient / dispatchers CAN-SDCTP
-  -> SdhClient / SdgwSession
+Nesta visão física, a BLL é apresentada como um conjunto de sub-blocos internos, cada um com uma responsabilidade específica dentro do host local.
+
+## Posição da BLL dentro do host
+
+A BLL fica abaixo da interface Windows e acima das camadas inferiores responsáveis pela comunicação com o hardware.
+
+```mermaid
+flowchart LR
+    UI[Interface Windows<br/>Forms e telas]
+
+    subgraph BLL[BLL do Host]
+        direction LR
+
+        FORMS[FormsLogic<br/>Lógica das telas]
+
+        subgraph BPM[BPM]
+            direction TB
+            BPMF[Fachada BPM]
+            BPMC[Client BPM]
+            BPMF --> BPMC
+        end
+
+        subgraph GSA[GSA]
+            direction TB
+            GSAF[Fachada GSA]
+            GSAC[Client GSA]
+            GSAF --> GSAC
+        end
+
+        subgraph UCE[UCE]
+            direction TB
+            UCEF[Fachada UCE]
+            UCEC[Client UCE]
+            UCEF --> UCEC
+        end
+
+        SERV[Serviços especializados<br/>Boards, comunicação e expansão]
+
+        FORMS --> BPMF
+        FORMS --> GSAF
+        FORMS --> UCEF
+
+        BPMC --> SERV
+        GSAC --> SERV
+        UCEC --> SERV
+    end
+
+    LOWER[Camadas inferiores<br/>Comunicação com a bancada]
+
+    UI --> FORMS
+    SERV --> LOWER
 ```
 
-## Classes reais da camada
+O diagrama mostra que a interface Windows apenas inicia ações e recebe informações. A organização dessas ações acontece dentro da BLL, que agrupa a lógica por área de utilidade: BPM, GSA, UCE e serviços especializados.
 
-| grupo | arquivos e classes | acima | abaixo | estado | papel |
-| --- | --- | --- | --- | --- | --- |
-| FormsLogic | `BLL/FormsLogic/BPM/FrmBpmLogic.cs`, `BLL/FormsLogic/GSA/FrmGsaLogic.cs`, `BLL/FormsLogic/UCE/FrmUceLogic.cs` | `DashBoard`, `frmPortaSerial_UI`, `frmBluetoothConnect`, `frmGSA_UI`, `frmUCE_UI` | `BpmSerialService`, `GsaClient`, `UceDispatcher` | `IMPLEMENTADO` | traduz eventos e estados da UI |
-| Fachada BPM | `BLL/Boards/BPM/Comm/Serial/BpmSerialService.cs` | `FrmBpmLogic` e forms de boards | `SwitchableTransport`, `SdgwHostSession`, `BpmClient`, `GsaClient`, `UceClient`, `UceDispatcher` | `IMPLEMENTADO` | compõe a árvore do host e projeta estado de conexão |
-| Serviço Bluetooth | `BLL/Boards/BPM/Comm/Bluetooth/BpmBluetoothService.cs` | `FrmBpmLogic`, `DashBoard` | `BluetoothDeviceCatalog`, `BpmSerialService.ConnectBluetooth(...)` | `IMPLEMENTADO` | resolve o dispositivo preferencial e conecta via COM SPP |
-| Client BPM | `BLL/Boards/BPM/BpmClient.cs` | `FrmBpmLogic` | `SdhClient` | `IMPLEMENTADO` | expõe `GetStatus()` e `PingGatewayAsync()` |
-| Client GSA | `BLL/Boards/GSA/GsaClient.cs` | `FrmGsaLogic`, `frmGSA_UI` | `SdhClient`, `SdgwSession` | `IMPLEMENTADO` | envia operações GSA, correlaciona respostas e repassa eventos |
-| Client UCE | `BLL/Boards/UCE/UceClient.cs`, `BLL/Boards/UCE/UceDispatcher.cs` | `FrmUceLogic`, serviços CAN/SDCTP | `SdhClient`, `SdgwSession` | `IMPLEMENTADO` | envia `UCE.*`, interpreta respostas e centraliza operações da board |
-| Serviços CAN/SDCTP | `BLL/Services/CAN/CanControlApiService.cs`, `BLL/Services/CAN/SDCTP/SdctpApiService.cs` | UI e serviços de protocolo | `UceDispatcher` | `IMPLEMENTADO` | expõe controle CAN e tabelas SDCTP por cima da UCE |
-| Despacho de boards | `BLL/Boards/BoardDispatcher.cs` | camada de aplicação | `UceDispatcher`, `GsaDispatcher` | `IMPLEMENTADO` | roteia operações para dispatchers específicos |
-| Serviços auxiliares | `BLL/Boards/BPM/Backplane/BackplaneService.cs`, `BLL/Boards/BPM/XConn/XConnService.cs` | `BpmClient` | nenhum conector inferior ativo | `PARCIALMENTE IMPLEMENTADO` | preservam pontos de expansão já nomeados na BLL |
-| Serviço de rede | `BLL/Boards/BPM/Comm/Network/BpmNetworkService.cs` | `BpmSerialService.Network` | nenhum | `PLANEJADO` | reserva de API para um transporte futuro |
+## FormsLogic
 
-## Conectores com a camada acima
+A **FormsLogic** é a parte da BLL mais próxima das telas.
 
-- `FrmBpmLogic` sobe `StatusChanged` e `Error` para as telas BPM.
-- `FrmGsaLogic` sobe `ChannelFaultEventReceived` e `PhysicalOperationEventReceived` para `frmGSA_UI`.
-- `FrmUceLogic` liga a tela UCE ao dispatcher e aos serviços CAN/SDCTP.
-- `BpmSerialService` converte `SdgwHostSession.SessionState` em `BpmSerialService.LinkState`, que é o estado realmente consumido pela UI.
+Ela existe para impedir que os formulários WinForms concentrem regra de operação da bancada. A tela continua responsável por botões, campos, eventos e exibição visual; a FormsLogic fica responsável por transformar essas ações em chamadas organizadas para os blocos internos da BLL.
 
-## Conectores com a camada abaixo
+Em termos práticos, ela ajuda a responder perguntas como:
 
-- `BpmClient.PingGatewayAsync()` desce para `SdhClient.SendAsync(...)`.
-- `GsaClient.ExecuteOperationAsync(...)` desce para `SdhClient.SendAsync(...)` e volta a ouvir `SdgwSession.FrameReceived` e `SdgwSession.EventReceived`.
-- `UceClient.ExecuteOperationAsync(...)` desce para `SdhClient.SendAsync(...)` e alimenta `UceDispatcher`, `CanControlApiService` e `SdctpApiService`.
-- `BpmSerialService.Connect(...)` e `ConnectBluetooth(...)` não abrem `SerialPort` diretamente; ambos passam por `SwitchableTransport`.
+- qual serviço deve ser chamado quando o operador clica em um botão;
+- qual estado deve ser devolvido para a tela;
+- como uma resposta da bancada deve ser preparada antes de aparecer para o operador.
 
-## Observações confirmadas
+## Bloco BPM
 
-- O nome `BpmSerialService` permaneceu histórico, mas a classe já é a fachada comum de serial e Bluetooth.
-- `FrmGsaLogic` protege a GSA com uma guarda simples: sem `IsLinked`, todas as operações retornam falha imediata.
-- A UCE já participa da composição do host com client, dispatcher, controle CAN e SDCTP.
-- `BackplaneService` e `XConnService` já participam da composição do host, mas ainda não descem para a DAL.
-- `BpmNetworkService` existe somente como placeholder e devolve mensagem de não implementado.
+O bloco **BPM** concentra as operações relacionadas ao controle central da bancada.
 
-## Trecho âncora
+Dentro dele existem dois papéis principais:
 
-No próprio construtor de `BpmSerialService`, a BLL monta a árvore superior do host:
+- **Fachada BPM**: ponto de acesso usado pela aplicação para lidar com conexão, estado geral e serviços centrais da bancada;
+- **Client BPM**: parte responsável por concentrar operações específicas da BPM.
 
-```csharp
-Backplane = new BackplaneService();
-XConn = new XConnService();
-Bluetooth = new Comm.Bluetooth.BpmBluetoothService(this);
-Network = new Comm.Network.BpmNetworkService();
-Gsa = new GsaClient(Sdh, Sdgw);
-Uce = new UceClient(Sdh, Sdgw);
-UceDispatcher = new UceDispatcher(Uce);
-CanControl = new CanControlApiService(UceDispatcher);
-Sdctp = new SdctpApiService(UceDispatcher);
-BoardDispatcher = new BoardDispatcher(UceDispatcher, GsaDispatcher);
-Bpm = new BpmClient(Sdh, this, Backplane, XConn);
-```
+Esse bloco é importante porque a BPM é a raiz de comunicação do hardware. Por isso, grande parte da organização da bancada passa por esse ponto antes de chegar às demais placas.
 
-Esse bloco deixa claro que a BLL não implementa framing nem transporte; ela só compõe serviços, decide responsabilidades e entrega uma API mais estável para as telas.
+## Bloco GSA
+
+O bloco **GSA** concentra as operações relacionadas ao Gerador de Sinais Analógicos.
+
+Dentro dele existem dois papéis principais:
+
+- **Fachada GSA**: ponto usado pela lógica da aplicação para preparar e encaminhar ações relacionadas à GSA;
+- **Client GSA**: parte responsável por concentrar operações específicas da placa GSA.
+
+Esse bloco organiza as ações ligadas à simulação de sinais analógicos, mantendo a tela afastada dos detalhes internos da comunicação com a placa.
+
+## Bloco UCE
+
+O bloco **UCE** concentra as operações relacionadas à Unidade de Comunicação Externa.
+
+Dentro dele existem dois papéis principais:
+
+- **Fachada UCE**: ponto usado pela lógica da aplicação para preparar e encaminhar ações relacionadas à UCE;
+- **Client UCE**: parte responsável por concentrar operações específicas da placa UCE.
+
+Esse bloco organiza as funções de comunicação externa da bancada, mantendo a tela afastada dos detalhes internos da placa e das camadas inferiores.
+
+## Serviços especializados
+
+Além dos blocos principais, a BLL também possui serviços especializados.
+
+Esses serviços existem para organizar funções que não pertencem exclusivamente a uma tela. Eles podem atender boards, comunicação, recursos auxiliares ou pontos de expansão da aplicação.
+
+A função desses serviços é manter o host local organizado, evitando que regras de operação fiquem espalhadas diretamente nos formulários ou misturadas com as camadas inferiores.
+
+## Relação com a interface Windows
+
+A interface Windows fica acima da BLL.
+
+Ela deve:
+
+- apresentar telas ao operador;
+- capturar ações do usuário;
+- exibir estados, mensagens e resultados.
+
+Ela não deve concentrar a lógica de operação da bancada. Quando uma ação precisa ser executada, a interface chama a BLL.
+
+## Relação com as camadas inferiores
+
+As camadas inferiores ficam abaixo da BLL.
+
+A BLL define **o que** a aplicação quer fazer. As camadas inferiores cuidam de levar essa intenção até o hardware da bancada.
+
+Essa separação mantém a aplicação organizada: a BLL fala a linguagem da operação, enquanto as camadas inferiores cuidam da comunicação técnica com a bancada.
 
 ## Glossário
 
-- **FormsLogic**: subcamada da BLL que evita que o formulário conheça a árvore interna do host.
-- **Client funcional**: classe que concentra operações de uma board específica.
-- **Fachada**: ponto único da BLL que concentra estado e composição.
+- **BLL**: camada de lógica da aplicação, responsável por organizar ações da interface antes de encaminhá-las para as camadas inferiores.
+- **Client**: parte da BLL que concentra operações específicas de uma placa ou função.
+- **Fachada**: ponto de acesso que simplifica o uso de um conjunto de serviços internos.
+- **FormsLogic**: parte da BLL que separa os formulários WinForms da lógica de operação da bancada.
+- **Interface Windows**: conjunto de telas usadas pelo operador.
+- **Serviço especializado**: serviço interno da BLL voltado a uma função específica ou ponto de expansão.
 
 ## Próximas camadas
 
